@@ -5,7 +5,7 @@ import { ServiceForm } from '../components/ServiceForm';
 import { createServiceApi, updateServiceApi } from '../features/services/services.api';
 // import { useAuth } from '../hook/useAuth';
 
-export const ManageServicesScreen = () => {
+export const ManageServicesScreen = ({ onOpenProfile }) => {
   // const { userToken } = useAuth();
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +56,18 @@ export const ManageServicesScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Mis Servicios</Text>
+
+      <View style={styles.header}>
+          <Text style={styles.title}>
+              Mis Servicios
+          </Text>
+          <Button
+              title="Mi perfil"
+              onPress={onOpenProfile}
+          />
+      </View>
+
+      {/* <Text style={styles.title}>Mis Servicios</Text> */}
       
       <Button title="+ Nuevo Servicio" onPress={handleOpenCreate} />
 
@@ -93,5 +104,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', paddingTop: 20 },
   title: { fontSize: 24, fontWeight: 'bold', marginHorizontal: 16, marginBottom: 10, textAlign: 'center' },
   modalContent: { flex: 1, padding: 20, justifyContent: 'center' },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' }
-});
+  modalTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginHorizontal: 16,
+      marginBottom: 15,
+  },
+  });
