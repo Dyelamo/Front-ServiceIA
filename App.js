@@ -1,18 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { ManageServicesScreen } from './src/screens/ManageServicesScreen';
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>¡Hola, mi proyecto está listo!</Text>
-    </View>
-  );
+  return <ManageServicesScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
