@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, Modal, Button, SafeAreaView, ActivityIndicator 
 import { ServiceList } from '../components/ServiceList'
 import { ServiceForm } from '../components/ServiceForm';
 import { createServiceApi, updateServiceApi } from '../features/services/services.api';
-import { useAuth } from '../hook/useAuth';
+// import { useAuth } from '../hook/useAuth';
 
 export const ManageServicesScreen = () => {
-  const { userToken } = useAuth();
+  // const { userToken } = useAuth();
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -39,10 +39,10 @@ export const ManageServicesScreen = () => {
     try {
       if (editingService) {
         // Modo Edición
-        await updateServiceApi(editingService.id, formData, userToken);
+        await updateServiceApi(editingService.id, formData);
       } else {
         // Modo Creación
-        await createServiceApi(formData, userToken);
+        await createServiceApi(formData);
       }
       setIsModalVisible(false);
       fetchServices(); // Recargamos la lista

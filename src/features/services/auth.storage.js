@@ -9,29 +9,50 @@ export const saveAuthData = async ({
     refresh_token,
     user_id,
 }) => {
-    await AsyncStorage.multiSet([
-        [ACCESS_TOKEN_KEY, access_token],
-        [REFRESH_TOKEN_KEY, refresh_token],
-        [USER_ID_KEY, user_id],
-    ]);
+    await AsyncStorage.setItem(
+        ACCESS_TOKEN_KEY,
+        access_token
+    );
+
+    await AsyncStorage.setItem(
+        REFRESH_TOKEN_KEY,
+        refresh_token
+    );
+
+    await AsyncStorage.setItem(
+        USER_ID_KEY,
+        user_id
+    );
 };
 
 export const getAccessToken = async () => {
-    return await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+    return await AsyncStorage.getItem(
+        ACCESS_TOKEN_KEY
+    );
 };
 
 export const getRefreshToken = async () => {
-    return await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+    return await AsyncStorage.getItem(
+        REFRESH_TOKEN_KEY
+    );
 };
 
 export const getUserId = async () => {
-    return await AsyncStorage.getItem(USER_ID_KEY);
+    return await AsyncStorage.getItem(
+        USER_ID_KEY
+    );
 };
 
 export const clearAuthData = async () => {
-    await AsyncStorage.multiRemove([
-        ACCESS_TOKEN_KEY,
-        REFRESH_TOKEN_KEY,
-        USER_ID_KEY,
-    ]);
+    await AsyncStorage.removeItem(
+        ACCESS_TOKEN_KEY
+    );
+
+    await AsyncStorage.removeItem(
+        REFRESH_TOKEN_KEY
+    );
+
+    await AsyncStorage.removeItem(
+        USER_ID_KEY
+    );
 };
