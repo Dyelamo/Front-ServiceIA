@@ -3,11 +3,6 @@ import { adaptServiceToBackend, adaptServiceToFrontend } from './services.schema
 
 const API_URL="http://127.0.0.1:8000/servicios"; 
 
-// Helper para configurar headers
-const getAuthHeaders = (token) => ({
-  headers: { Authorization: `Bearer ${token}` }
-});
-
 export const createServiceApi = async (serviceData, token) => {
   const payload = adaptServiceToBackend(serviceData);
   const response = await axios.post(`${API_URL}/`, payload, getAuthHeaders(token));

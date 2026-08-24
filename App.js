@@ -1,20 +1,60 @@
-// 
-// App.js
-import 'react-native-gesture-handler';
-import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import React, { useState } from "react";
 
-import { AppModeProvider } from './src/lib/AppModeContext';
-import RootNavigator from './src/navigation/RootNavigator';
+import { LoginScreen } from "./src/screens/LoginScreen";
+import { RegisterScreen } from "./src/screens/RegisterScreen";
+import { ManageServicesScreen } from "./src/screens/ManageServicesScreen";
+import { ProfileScreen } from "./src/screens/ProfileScreen";
+
+import { useAuth } from "./src/hook/useAuth";
 
 export default function App() {
-  return (
-    <SafeAreaProvider>
-      <AppModeProvider>
-        <StatusBar style="dark" />
-        <RootNavigator />
-      </AppModeProvider>
-    </SafeAreaProvider>
-  );
+
+    const {
+        isAuthenticated,
+        isLoading,
+        login,
+        logout,
+    } = useAuth();
+
+    const [showRegister, setShowRegister] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
+
+    if (isLoading) {
+        return null;
+    }
+
+    if (!isAuthenticated) {
+
+        if (showRegister) {
+            return (
+                <RegisterScreen
+                    onRegistered={() => setShowRegister(false)}
+                    onGoToLogin={() => setShowRegister(false)}
+                />
+            );
+        }
+
+        return (
+            <LoginScreen
+                onLogin={login}
+                onGoToRegister={() => setShowRegister(true)}
+            />
+        );
+    }
+
+    if (showProfile) {
+        return (
+            <ProfileScreen
+                onBack={() => setShowProfile(false)}
+                onLogout={logout}
+            />
+        );
+    }
+
+    return (
+        <ManageServicesScreen
+            onOpenProfile={() => setShowProfile(true)}
+        />
+    );
 }
+
