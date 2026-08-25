@@ -28,23 +28,57 @@ export default function AppHeader() {
         <Text style={styles.brandText}>Manitas</Text>
       </View>
 
-      <View style={styles.segment}>
+      <View style={styles.rightContainer}>
+
+        <View style={styles.segment}>
+
+          <Pressable
+            onPress={() => goTo('cliente')}
+            style={[
+              styles.segmentBtn,
+              mode === 'cliente' && styles.segmentBtnActive
+            ]}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                mode === 'cliente' && styles.segmentTextActive
+              ]}
+            >
+              Cliente
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goTo('profesional')}
+            style={[
+              styles.segmentBtn,
+              mode === 'profesional' && styles.segmentBtnActive
+            ]}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                mode === 'profesional' && styles.segmentTextActive
+              ]}
+            >
+              Profesional
+            </Text>
+          </Pressable>
+
+        </View>
+
         <Pressable
-          onPress={() => goTo('cliente')}
-          style={[styles.segmentBtn, mode === 'cliente' && styles.segmentBtnActive]}
+          onPress={() => navigation.navigate('Perfil')}
+          style={styles.profileButton}
         >
-          <Text style={[styles.segmentText, mode === 'cliente' && styles.segmentTextActive]}>
-            Cliente
-          </Text>
+          <Ionicons
+            name="person-outline"
+            size={20}
+            color={colors.textPrimary}
+          />
         </Pressable>
-        <Pressable
-          onPress={() => goTo('profesional')}
-          style={[styles.segmentBtn, mode === 'profesional' && styles.segmentBtnActive]}
-        >
-          <Text style={[styles.segmentText, mode === 'profesional' && styles.segmentTextActive]}>
-            Profesional
-          </Text>
-        </Pressable>
+
       </View>
     </View>
   );
@@ -105,5 +139,22 @@ const styles = StyleSheet.create({
   },
   segmentTextActive: {
     color: colors.textPrimary,
+  },
+
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  profileButton: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.pill,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 });

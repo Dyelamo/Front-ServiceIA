@@ -9,9 +9,11 @@ import {
 } from "react-native";
 
 import { getMyProfileApi } from "../features/usuario/usuario.api";
+import { useAuth } from "../hook/useAuth";
 
-export const ProfileScreen = ({ onBack, onLogout }) => {
+export const ProfileScreen = ({ navigation, onBack }) => {
 
+    const { logout } = useAuth();
     const [profile, setProfile] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -74,7 +76,7 @@ export const ProfileScreen = ({ onBack, onLogout }) => {
             return;
         }
 
-        await onLogout();
+        await logout();
         };
 
     if (isLoading) {
@@ -145,7 +147,13 @@ export const ProfileScreen = ({ onBack, onLogout }) => {
 
                 <Button
                     title="Volver"
-                    onPress={onBack}
+                    onPress={() => {
+                        if (onBack) {
+                            onBack();
+                        } else {
+                            navigation.goBack();
+                        }
+                    }}
                 />
 
                 <View style={styles.buttonSpace} />

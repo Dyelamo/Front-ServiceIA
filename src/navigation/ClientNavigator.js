@@ -10,6 +10,7 @@ import Step3UrgencyScreen from '../screens/client/Step3UrgencyScreen';
 import Step4PhotosScreen from '../screens/client/Step4PhotosScreen';
 import Step5ReviewScreen from '../screens/client/Step5ReviewScreen';
 import AIReviewScreen from '../screens/client/AIReviewScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,10 @@ export default function ClientNavigator() {
         <Stack.Screen name="Step4Photos" component={Step4PhotosScreen} />
         <Stack.Screen name="Step5Review" component={Step5ReviewScreen} />
         <Stack.Screen name="AIReview" component={AIReviewScreen} />
+        <Stack.Screen
+          name="Perfil"
+          component={ProfileScreen}
+        />
       </Stack.Navigator>
     </RequestFormProvider>
   );
