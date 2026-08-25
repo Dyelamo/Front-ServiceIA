@@ -1,20 +1,24 @@
 // src/api/client.js
-// Instancia base de axios. Reemplaza baseURL por la de tu backend real.
 import axios from 'axios';
 
+import { getAccessToken } from '../features/services/auth.storage';
+
 export const api = axios.create({
-  baseURL: 'https://api.tu-backend-manitas.com',
+  baseURL: 'http://127.0.0.1:8000', // cámbialo por tu URL real cuando despliegues
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Ejemplo de interceptor para inyectar token de auth cuando exista login:
-// api.interceptors.request.use((config) => {
-//   const token = getTokenFromStorage();
-//   if (token) config.headers.Authorization = `Bearer ${token}`;
-//   return config;
-// });
+api.interceptors.request.use(async (config) => {
+  const token = await getAccessToken();
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
 
 export default api;
