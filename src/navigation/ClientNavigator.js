@@ -1,16 +1,17 @@
 // src/navigation/ClientNavigator.js
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { RequestFormProvider } from '../lib/RequestFormContext';
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { RequestFormProvider } from "../lib/RequestFormContext";
 
-import HomeScreen from '../screens/client/HomeScreen';
-import Step1DescribeScreen from '../screens/client/Step1DescribeScreen';
-import Step2LocationScreen from '../screens/client/Step2LocationScreen';
-import Step3UrgencyScreen from '../screens/client/Step3UrgencyScreen';
-import Step4PhotosScreen from '../screens/client/Step4PhotosScreen';
-import Step5ReviewScreen from '../screens/client/Step5ReviewScreen';
-import AIReviewScreen from '../screens/client/AIReviewScreen';
-import { ProfileScreen } from '../screens/ProfileScreen';
+import HomeScreen from "../screens/client/HomeScreen";
+import Step1DescribeScreen from "../screens/client/Step1DescribeScreen";
+import Step2LocationScreen from "../screens/client/Step2LocationScreen";
+import Step3UrgencyScreen from "../screens/client/Step3UrgencyScreen";
+import Step4PhotosScreen from "../screens/client/Step4PhotosScreen";
+import Step5ReviewScreen from "../screens/client/Step5ReviewScreen";
+import AIReviewScreen from "../screens/client/AIReviewScreen";
+import ClientRequestsScreen from "../screens/client/ClientRequestsScreen";
+import { ProfileScreen } from "../screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -26,9 +27,10 @@ export default function ClientNavigator() {
         <Stack.Screen name="Step5Review" component={Step5ReviewScreen} />
         <Stack.Screen name="AIReview" component={AIReviewScreen} />
         <Stack.Screen
-          name="Perfil"
-          component={ProfileScreen}
+          name="MisPublicaciones"
+          component={ClientRequestsScreen}
         />
+        <Stack.Screen name="Perfil" component={ProfileScreen} />
       </Stack.Navigator>
     </RequestFormProvider>
   );

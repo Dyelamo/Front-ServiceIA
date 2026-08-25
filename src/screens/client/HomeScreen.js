@@ -1,39 +1,68 @@
 // src/screens/client/HomeScreen.js
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius, typography } from '../../theme';
-import AppHeader from '../../components/AppHeader';
-import PrimaryButton from '../../components/PrimaryButton';
-import CategoryChip from '../../components/CategoryChip';
-import { CATEGORIES } from '../../data/categories';
-import { useRequestForm } from '../../hook/useRequestForm';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, spacing, radius, typography } from "../../theme";
+import AppHeader from "../../components/AppHeader";
+import PrimaryButton from "../../components/PrimaryButton";
+import CategoryChip from "../../components/CategoryChip";
+import { CATEGORIES } from "../../data/categories";
+import { useRequestForm } from "../../hook/useRequestForm";
 
 export default function HomeScreen({ navigation }) {
   const { form, updateForm } = useRequestForm();
-  const [text, setText] = useState(form.description || '');
+  const [text, setText] = useState(form.description || "");
 
   const startSearch = () => {
     updateForm({ description: text });
-    navigation.navigate('Step1Describe');
+    navigation.navigate("Step1Describe");
   };
 
   const goUrgent = () => {
-    navigation.navigate('Step1Describe');
+    navigation.navigate("Step1Describe");
   };
 
   return (
     <View style={styles.screen}>
       <AppHeader />
       <ScrollView contentContainerStyle={styles.content}>
+        <Pressable
+          style={styles.publicationsLink}
+          onPress={() => navigation.navigate("MisPublicaciones")}>
+          <View style={styles.publicationsIcon}>
+            <Ionicons
+              name="documents-outline"
+              size={18}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.publicationsCopy}>
+            <Text style={styles.publicationsTitle}>Mis publicaciones</Text>
+            <Text style={styles.publicationsSubtitle}>
+              Revisa tus solicitudes y ofertas recibidas
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        </Pressable>
+
         <View style={styles.locationPill}>
           <Ionicons name="location-outline" size={14} color={colors.primary} />
-          <Text style={styles.locationText}>Profesionales verificados en Valledupar</Text>
+          <Text style={styles.locationText}>
+            Profesionales verificados en Valledupar
+          </Text>
         </View>
 
         <Text style={styles.title}>¿Qué necesitas solucionar?</Text>
         <Text style={styles.subtitle}>
-          Cuéntanos tu problema en tus palabras. Encontramos al profesional indicado cerca de ti.
+          Cuéntanos tu problema en tus palabras. Encontramos al profesional
+          indicado cerca de ti.
         </Text>
 
         <View style={styles.inputCard}>
@@ -46,8 +75,15 @@ export default function HomeScreen({ navigation }) {
             onChangeText={setText}
           />
           <View style={styles.inputFooter}>
-            <Text style={styles.inputHint}>Describe tu problema con tus palabras</Text>
-            <PrimaryButton title="Buscar profesionales" icon="search" iconPosition="left" onPress={startSearch} />
+            <Text style={styles.inputHint}>
+              Describe tu problema con tus palabras
+            </Text>
+            <PrimaryButton
+              title="Buscar profesionales"
+              icon="search"
+              iconPosition="left"
+              onPress={startSearch}
+            />
           </View>
         </View>
 
@@ -60,7 +96,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.chip}
               onPress={() => {
                 updateForm({ categoryId: cat.id });
-                navigation.navigate('Step1Describe');
+                navigation.navigate("Step1Describe");
               }}
             />
           ))}
@@ -91,19 +127,57 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+  publicationsLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  publicationsIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.md,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  publicationsCopy: { flex: 1, marginLeft: spacing.md },
+  publicationsTitle: { ...typography.bodyBold, color: colors.textPrimary },
+  publicationsSubtitle: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
   locationPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
     backgroundColor: colors.primaryLight,
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 12,
     marginBottom: spacing.lg,
   },
-  locationText: { ...typography.small, color: colors.primary, marginLeft: 6, fontWeight: '600' },
-  title: { ...typography.h1, color: colors.textPrimary, marginBottom: spacing.sm },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  locationText: {
+    ...typography.small,
+    color: colors.primary,
+    marginLeft: 6,
+    fontWeight: "600",
+  },
+  title: {
+    ...typography.h1,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   inputCard: {
     backgroundColor: colors.white,
     borderRadius: radius.lg,
@@ -116,7 +190,7 @@ const styles = StyleSheet.create({
     minHeight: 70,
     ...typography.body,
     color: colors.textPrimary,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   inputFooter: {
     marginTop: spacing.md,
@@ -124,10 +198,14 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     paddingTop: spacing.md,
   },
-  inputHint: { ...typography.small, color: colors.textSecondary, marginBottom: spacing.sm },
+  inputHint: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
   chipsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
     marginBottom: spacing.xl,
   },
@@ -139,6 +217,10 @@ const styles = StyleSheet.create({
   },
   urgentIcon: { marginBottom: spacing.sm },
   urgentTitle: { ...typography.h3, color: colors.textPrimary, marginBottom: 2 },
-  urgentSubtitle: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.md },
-  urgentButton: { alignSelf: 'stretch' },
+  urgentSubtitle: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  urgentButton: { alignSelf: "stretch" },
 });
