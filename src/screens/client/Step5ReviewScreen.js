@@ -19,19 +19,20 @@ export default function Step5ReviewScreen({ navigation }) {
   const urgency = URGENCY_OPTIONS.find((u) => u.id === form.urgencyId);
 
   const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      await createServiceRequest({
-        description: form.description,
-        categoryLabel: category?.label,
-        urgencyLabel: urgency?.label,
-        location: form.location,
-      });
-      navigation.navigate('AIReview');
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    await createServiceRequest({
+      description: form.description,
+      categoryId: form.categoryId,
+      categoryLabel: category?.label,
+      urgencyLabel: urgency?.label,
+      location: form.location,
+    });
+    navigation.navigate('AIReview');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.screen}>
@@ -69,8 +70,8 @@ export default function Step5ReviewScreen({ navigation }) {
       <WizardFooter
         onBack={() => navigation.goBack()}
         onContinue={handleSubmit}
-        continueLabel="Buscar profesionales"
-        continueIcon="search"
+        continueLabel="Publicar solicitud"
+        continueIcon="send"
         continueDisabled={loading}
       />
     </View>
