@@ -63,10 +63,17 @@ export default function RootNavigator() {
 
                 ) : (
 
-                    <RootStack.Screen
-                        name="Client"
-                        component={ClientNavigator}
-                    />
+                    <>
+                        <RootStack.Screen
+                            name="Client"
+                            component={ClientNavigator}
+                        />
+
+                        <RootStack.Screen
+                            name="Professional"
+                            component={ProfessionalNavigator}
+                        />
+                    </>
 
                 )}
 
