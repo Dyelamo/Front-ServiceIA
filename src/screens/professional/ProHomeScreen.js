@@ -8,9 +8,31 @@ import StatCard from '../../components/StatCard';
 import RequestCard from '../../components/RequestCard';
 import { formatCOP } from '../../utils';
 import { MOCK_PROFESSIONAL, MOCK_NEW_REQUESTS } from '../../data/mockData';
+import { getMyProfessionalProfileApi } from '../../features/usuario/usuario.api';
 
 export default function ProHomeScreen({ navigation }) {
   const [available, setAvailable] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await getMyProfessionalProfileApi();
+        console.log("PERFIL PROFESIONAL:", data);
+        setProfile(data);
+      } catch (error) {
+        console.error(
+          "Error cargando perfil profesional:",
+          error.response?.data || error.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   return (
     <View style={styles.screen}>
