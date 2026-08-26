@@ -1,51 +1,38 @@
 // src/screens/professional/ProHomeScreen.js
-import React, { useCallback, useState } from "react";
-import {
-  View,
-  Text,
-  Switch,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-} from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors, spacing, radius, typography } from "../../theme";
-import AppHeader from "../../components/AppHeader";
-import StatCard from "../../components/StatCard";
-import RequestCard from "../../components/RequestCard";
-import { formatCOP } from "../../utils";
-import { MOCK_PROFESSIONAL, MOCK_NEW_REQUESTS } from "../../data/mockData";
-import { fetchProfessionalPublications } from "../../api/requestsService";
-
-function normalizeRequest(item) {
-  return {
-    id: item.id,
-    title: item.descripcion || "Solicitud de servicio",
-    category: item.categoria?.nombre || "Servicio general",
-    description: item.descripcion || "",
-    location: "Ubicación no especificada",
-    time: item.created_at || "Recientemente",
-    badge: item.estado || "Nueva",
-    badgeType: "warning",
-  };
-}
+import React, { useState } from 'react';
+import { View, Text, Switch, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing, radius, typography } from '../../theme';
+import AppHeader from '../../components/AppHeader';
+import StatCard from '../../components/StatCard';
+import RequestCard from '../../components/RequestCard';
+import { formatCOP } from '../../utils';
+import { MOCK_PROFESSIONAL, MOCK_NEW_REQUESTS } from '../../data/mockData';
+import { getMyProfessionalProfileApi } from '../../features/usuario/usuario.api';
 
 export default function ProHomeScreen({ navigation }) {
   const [available, setAvailable] = useState(true);
-  const [requests, setRequests] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useFocusEffect(
-    useCallback(() => {
-      let mounted = true;
-      fetchProfessionalPublications()
-        .then((items) => mounted && setRequests(items.map(normalizeRequest)))
-        .catch(() => mounted && setRequests([]));
-      return () => {
-        mounted = false;
-      };
-    }, []),
-  );
+  React.useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await getMyProfessionalProfileApi();
+        console.log("PERFIL PROFESIONAL:", data);
+        setProfile(data);
+      } catch (error) {
+        console.error(
+          "Error cargando perfil profesional:",
+          error.response?.data || error.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   return (
     <View style={styles.screen}>
