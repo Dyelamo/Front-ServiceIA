@@ -46,18 +46,37 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
     try {
       setError("");
       setIsSaving(true);
+
       const profile = await registerProfessionalApi({
-        sobreMi: about.trim(),
-        especialidades: selectedCategories,
+        descripcion: about.trim(),
+        categoria_ids: selectedCategories,
       });
+
       setProfessionalProfile(profile);
       setMode("profesional");
-      navigation.reset({ index: 0, routes: [{ name: "Professional" }] });
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Professional" }],
+      });
+
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.detail ||
-          "No pudimos guardar tu perfil. Revisa tu conexión e inténtalo de nuevo.",
-      );
+      const detail = requestError.response?.data?.detail;
+
+      if (Array.isArray(detail)) {
+        setError(
+          detail
+            .map((item) => item.msg)
+            .filter(Boolean)
+            .join(", ")
+        );
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError(
+          "No pudimos guardar tu perfil. Revisa tu conexión e inténtalo de nuevo."
+        );
+      }
     } finally {
       setIsSaving(false);
     }
