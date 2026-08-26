@@ -12,9 +12,20 @@ export const updateMyProfileApi = async (data) => {
   return response.data;
 };
 
-export const registerProfessionalApi = async ({ sobreMi, especialidades }) => {
-  return updateMyProfileApi({
-    sobre_mi: sobreMi,
-    especialidades,
+export const getMyProfessionalProfileApi = async () => {
+  const response = await api.get("/prestadores/mi-perfil");
+
+  return response.data;
+};
+
+export const registerProfessionalApi = async ({
+  descripcion,
+  categoria_ids,
+}) => {
+  const response = await api.post("/prestadores", {
+    descripcion,
+    categoria_ids,
   });
+
+  return response.data;
 };

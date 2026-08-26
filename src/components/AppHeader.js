@@ -5,7 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { colors, spacing, radius, typography } from "../theme";
 import { useAppMode } from "../hook/useAppMode";
-import { getMyProfileApi } from "../features/usuario/usuario.api";
+  // import { getMyProfileApi } from "../features/usuario/usuario.api";
+import { getMyProfessionalProfileApi } from "../features/usuario/usuario.api";
 
 export default function AppHeader() {
   const navigation = useNavigation();
@@ -19,40 +20,48 @@ export default function AppHeader() {
     if (nextMode === "profesional") {
       try {
         setIsCheckingProfessional(true);
-        const profile = await getMyProfileApi();
-        const isProfessional = Boolean(
-          profile?.es_profesional ||
-          profile?.es_professional ||
-          profile?.perfil_profesional ||
-          profile?.professional_profile ||
-          profile?.rol === "profesional" ||
-          profile?.role === "professional" ||
-          profile?.tipo_usuario === "profesional" ||
-          profile?.especialidades?.length,
+
+        const profile = await getMyProfessionalProfileApi();
+
+        // Si llegamos aquí, el usuario SÍ tiene perfil de prestador
+        setProfessionalProfile(profile);
+
+      } catch (error) {
+        console.error(
+          "Error validando perfil profesional:",
+          error
         );
 
-        if (!isProfessional) {
+        // El backend devuelve 404 cuando no existe el prestador
+        if (error?.response?.status === 404) {
           navigation.navigate("ProfessionalOnboarding");
           return;
         }
 
-        setProfessionalProfile(profile);
-      } catch (error) {
-        console.error("Error validando perfil profesional:", error);
         Alert.alert(
           "No pudimos validar tu perfil",
-          "Revisa tu conexión e inténtalo de nuevo.",
+          "Revisa tu conexión e inténtalo de nuevo."
         );
+
         return;
+
       } finally {
         setIsCheckingProfessional(false);
       }
     }
 
     setMode(nextMode);
+
     (navigation.getParent() || navigation).reset({
       index: 0,
-      routes: [{ name: nextMode === "cliente" ? "Client" : "Professional" }],
+      routes: [
+        {
+          name:
+            nextMode === "cliente"
+              ? "Client"
+              : "Professional",
+        },
+      ],
     });
   };
 
