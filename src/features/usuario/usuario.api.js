@@ -13,7 +13,7 @@ export const updateMyProfileApi = async (data) => {
 };
 
 export const getMyProfessionalProfileApi = async () => {
-  const response = await api.get("/prestadores/mi-perfil");
+  const response = await api.get("/usuarios/me");
 
   return response.data;
 };

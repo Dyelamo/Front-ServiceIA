@@ -32,7 +32,7 @@ export async function createServiceRequest(payload) {
 }
 
 export async function fetchNewRequests() {
-  // return api.get('/professional/requests').then((res) => res.data);
+   return api.get('/usuarios').then((res) => res.data);
   return [];
 }
 
