@@ -50,10 +50,15 @@ export async function fetchClientOffers() {
   const { data } = await api.get("/publicaciones/solicitudes-recibidas");
   return getList(data);
 }
+export async function fetchProfessionalPublications() {
+  const { data } = await api.get("/publicaciones/categorias-prestador");
+  return getList(data);
+}
 
 export default {
   createServiceRequest,
   fetchNewRequests,
   fetchClientPublications,
   fetchClientOffers,
+  fetchProfessionalPublications
 };
