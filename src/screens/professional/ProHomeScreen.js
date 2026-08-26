@@ -1,16 +1,51 @@
 // src/screens/professional/ProHomeScreen.js
-import React, { useState } from 'react';
-import { View, Text, Switch, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius, typography } from '../../theme';
-import AppHeader from '../../components/AppHeader';
-import StatCard from '../../components/StatCard';
-import RequestCard from '../../components/RequestCard';
-import { formatCOP } from '../../utils';
-import { MOCK_PROFESSIONAL, MOCK_NEW_REQUESTS } from '../../data/mockData';
+import React, { useCallback, useState } from "react";
+import {
+  View,
+  Text,
+  Switch,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, spacing, radius, typography } from "../../theme";
+import AppHeader from "../../components/AppHeader";
+import StatCard from "../../components/StatCard";
+import RequestCard from "../../components/RequestCard";
+import { formatCOP } from "../../utils";
+import { MOCK_PROFESSIONAL, MOCK_NEW_REQUESTS } from "../../data/mockData";
+import { fetchProfessionalPublications } from "../../api/requestsService";
+
+function normalizeRequest(item) {
+  return {
+    id: item.id,
+    title: item.descripcion || "Solicitud de servicio",
+    category: item.categoria?.nombre || "Servicio general",
+    description: item.descripcion || "",
+    location: "Ubicación no especificada",
+    time: item.created_at || "Recientemente",
+    badge: item.estado || "Nueva",
+    badgeType: "warning",
+  };
+}
 
 export default function ProHomeScreen({ navigation }) {
   const [available, setAvailable] = useState(true);
+  const [requests, setRequests] = useState([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      fetchProfessionalPublications()
+        .then((items) => mounted && setRequests(items.map(normalizeRequest)))
+        .catch(() => mounted && setRequests([]));
+      return () => {
+        mounted = false;
+      };
+    }, []),
+  );
 
   return (
     <View style={styles.screen}>
@@ -25,7 +60,11 @@ export default function ProHomeScreen({ navigation }) {
             <Text style={styles.greetingName}>{MOCK_PROFESSIONAL.name}</Text>
           </View>
           <Pressable style={styles.bellBtn}>
-            <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+            <Ionicons
+              name="notifications-outline"
+              size={20}
+              color={colors.textPrimary}
+            />
             <View style={styles.bellDot} />
           </Pressable>
         </View>
@@ -35,7 +74,7 @@ export default function ProHomeScreen({ navigation }) {
             <View style={styles.dot} />
             <View style={{ flex: 1 }}>
               <Text style={styles.availabilityTitle}>
-                {available ? 'Disponible para trabajar' : 'No disponible'}
+                {available ? "Disponible para trabajar" : "No disponible"}
               </Text>
               <Text style={styles.availabilitySubtitle}>
                 Estás recibiendo solicitudes en Valledupar
@@ -51,26 +90,40 @@ export default function ProHomeScreen({ navigation }) {
         </View>
 
         <View style={styles.statsRow}>
-          <StatCard icon="briefcase-outline" value={formatCOP(MOCK_PROFESSIONAL.monthEarnings)} label="Este mes" />
-          <StatCard icon="star-outline" value={MOCK_PROFESSIONAL.rating} label="Calificación" />
-          <StatCard icon="trending-up-outline" value={MOCK_PROFESSIONAL.services} label="Servicios" />
+          <StatCard
+            icon="briefcase-outline"
+            value={formatCOP(MOCK_PROFESSIONAL.monthEarnings)}
+            label="Este mes"
+          />
+          <StatCard
+            icon="star-outline"
+            value={MOCK_PROFESSIONAL.rating}
+            label="Calificación"
+          />
+          <StatCard
+            icon="trending-up-outline"
+            value={MOCK_PROFESSIONAL.services}
+            label="Servicios"
+          />
         </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Nuevas solicitudes</Text>
-          <Pressable onPress={() => navigation.navigate('Solicitudes')}>
+          <Pressable onPress={() => navigation.navigate("Solicitudes")}>
             <Text style={styles.sectionLink}>Ver todas →</Text>
           </Pressable>
         </View>
 
-        {MOCK_NEW_REQUESTS.map((req) => (
-          <RequestCard
-            key={req.id}
-            request={req}
-            ctaLabel="Ver solicitud"
-            onPress={() => navigation.navigate('Solicitudes')}
-          />
-        ))}
+        {(requests.length > 0 ? requests.slice(0, 3) : MOCK_NEW_REQUESTS).map(
+          (req) => (
+            <RequestCard
+              key={req.id}
+              request={req}
+              ctaLabel="Ver solicitud"
+              onPress={() => navigation.navigate("Solicitudes")}
+            />
+          ),
+        )}
       </ScrollView>
     </View>
   );
@@ -79,14 +132,18 @@ export default function ProHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
-  greetingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg },
+  greetingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.lg,
+  },
   avatarPlaceholder: {
     width: 44,
     height: 44,
     borderRadius: radius.pill,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   greetingSmall: { ...typography.caption, color: colors.textSecondary },
   greetingName: { ...typography.h3, color: colors.textPrimary },
@@ -97,11 +154,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   bellDot: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 9,
     width: 7,
@@ -110,14 +167,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.danger,
   },
   availabilityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.successLight,
     borderRadius: radius.lg,
     padding: spacing.lg,
     marginBottom: spacing.lg,
   },
-  availabilityRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  availabilityRow: { flexDirection: "row", alignItems: "center", flex: 1 },
   dot: {
     width: 8,
     height: 8,
@@ -126,14 +183,22 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   availabilityTitle: { ...typography.bodyBold, color: colors.textPrimary },
-  availabilitySubtitle: { ...typography.small, color: colors.textSecondary, marginTop: 2 },
-  statsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.xl },
+  availabilitySubtitle: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  statsRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.xl },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: spacing.md,
   },
   sectionTitle: { ...typography.h3, color: colors.textPrimary },
-  sectionLink: { ...typography.caption, color: colors.primary, fontWeight: '700' },
+  sectionLink: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: "700",
+  },
 });

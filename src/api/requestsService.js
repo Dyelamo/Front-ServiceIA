@@ -3,6 +3,7 @@
 // cuando tengas backend, reemplaza el cuerpo de cada función por `api.post/get(...)`.
 // src/api/requestsService.js
 import api from "./client";
+import { getUserId } from "../features/services/auth.storage";
 
 export async function createServiceRequest(payload) {
   const body = {
@@ -42,16 +43,52 @@ function getList(data) {
 }
 
 export async function fetchClientPublications() {
-  const { data } = await api.get("/publicaciones/mis-publicaciones");
+  const { data } = await api.get("/publicaciones");
   return getList(data);
 }
 
 export async function fetchClientOffers() {
-  const { data } = await api.get("/publicaciones/solicitudes-recibidas");
+  const { data } = await api.get("/publicaciones/");
   return getList(data);
 }
 export async function fetchProfessionalPublications() {
   const { data } = await api.get("/publicaciones/categorias-prestador");
+  return getList(data);
+}
+
+export async function createProfessionalOffer({
+  publicationId,
+  price,
+  availability,
+  message,
+}) {
+  const prestadorId = await getUserId();
+  if (!prestadorId) {
+    throw new Error("No hay un profesional autenticado");
+  }
+
+  const { data } = await api.post("/postulaciones", {
+    publicacion_id: publicationId,
+    prestador_id: prestadorId,
+    precio_ofertado: Number(price),
+    disponibilidad: availability,
+    mensaje: message,
+  });
+
+  return data;
+}
+
+export async function fetchProfessionalOffers() {
+  const prestadorId = await getUserId();
+  if (!prestadorId) return [];
+
+  const { data } = await api.get("/postulaciones", {
+    params: {
+      prestador_id: prestadorId,
+      limit: 20,
+      offset: 0,
+    },
+  });
   return getList(data);
 }
 
@@ -60,5 +97,7 @@ export default {
   fetchNewRequests,
   fetchClientPublications,
   fetchClientOffers,
-  fetchProfessionalPublications
+  fetchProfessionalPublications,
+  createProfessionalOffer,
+  fetchProfessionalOffers,
 };
