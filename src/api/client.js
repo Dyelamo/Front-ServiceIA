@@ -4,7 +4,7 @@ import axios from 'axios';
 import { getAccessToken } from '../features/services/auth.storage';
 
 export const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // cámbialo por tu URL real cuando despliegues
+  baseURL: process.env.EXPO_PUBLIC_API_URL || "/api", // cámbialo por tu URL real cuando despliegues
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

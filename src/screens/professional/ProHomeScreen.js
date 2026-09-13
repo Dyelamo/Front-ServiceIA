@@ -14,6 +14,7 @@ export default function ProHomeScreen({ navigation }) {
   const [available, setAvailable] = useState(true);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [requests, setRequests] = useState([]);
 
   React.useEffect(() => {
     const loadProfile = async () => {
