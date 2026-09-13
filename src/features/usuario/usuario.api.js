@@ -13,7 +13,7 @@ export const updateMyProfileApi = async (data) => {
 };
 
 export const getMyProfessionalProfileApi = async () => {
-  const response = await api.get("/usuarios/me");
+  const response = await api.get("/prestadores/mi-perfil");
 
   return response.data;
 };
@@ -21,11 +21,15 @@ export const getMyProfessionalProfileApi = async () => {
 export const registerProfessionalApi = async ({
   descripcion,
   categoria_ids,
+  sobre_mi,
+  especialidades,
 }) => {
-  const response = await api.post("/prestadores", {
-    descripcion,
-    categoria_ids,
-  });
+  const payload = {
+    descripcion: descripcion ?? sobre_mi,
+    categoria_ids: categoria_ids ?? especialidades,
+  };
+
+  const response = await api.post("/prestadores", payload);
 
   return response.data;
 };

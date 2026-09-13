@@ -9,27 +9,44 @@ import {
   Alert,
   Image,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing, radius, typography } from "../../theme";
 import AppHeader from "../../components/AppHeader";
 import SecondaryButton from "../../components/SecondaryButton";
 import { MOCK_PROFESSIONAL } from "../../data/mockData";
-import { getMyProfessionalProfileApi } from "../../features/usuario/usuario.api";
-import { useFocusEffect } from "@react-navigation/native";
+import {
+  getMyProfileApi,
+  getMyProfessionalProfileApi,
+} from "../../features/usuario/usuario.api";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadProfile = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getMyProfessionalProfileApi();
-      setProfile(data);
+      const [user, professional] = await Promise.all([
+        getMyProfileApi(),
+        getMyProfessionalProfileApi(),
+      ]);
+
+      setUserProfile(user);
+      setProfile({
+        ...user,
+        ...professional,
+        nombre_completo: user?.nombre_completo || professional?.nombre_completo,
+        email: user?.email || professional?.email,
+        telefono: user?.telefono || professional?.telefono,
+        ubicacion: user?.ubicacion || professional?.ubicacion,
+      });
     } catch (error) {
+      console.error("Error cargando perfil profesional:", error);
       Alert.alert(
         "No se pudo cargar el perfil",
-        "Inténtalo de nuevo más tarde.",
+        error?.response?.data?.detail || "Inténtalo de nuevo más tarde.",
       );
     } finally {
       setIsLoading(false);
@@ -51,9 +68,16 @@ export default function ProfileScreen() {
     );
   }
 
-  const fullName = profile?.nombre_completo || MOCK_PROFESSIONAL.name;
+  const fullName =
+    profile?.nombre_completo ||
+    userProfile?.nombre_completo ||
+    MOCK_PROFESSIONAL.name;
   const initial = fullName.charAt(0).toUpperCase();
-  const categories = profile?.categorias || [];
+  const categories = Array.isArray(profile?.categorias)
+    ? profile.categorias
+    : Array.isArray(profile?.especialidades)
+      ? profile.especialidades
+      : [];
   const isAvailable = profile?.disponible ?? true;
   const isActive = profile?.activo ?? true;
 
@@ -141,7 +165,9 @@ export default function ProfileScreen() {
               color={colors.textSecondary}
             />
             <Text style={styles.locationText}>
-              {profile?.ubicacion || "Ubicación no registrada"}
+              {profile?.ubicacion ||
+                userProfile?.ubicacion ||
+                "Ubicación no registrada"}
             </Text>
             <View style={styles.accountStatus}>
               <Ionicons
@@ -171,37 +197,52 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Sobre mí</Text>
           <Text style={styles.aboutText}>
             {profile?.descripcion ||
+              profile?.sobre_mi ||
               "Aún no has agregado una descripción profesional."}
           </Text>
           <InfoLine
+            icon="mail-outline"
+            label="Correo"
+            value={profile?.email || userProfile?.email}
+          />
+          <InfoLine
             icon="call-outline"
             label="Teléfono"
-            value={profile?.telefono}
+            value={profile?.telefono || userProfile?.telefono}
           />
         </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Mis categorías</Text>
           {categories.length > 0 ? (
-            categories.map((category) => (
-              <View style={styles.categoryRow} key={category.id}>
-                <View style={styles.categoryIcon}>
-                  <Ionicons
-                    name="briefcase-outline"
-                    size={17}
-                    color={colors.primary}
-                  />
+            categories.map((category, index) => {
+              const categoryName =
+                category.nombre || category.name || category.label || category;
+              const categoryDescription =
+                category.descripcion || category.description || "";
+
+              return (
+                <View
+                  style={styles.categoryRow}
+                  key={`${categoryName}-${index}`}>
+                  <View style={styles.categoryIcon}>
+                    <Ionicons
+                      name="briefcase-outline"
+                      size={17}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={styles.categoryCopy}>
+                    <Text style={styles.categoryName}>{categoryName}</Text>
+                    {!!categoryDescription && (
+                      <Text style={styles.categoryDescription}>
+                        {categoryDescription}
+                      </Text>
+                    )}
+                  </View>
                 </View>
-                <View style={styles.categoryCopy}>
-                  <Text style={styles.categoryName}>{category.nombre}</Text>
-                  {!!category.descripcion && (
-                    <Text style={styles.categoryDescription}>
-                      {category.descripcion}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            ))
+              );
+            })
           ) : (
             <Text style={styles.aboutText}>No hay categorías registradas.</Text>
           )}
@@ -254,6 +295,17 @@ function InfoLine({ icon, label, value }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
   card: {
     backgroundColor: colors.white,
     borderRadius: radius.lg,

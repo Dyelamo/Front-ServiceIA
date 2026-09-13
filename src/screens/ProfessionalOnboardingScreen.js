@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,15 +13,35 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, typography } from "../theme";
 import { CATEGORIES } from "../data/categories";
-import { registerProfessionalApi } from "../features/usuario/usuario.api";
+import {
+  getMyProfileApi,
+  registerProfessionalApi,
+} from "../features/usuario/usuario.api";
 import { useAppMode } from "../hook/useAppMode";
 
 export default function ProfessionalOnboardingScreen({ navigation }) {
   const { setMode, setProfessionalProfile } = useAppMode();
+  const [userProfile, setUserProfile] = useState(null);
   const [about, setAbout] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const data = await getMyProfileApi();
+        setUserProfile(data);
+      } catch (loadError) {
+        console.error("No se pudo cargar el perfil de usuario:", loadError);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   const toggleCategory = (category) => {
     setError("");
@@ -52,14 +72,23 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
         categoria_ids: selectedCategories,
       });
 
-      setProfessionalProfile(profile);
+      const mergedProfile = {
+        ...userProfile,
+        ...profile,
+        nombre_completo:
+          userProfile?.nombre_completo || profile?.nombre_completo,
+        email: userProfile?.email || profile?.email,
+        telefono: userProfile?.telefono || profile?.telefono,
+        ubicacion: userProfile?.ubicacion || profile?.ubicacion,
+      };
+
+      setProfessionalProfile(mergedProfile);
       setMode("profesional");
 
       navigation.reset({
         index: 0,
         routes: [{ name: "Professional" }],
       });
-
     } catch (requestError) {
       const detail = requestError.response?.data?.detail;
 
@@ -68,19 +97,21 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
           detail
             .map((item) => item.msg)
             .filter(Boolean)
-            .join(", ")
+            .join(", "),
         );
       } else if (typeof detail === "string") {
         setError(detail);
       } else {
         setError(
-          "No pudimos guardar tu perfil. Revisa tu conexión e inténtalo de nuevo."
+          "No pudimos guardar tu perfil. Revisa tu conexión e inténtalo de nuevo.",
         );
       }
     } finally {
       setIsSaving(false);
     }
   };
+
+  const userName = userProfile?.nombre_completo || "Profesional";
 
   return (
     <KeyboardAvoidingView
@@ -96,15 +127,36 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
           <Text style={styles.backText}>Volver a Cliente</Text>
         </Pressable>
 
-        <View style={styles.iconCircle}>
-          <Ionicons name="briefcase-outline" size={28} color={colors.white} />
+        <View style={styles.headerCard}>
+          <View style={styles.iconCircle}>
+            <Ionicons name="briefcase-outline" size={28} color={colors.white} />
+          </View>
+          <View style={styles.headerCopy}>
+            <Text style={styles.eyebrow}>Perfil profesional</Text>
+            <Text style={styles.title}>Haz que te encuentren</Text>
+            <Text style={styles.subtitle}>
+              {userName}, completa tus datos para recibir solicitudes de
+              clientes cercanos.
+            </Text>
+          </View>
         </View>
-        <Text style={styles.eyebrow}>Perfil profesional</Text>
-        <Text style={styles.title}>Haz que te encuentren</Text>
-        <Text style={styles.subtitle}>
-          Completa estos datos para empezar a recibir solicitudes que encajen
-          contigo.
-        </Text>
+
+        {isLoadingProfile ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={styles.loadingText}>Preparando tu perfil...</Text>
+          </View>
+        ) : (
+          <View style={styles.profileSummaryCard}>
+            <Text style={styles.profileSummaryTitle}>Cuenta registrada</Text>
+            <Text style={styles.profileSummaryValue}>
+              {userProfile?.nombre_completo || userName}
+            </Text>
+            <Text style={styles.profileSummaryMeta}>
+              {userProfile?.email || "Correo no disponible"}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <View style={styles.sectionHeading}>
@@ -232,6 +284,18 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginLeft: spacing.sm,
   },
+  headerCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  headerCopy: { flex: 1, marginLeft: spacing.md },
   iconCircle: {
     width: 58,
     height: 58,
@@ -239,7 +303,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: spacing.xl,
   },
   eyebrow: {
     ...typography.caption,
@@ -247,7 +310,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 1,
-    marginTop: spacing.lg,
   },
   title: { ...typography.h1, color: colors.textPrimary, marginTop: spacing.xs },
   subtitle: {
@@ -255,7 +317,45 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 22,
     marginTop: spacing.sm,
-    marginBottom: spacing.xl,
+  },
+  loadingBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
+  },
+  profileSummaryCard: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  profileSummaryTitle: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: "700",
+    marginBottom: spacing.xs,
+  },
+  profileSummaryValue: {
+    ...typography.h3,
+    color: colors.textPrimary,
+  },
+  profileSummaryMeta: {
+    ...typography.small,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
   section: {
     backgroundColor: colors.white,
