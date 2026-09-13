@@ -71,7 +71,7 @@ export default function AppHeader() {
         <View style={styles.logoCircle}>
           <Ionicons name="build" size={16} color={colors.white} />
         </View>
-        <Text style={styles.brandText}>Manitas</Text>
+        <Text style={styles.brandText}>ServIA</Text>
       </View>
 
       <View style={styles.rightContainer}>

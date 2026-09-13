@@ -33,39 +33,46 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.screen}>
       <AppHeader />
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable
-          style={styles.publicationsLink}
-          onPress={() => navigation.navigate("MisPublicaciones")}>
-          <View style={styles.publicationsIcon}>
+        <View style={styles.headerPanel}>
+          <View style={styles.topInfo}>
+            <Text style={styles.eyebrow}>Todo en un solo lugar</Text>
+            <Pressable
+              style={styles.publicationsLink}
+              onPress={() => navigation.navigate("MisPublicaciones")}>
+              <View style={styles.publicationsIcon}>
+                <Ionicons
+                  name="documents-outline"
+                  size={18}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={styles.publicationsText}>Mis publicaciones</Text>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={colors.textMuted}
+              />
+            </Pressable>
+          </View>
+
+          <View style={styles.locationPill}>
             <Ionicons
-              name="documents-outline"
-              size={18}
+              name="location-outline"
+              size={14}
               color={colors.primary}
             />
-          </View>
-          <View style={styles.publicationsCopy}>
-            <Text style={styles.publicationsTitle}>Mis publicaciones</Text>
-            <Text style={styles.publicationsSubtitle}>
-              Revisa tus solicitudes y ofertas recibidas
+            <Text style={styles.locationText}>
+              Profesionales verificados en Valledupar
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-        </Pressable>
-
-        <View style={styles.locationPill}>
-          <Ionicons name="location-outline" size={14} color={colors.primary} />
-          <Text style={styles.locationText}>
-            Profesionales verificados en Valledupar
-          </Text>
         </View>
 
         <Text style={styles.title}>¿Qué necesitas solucionar?</Text>
         <Text style={styles.subtitle}>
-          Cuéntanos tu problema en tus palabras. Encontramos al profesional
-          indicado cerca de ti.
+          Cuéntanos tu problema en tus palabras y encuentra ayuda en minutos.
         </Text>
 
-        <View style={styles.inputCard}>
+        <View style={styles.searchCard}>
           <TextInput
             style={styles.input}
             placeholder="Necesito un plomero porque tengo una fuga debajo del lavamanos…"
@@ -75,9 +82,7 @@ export default function HomeScreen({ navigation }) {
             onChangeText={setText}
           />
           <View style={styles.inputFooter}>
-            <Text style={styles.inputHint}>
-              Describe tu problema con tus palabras
-            </Text>
+            <Text style={styles.inputHint}>Describe tu necesidad</Text>
             <PrimaryButton
               title="Buscar profesionales"
               icon="search"
@@ -85,6 +90,11 @@ export default function HomeScreen({ navigation }) {
               onPress={startSearch}
             />
           </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Categorías populares</Text>
+          <Text style={styles.sectionAction}>Ver todas</Text>
         </View>
 
         <View style={styles.chipsGrid}>
@@ -102,20 +112,26 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        <View style={styles.urgentCard}>
-          <View style={styles.urgentIcon}>
-            <Ionicons name="alert-circle" size={18} color={colors.danger} />
+        <View style={styles.needCard}>
+          <View style={styles.needHeader}>
+            <View style={styles.needBadge}>
+              <Ionicons
+                name="sparkles-outline"
+                size={16}
+                color={colors.primary}
+              />
+            </View>
+            <View style={styles.needTextWrap}>
+              <Text style={styles.needTitle}>Solicita tu servicio</Text>
+              <Text style={styles.needSubtitle}>
+                a tu necesidad, rápido y sin complicaciones.
+              </Text>
+            </View>
           </View>
-          <Text style={styles.urgentTitle}>¿Necesitas ayuda urgente?</Text>
-          <Text style={styles.urgentSubtitle}>
-            Conecta con profesionales disponibles para atenderte hoy mismo.
-          </Text>
           <PrimaryButton
-            title="Solicitar servicio urgente"
+            title="Solicitar servicio"
             icon="arrow-forward"
-            color={colors.dangerLight}
-            textColor={colors.danger}
-            style={styles.urgentButton}
+            style={styles.needButton}
             onPress={goUrgent}
           />
         </View>
@@ -127,30 +143,44 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+  headerPanel: {
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  topInfo: { marginBottom: spacing.md },
+  eyebrow: {
+    ...typography.small,
+    color: colors.primary,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: spacing.sm,
+    fontWeight: "700",
+  },
   publicationsLink: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   publicationsIcon: {
-    width: 38,
-    height: 38,
+    width: 34,
+    height: 34,
     borderRadius: radius.md,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.white,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: spacing.sm,
   },
-  publicationsCopy: { flex: 1, marginLeft: spacing.md },
-  publicationsTitle: { ...typography.bodyBold, color: colors.textPrimary },
-  publicationsSubtitle: {
-    ...typography.small,
-    color: colors.textSecondary,
-    marginTop: 2,
+  publicationsText: {
+    ...typography.bodyBold,
+    color: colors.textPrimary,
+    flex: 1,
   },
   locationPill: {
     flexDirection: "row",
@@ -160,7 +190,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    marginBottom: spacing.lg,
   },
   locationText: {
     ...typography.small,
@@ -178,19 +207,28 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.lg,
   },
-  inputCard: {
+  searchCard: {
     backgroundColor: colors.white,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: spacing.xl,
+    shadowColor: colors.black,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   input: {
-    minHeight: 70,
+    minHeight: 72,
     ...typography.body,
     color: colors.textPrimary,
     textAlignVertical: "top",
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   inputFooter: {
     marginTop: spacing.md,
@@ -203,6 +241,18 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  sectionTitle: { ...typography.h3, color: colors.textPrimary },
+  sectionAction: {
+    ...typography.small,
+    color: colors.primary,
+    fontWeight: "700",
+  },
   chipsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -210,17 +260,37 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   chip: { marginBottom: spacing.sm },
-  urgentCard: {
-    backgroundColor: colors.dangerLight,
-    borderRadius: radius.lg,
+  needCard: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.xl,
     padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.sm,
   },
-  urgentIcon: { marginBottom: spacing.sm },
-  urgentTitle: { ...typography.h3, color: colors.textPrimary, marginBottom: 2 },
-  urgentSubtitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
+  needHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.md,
   },
-  urgentButton: { alignSelf: "stretch" },
+  needBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.md,
+    backgroundColor: colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.sm,
+  },
+  needTextWrap: { flex: 1 },
+  needTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+  },
+  needSubtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  needButton: { alignSelf: "stretch" },
 });

@@ -45,7 +45,7 @@ export default function ProHomeScreen({ navigation }) {
           </View>
           <View style={{ flex: 1, marginLeft: spacing.sm }}>
             <Text style={styles.greetingSmall}>Hola,</Text>
-            <Text style={styles.greetingName}>{MOCK_PROFESSIONAL.name}</Text>
+            <Text style={styles.greetingName}>{profile?.nombre_completo}</Text>
           </View>
           <Pressable style={styles.bellBtn}>
             <Ionicons
