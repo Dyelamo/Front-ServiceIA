@@ -25,7 +25,7 @@ export const RegisterScreen = ({ onRegistered, onGoToLogin }) => {
     if (!nombreCompleto || !email || !password) {
       Alert.alert(
         "Campos requeridos",
-        "Nombre, correo y contraseña son obligatorios."
+        "Nombre, correo y contraseña son obligatorios.",
       );
       return;
     }
@@ -41,19 +41,16 @@ export const RegisterScreen = ({ onRegistered, onGoToLogin }) => {
         ubicacion: ubicacion || null,
       });
 
-      Alert.alert(
-        "Registro exitoso",
-        "Tu cuenta fue creada correctamente.",
-        [
-          {
-            text: "Continuar",
-            onPress: onRegistered,
-          },
-        ]
-      );
+      Alert.alert("Registro exitoso", "Tu cuenta fue creada correctamente.", [
+        {
+          text: "Continuar",
+          onPress: onRegistered,
+        },
+      ]);
     } catch (error) {
       console.error("Error registrando usuario:", error);
-      const message = error.response?.data?.detail || "No se pudo crear la cuenta.";
+      const message =
+        error.response?.data?.detail || "No se pudo crear la cuenta.";
       Alert.alert("Error", message);
     } finally {
       setIsLoading(false);
@@ -67,8 +64,7 @@ export const RegisterScreen = ({ onRegistered, onGoToLogin }) => {
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         <View style={styles.brandCard}>
           <View style={styles.brandBadge}>
             <Ionicons name="person-add-outline" size={26} color="#ffffff" />
@@ -80,7 +76,8 @@ export const RegisterScreen = ({ onRegistered, onGoToLogin }) => {
         <View style={styles.card}>
           <Text style={styles.title}>Crear cuenta</Text>
           <Text style={styles.subtitle}>
-            Regístrate para acceder a profesionales verificados y servicios a tu medida.
+            Regístrate para acceder a profesionales verificados y servicios a tu
+            medida.
           </Text>
 
           <View style={styles.inputWrap}>
