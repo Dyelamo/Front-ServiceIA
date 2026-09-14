@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { adaptServiceToBackend, adaptServiceToFrontend } from './services.schema';
 
-const API_URL="http://127.0.0.1:8000/servicios"; 
+const API_URL=process.env.EXPO_PUBLIC_API_URL || "/api";
 
 export const createServiceApi = async (serviceData, token) => {
   const payload = adaptServiceToBackend(serviceData);
