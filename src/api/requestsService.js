@@ -43,7 +43,7 @@ function getList(data) {
 }
 
 export async function fetchClientPublications() {
-  const { data } = await api.get("/mis-publicaciones");
+  const { data } = await api.get("publicaciones/mis-publicaciones");
   return getList(data);
 }
 
