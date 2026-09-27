@@ -84,7 +84,6 @@ export async function fetchProfessionalOffers() {
 
   const { data } = await api.get("/postulaciones", {
     params: {
-      prestador_id: prestadorId,
       limit: 20,
       offset: 0,
     },

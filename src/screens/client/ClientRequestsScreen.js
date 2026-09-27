@@ -17,10 +17,6 @@ import {
   fetchClientOffers,
   fetchClientPublications,
 } from "../../api/requestsService";
-import {
-  MOCK_CLIENT_OFFERS,
-  MOCK_CLIENT_PUBLICATIONS,
-} from "../../data/mockData";
 import { formatCOP } from "../../utils";
 
 const TABS = [
@@ -91,12 +87,12 @@ export default function ClientRequestsScreen({ navigation }) {
       publicationsResult.status === "fulfilled" &&
         publicationsResult.value.length > 0
         ? publicationsResult.value.map(normalizePublication)
-        : MOCK_CLIENT_PUBLICATIONS.map(normalizePublication),
+        : [],
     );
     setOffers(
       offersResult.status === "fulfilled" && offersResult.value.length > 0
         ? offersResult.value.map(normalizeOffer)
-        : MOCK_CLIENT_OFFERS.map(normalizeOffer),
+        : [],
     );
     setRefreshing(false);
   }, []);

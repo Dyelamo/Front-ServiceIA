@@ -16,7 +16,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing, radius, typography } from "../../theme";
 import AppHeader from "../../components/AppHeader";
 import RequestCard from "../../components/RequestCard";
-import { MOCK_NEW_REQUESTS } from "../../data/mockData";
 import { formatCOP } from "../../utils";
 import {
   createProfessionalOffer,
@@ -101,7 +100,7 @@ export default function RequestsScreen() {
     setRequests(
       requestsResult.status === "fulfilled" && requestsResult.value.length > 0
         ? requestsResult.value.map(normalizeRequest)
-        : MOCK_NEW_REQUESTS,
+        : [],
     );
     const availableRequests =
       requestsResult.status === "fulfilled"
