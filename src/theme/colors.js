@@ -1,30 +1,33 @@
-// src/theme/colors.js
 export const colors = {
-  primary: '#0B4C7A',
-  primaryDark: '#0A3A5C',
-  primaryLight: '#E4EEF6',
+  primary: "#0A9166",
+  primaryDark: "#0A7352",
+  primaryLight: "#ECFDF7",
+  primarySoft: "#D1FAEC",
 
-  background: '#EEF3F8',
-  card: '#FFFFFF',
+  secondary: "#FE7C11",
+  accent: "#3385FF",
 
-  textPrimary: '#0F1B2B',
-  textSecondary: '#64748B',
-  textMuted: '#94A3B8',
+  background: "#F1F5F9",
 
-  border: '#E2E8F0',
-  chipBorder: '#D7E2EC',
+  surface: "#FFFFFF",
+  surfaceSecondary: "#F8FAFC",
+  surfaceTertiary: "#F1F5F9",
 
-  success: '#22A559',
-  successLight: '#E4F6EC',
+  text: "#0F172A",
+  textSecondary: "#475569",
+  textMuted: "#94A3B8",
+  textDisabled: "#CBD5E1",
 
-  danger: '#C23B3B',
-  dangerLight: '#FBE1E1',
+  border: "#E2E8F0",
+  borderStrong: "#CBD5E1",
 
-  warning: '#B4690E',
-  warningLight: '#FCEBD5',
+  success: "#22C55E",
+  warning: "#F59E0B",
+  error: "#EF4444",
+  info: "#3385FF",
 
-  white: '#FFFFFF',
-  black: '#000000',
+  white: "#FFFFFF",
+  black: "#000000",
+
+  overlay: "rgba(15, 23, 42, 0.45)",
 };
-
-export default colors;
