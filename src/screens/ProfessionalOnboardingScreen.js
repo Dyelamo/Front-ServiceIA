@@ -16,7 +16,7 @@ import { CATEGORIES } from "../data/categories";
 import {
   getMyProfileApi,
   registerProfessionalApi,
-} from "../features/usuario/usuario.api";
+} from "../features/professional/api/professional.api.js";
 import { useAppMode } from "../hook/useAppMode";
 
 export default function ProfessionalOnboardingScreen({ navigation }) {

@@ -13,10 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing, radius, typography } from "../../theme";
 import AppHeader from "../../components/AppHeader";
 import Badge from "../../components/Badge";
-import {
-  fetchClientOffers,
-  fetchClientPublications,
-} from "../../api/requestsService";
+import {fetchClientPublications} from "../../features/requests/api/requests.api.js";
+import {fetchClientOffers} from "../../features/offers/api/offers.api";
 import { formatCOP } from "../../utils";
 
 const TABS = [

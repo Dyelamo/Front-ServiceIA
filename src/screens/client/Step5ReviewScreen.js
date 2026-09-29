@@ -9,7 +9,7 @@ import WizardFooter from '../../components/WizardFooter';
 import InfoRow from '../../components/InfoRow';
 import { CATEGORIES, URGENCY_OPTIONS } from '../../data/categories';
 import { useRequestForm } from '../../hook/useRequestForm';
-import { createServiceRequest } from '../../api/requestsService';
+import { createServiceRequest } from '../../features/requests/api/requests.api';
 
 export default function Step5ReviewScreen({ navigation }) {
   const { form } = useRequestForm();

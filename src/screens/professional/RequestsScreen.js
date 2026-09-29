@@ -17,11 +17,8 @@ import { colors, spacing, radius, typography } from "../../theme";
 import AppHeader from "../../components/AppHeader";
 import RequestCard from "../../components/RequestCard";
 import { formatCOP } from "../../utils";
-import {
-  createProfessionalOffer,
-  fetchProfessionalPublications,
-  fetchProfessionalOffers,
-} from "../../api/requestsService";
+import {fetchProfessionalPublications} from "../../features/requests/api/requests.api";
+import {createProfessionalOffer, fetchProfessionalOffers} from "../../features/offers/api/offers.api";
 
 const TABS = [
   { id: "nuevas", label: "Nuevas" },

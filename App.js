@@ -12,17 +12,18 @@ import UIPreview from "./src/screens/UiPreviewScreen";
 export default function App() {
   return(
     <SafeAreaProvider>
-        <UIPreview />
+      <AppModeProvider>
+        <AuthProvider>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </AuthProvider>
+      </AppModeProvider>
     </SafeAreaProvider>
   );
-  // (
+}
+
+ // (
   //   <SafeAreaProvider>
-  //     <AppModeProvider>
-  //       <AuthProvider>
-  //         <StatusBar style="dark" />
-  //         <RootNavigator />
-  //       </AuthProvider>
-  //     </AppModeProvider>
+  //       <UIPreview />
   //   </SafeAreaProvider>
   // );
-}

@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-// Hook ficticio solicitado
-import { useAuth } from '../hook/useAuth'; 
-import { publishServiceApi, deleteServiceApi } from '../features/services/services.api';
-
+// Hook ficticio solicitado 
+import {
+  publishServiceApi,
+  deleteServiceApi
+} from "../features/catalog/api/services.api";
 export const ServiceList = ({ services, onEdit, onRefreshList }) => {
-  const { userToken } = useAuth();
+  
   const [publishingId, setPublishingId] = useState(null);
 
   const handlePublish = async (id) => {
     try {
       setPublishingId(id);
-      await publishServiceApi(id, userToken);
+      await publishServiceApi(id);
       Alert.alert("Éxito", "Servicio publicado correctamente");
       onRefreshList(); // Llama a tu fetch principal para recargar la lista
     } catch (error) {
@@ -32,7 +33,7 @@ export const ServiceList = ({ services, onEdit, onRefreshList }) => {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteServiceApi(id, userToken);
+              await deleteServiceApi(id);
               onRefreshList();
             } catch (error) {
               Alert.alert("Error", "No se pudo eliminar el servicio");

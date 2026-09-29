@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { colors, spacing, radius, typography } from "../theme";
 import { useAppMode } from "../hook/useAppMode";
   // import { getMyProfileApi } from "../features/usuario/usuario.api";
-import { getMyProfessionalProfileApi } from "../features/usuario/usuario.api";
+import { getMyProfessionalProfileApi } from "../features/professional/api/professional.api";
 
 export default function AppHeader() {
   const navigation = useNavigation();

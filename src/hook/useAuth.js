@@ -1,11 +1,17 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-import { loginApi } from "../features/services/auth.api";
+import { loginApi } from "../features/auth/api/auth.api";
+
 import {
   getAccessToken,
   saveAuthData,
   clearAuthData,
-} from "../features/services/auth.storage";
+} from "../core/storage/auth.storage";
 
 const AuthContext = createContext(null);
 

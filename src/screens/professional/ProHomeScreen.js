@@ -8,7 +8,7 @@ import StatCard from '../../components/StatCard';
 import RequestCard from '../../components/RequestCard';
 import { formatCOP } from '../../utils';
 import { MOCK_PROFESSIONAL, MOCK_NEW_REQUESTS } from '../../data/mockData';
-import { getMyProfessionalProfileApi } from '../../features/usuario/usuario.api';
+import { getMyProfessionalProfileApi } from '../../features/professional/api/professional.api';
 
 export default function ProHomeScreen({ navigation }) {
   const [available, setAvailable] = useState(true);

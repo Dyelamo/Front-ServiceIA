@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, Button, SafeAreaView, ActivityIndicator } from 'react-native';
 import { ServiceList } from '../components/ServiceList'
 import { ServiceForm } from '../components/ServiceForm';
-import { createServiceApi, updateServiceApi } from '../features/services/services.api';
-// import { useAuth } from '../hook/useAuth';
+import {
+  createServiceApi,
+  updateServiceApi
+} from "../features/catalog/api/services.api";// import { useAuth } from '../hook/useAuth';
 
 export const ManageServicesScreen = ({ onOpenProfile }) => {
   // const { userToken } = useAuth();

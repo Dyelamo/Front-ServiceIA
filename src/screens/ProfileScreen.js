@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, typography } from "../theme";
-import { getMyProfileApi } from "../features/usuario/usuario.api";
+import { getMyProfileApi } from "../features/professional/api/professional.api";
 import { useAuth } from "../hook/useAuth";
 
 export const ProfileScreen = ({ navigation, onBack }) => {

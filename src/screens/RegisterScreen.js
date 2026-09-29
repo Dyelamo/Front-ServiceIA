@@ -11,8 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import { registerApi } from "../features/services/auth.api";
-
+import { registerApi } from "../features/auth/api/auth.api";
 export const RegisterScreen = ({ onRegistered, onGoToLogin }) => {
   const [nombreCompleto, setNombreCompleto] = useState("");
   const [email, setEmail] = useState("");
