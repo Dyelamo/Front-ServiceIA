@@ -1,4 +1,4 @@
-import { api } from "../services/api";
+import { api } from "../auth/api/auth.api";
 
 export const getMyProfileApi = async () => {
   const response = await api.get("/usuarios/me");
