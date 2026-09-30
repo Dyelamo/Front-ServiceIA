@@ -1,64 +1,58 @@
 import React from "react";
 
-import {
-  createBottomTabNavigator,
-} from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import {
-  createNativeStackNavigator,
-} from "@react-navigation/native-stack";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-} from "../../theme";
-
+import { colors } from "../../theme";
 
 // TEMPORAL:
 // seguimos usando tus pantallas actuales.
 // Las iremos sustituyendo en la Fase 7.
 
-import ClientHomeScreen from "../../screens/client/HomeScreen";
+import ClientHomeScreen from "../../features/requests/screen/client/create/ClientHomeScreen";
 import ClientRequestsScreen from "../../screens/client/ClientRequestsScreen";
-import {ProfileScreen} from "../../screens/ProfileScreen";
-
+import { ProfileScreen } from "../../screens/ProfileScreen";
 
 // Si todavía no existe NotificationsScreen,
 // créala temporalmente más adelante.
 // Por ahora podemos ocultarla o usar un placeholder.
 
-import Step1DescriptionScreen from "../../screens/client/Step1DescribeScreen";
-import Step2CategoryScreen from "../../screens/client/Step2LocationScreen";
-import Step3LocationScreen from "../../screens/client/Step3UrgencyScreen";
-import Step4UrgencyScreen from "../../screens/client//Step4PhotosScreen";
-import Step5ReviewScreen from "../../screens/client/Step5ReviewScreen";
+import DescribeScreen from "../../features/requests/screen/client/create/DescribeScreen";
 
-const Tab =
-  createBottomTabNavigator();
+import CategoryScreen from "../../features/requests/screen/client/create/CategoryScreen";
 
-const Stack =
-  createNativeStackNavigator();
+import LocationScreen from "../../features/requests/screen/client/create/LocationScreen";
 
+import UrgencyScreen from "../../features/requests/screen/client/create/UrgencyScreen";
 
-  function ClientTabs() {
+import PhotosScreen from "../../features/requests/screen/client/create/PhotosScreen";
+
+import ReviewScreen from "../../features/requests/screen/client/create/ReviewScreen";
+
+import SuccessScreen from "../../features/requests/screen/client/create/SuccessScreen";
+
+const Tab = createBottomTabNavigator();
+
+const Stack = createNativeStackNavigator();
+
+function ClientTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
 
-        tabBarActiveTintColor:
-          colors.primary,
+        tabBarActiveTintColor: colors.primary,
 
-        tabBarInactiveTintColor:
-          colors.textMuted,
+        tabBarInactiveTintColor: colors.textMuted,
 
         tabBarStyle: {
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
-          borderTopColor:
-            colors.border,
+          borderTopColor: colors.border,
         },
 
         tabBarLabelStyle: {
@@ -66,47 +60,24 @@ const Stack =
           fontWeight: "600",
         },
 
-        tabBarIcon: ({
-          color,
-          size,
-          focused,
-        }) => {
+        tabBarIcon: ({ color, size, focused }) => {
           let iconName;
 
           if (route.name === "Home") {
-            iconName = focused
-              ? "home"
-              : "home-outline";
+            iconName = focused ? "home" : "home-outline";
           }
 
-          if (
-            route.name ===
-            "MyRequests"
-          ) {
-            iconName = focused
-              ? "document-text"
-              : "document-text-outline";
+          if (route.name === "MyRequests") {
+            iconName = focused ? "document-text" : "document-text-outline";
           }
 
-          if (
-            route.name ===
-            "Profile"
-          ) {
-            iconName = focused
-              ? "person"
-              : "person-outline";
+          if (route.name === "Profile") {
+            iconName = focused ? "person" : "person-outline";
           }
 
-          return (
-            <Ionicons
-              name={iconName}
-              size={22}
-              color={color}
-            />
-          );
+          return <Ionicons name={iconName} size={22} color={color} />;
         },
-      })}
-    >
+      })}>
       <Tab.Screen
         name="Home"
         component={ClientHomeScreen}
@@ -117,9 +88,7 @@ const Stack =
 
       <Tab.Screen
         name="MyRequests"
-        component={
-          ClientRequestsScreen
-        }
+        component={ClientRequestsScreen}
         options={{
           title: "Publicaciones",
         }}
@@ -141,47 +110,25 @@ export default function ClientNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-      }}
-    >
-      <Stack.Screen
-        name="ClientTabs"
-        component={ClientTabs}
-      />
+      }}>
+      <Stack.Screen name="ClientTabs" component={ClientTabs} />
 
       <Stack.Screen
         name="CreateRequestDescription"
-        component={
-          Step1DescriptionScreen
-        }
+        component={DescribeScreen}
       />
 
-      <Stack.Screen
-        name="CreateRequestCategory"
-        component={
-          Step2CategoryScreen
-        }
-      />
+      <Stack.Screen name="CreateRequestCategory" component={CategoryScreen} />
 
-      <Stack.Screen
-        name="CreateRequestLocation"
-        component={
-          Step3LocationScreen
-        }
-      />
+      <Stack.Screen name="CreateRequestLocation" component={LocationScreen} />
 
-      <Stack.Screen
-        name="CreateRequestUrgency"
-        component={
-          Step4UrgencyScreen
-        }
-      />
+      <Stack.Screen name="CreateRequestUrgency" component={UrgencyScreen} />
 
-      <Stack.Screen
-        name="CreateRequestReview"
-        component={
-          Step5ReviewScreen
-        }
-      />
+      <Stack.Screen name="CreateRequestPhotos" component={PhotosScreen} />
+
+      <Stack.Screen name="CreateRequestReview" component={ReviewScreen} />
+
+      <Stack.Screen name="CreateRequestSuccess" component={SuccessScreen} />
     </Stack.Navigator>
   );
 }

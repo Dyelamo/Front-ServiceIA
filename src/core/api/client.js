@@ -1,6 +1,8 @@
 import axios from "axios";
 
-import { getAccessToken } from "../storage/auth.storage";
+import {
+  getAccessToken,
+} from "../storage/auth.storage";
 
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL || "/api";
@@ -15,7 +17,8 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    const token = await getAccessToken();
+    const token =
+      await getAccessToken();
 
     if (token) {
       config.headers.Authorization =
@@ -24,9 +27,8 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) =>
+    Promise.reject(error)
 );
 
 export default api;

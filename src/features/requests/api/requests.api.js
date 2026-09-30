@@ -23,7 +23,7 @@ export const createServiceRequest =
         payload.categoryId,
 
       urgencia:
-        payload.urgencyLabel,
+        payload.urgency,
     };
 
     const { data } = await api.post(
@@ -44,7 +44,7 @@ export const createServiceRequest =
         "Servicio general",
 
       urgency:
-        payload.urgencyLabel,
+        payload.urgency,
 
       presentialVisit: true,
 
