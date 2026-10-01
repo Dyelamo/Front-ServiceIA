@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, typography } from "../theme/index";
-import {getMyProfileApi} from "../features/profile/api/user.api";
+import { Button } from "../shared/ui/index";
+import { getMyProfileApi } from "../features/profile/api/user.api";
 import { useAuth } from "../hook/useAuth";
 
 export const ProfileScreen = ({ navigation, onBack }) => {
@@ -154,6 +155,12 @@ export const ProfileScreen = ({ navigation, onBack }) => {
               <Text style={styles.actionSubtitle}>
                 Ver los datos más recientes
               </Text>
+              <Button
+                onPress={() =>
+                  navigation.getParent()?.getParent()?.navigate("Professional")
+                }>
+                Entrar como profesional
+              </Button>
             </View>
             <Ionicons
               name="chevron-forward"

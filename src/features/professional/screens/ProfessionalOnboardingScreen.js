@@ -11,13 +11,13 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, typography } from "../theme";
-import { CATEGORIES } from "../data/categories";
+import { colors, radius, spacing, typography } from "../../../theme";
+import { CATEGORIES } from "../../../data/categories";
 import {
   getMyProfileApi,
   registerProfessionalApi,
-} from "../features/professional/api/professional.api.js";
-import { useAppMode } from "../hook/useAppMode";
+} from "../api/professional.api.js";
+import { useAppMode } from "../../../hook/useAppMode";
 
 export default function ProfessionalOnboardingScreen({ navigation }) {
   const { setMode, setProfessionalProfile } = useAppMode();

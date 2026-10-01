@@ -1,34 +1,28 @@
 import React from "react";
 
-import {
-  createBottomTabNavigator,
-} from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import {
-  createNativeStackNavigator,
-} from "@react-navigation/native-stack";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-} from "../../theme";
+import { colors } from "../../theme/index";
 
+import ProfessionalHomeScreen from "../../features/professional/screens/ProfessionalHomeScreen";
 
-// Por ahora reutilizamos
-// pantallas antiguas.
+import AvailableRequestsScreen from "../../features/requests/screen/professional/AvailableRequestsScreen";
 
-import ProHomeScreen from "../../screens/professional/ProHomeScreen";
-import RequestsScreen from "../../screens/professional/RequestsScreen";
-import JobsScreen from "../../screens/professional/JobScreen";
-import ProfessionalProfileScreen from "../../screens/professional/ProfileScreen";
-import BalanceScreen from "../../screens/professional/BalnceScreen";
+import ProfessionalRequestDetailScreen from "../../features/requests/screen/professional/ProfessionalRequestDetailScreen";
 
-const Tab =
-  createBottomTabNavigator();
+import CreateOfferScreen from "../../features/offers/screens/CreateOfferScreen";
 
-const Stack =
-  createNativeStackNavigator();
+import ProfessionalProfileScreen from "../../features/professional/screens/ProfessionalProfileScreen";
+import ProfessionalOffersScreen from "../../features/offers/screens/ProfessionalOffersScreen";
+import BalanceScreen from "../../features/wallet/BalanceScreen";
+import JobsScreen from "../../features/jobs/screens/JobsScreen";
+const Tab = createBottomTabNavigator();
+
+const Stack = createNativeStackNavigator();
 
 function ProfessionalTabs() {
   return (
@@ -36,18 +30,15 @@ function ProfessionalTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
 
-        tabBarActiveTintColor:
-          colors.primary,
+        tabBarActiveTintColor: colors.primary,
 
-        tabBarInactiveTintColor:
-          colors.textMuted,
+        tabBarInactiveTintColor: colors.textMuted,
 
         tabBarStyle: {
           height: 64,
           paddingTop: 6,
           paddingBottom: 8,
-          borderTopColor:
-            colors.border,
+          borderTopColor: colors.border,
         },
 
         tabBarLabelStyle: {
@@ -55,61 +46,40 @@ function ProfessionalTabs() {
           fontWeight: "600",
         },
 
-        tabBarIcon: ({
-          color,
-          focused,
-        }) => {
+        tabBarIcon: ({ color, focused }) => {
           let iconName;
 
           switch (route.name) {
             case "ProfessionalHome":
-              iconName = focused
-                ? "home"
-                : "home-outline";
+              iconName = focused ? "home" : "home-outline";
               break;
 
             case "AvailableRequests":
-              iconName = focused
-                ? "search"
-                : "search-outline";
+              iconName = focused ? "search" : "search-outline";
               break;
 
             case "ProfessionalOffers":
-              iconName = focused
-                ? "paper-plane"
-                : "paper-plane-outline";
+              iconName = focused ? "paper-plane" : "paper-plane-outline";
               break;
 
             case "Jobs":
-              iconName = focused
-                ? "briefcase"
-                : "briefcase-outline";
+              iconName = focused ? "briefcase" : "briefcase-outline";
               break;
 
             case "ProfessionalProfile":
-              iconName = focused
-                ? "person"
-                : "person-outline";
+              iconName = focused ? "person" : "person-outline";
               break;
 
             default:
-              iconName =
-                "ellipse-outline";
+              iconName = "ellipse-outline";
           }
 
-          return (
-            <Ionicons
-              name={iconName}
-              size={22}
-              color={color}
-            />
-          );
+          return <Ionicons name={iconName} size={22} color={color} />;
         },
-      })}
-    >
+      })}>
       <Tab.Screen
         name="ProfessionalHome"
-        component={ProHomeScreen}
+        component={ProfessionalHomeScreen}
         options={{
           title: "Inicio",
         }}
@@ -117,7 +87,7 @@ function ProfessionalTabs() {
 
       <Tab.Screen
         name="AvailableRequests"
-        component={RequestsScreen}
+        component={AvailableRequestsScreen}
         options={{
           title: "Solicitudes",
         }}
@@ -125,7 +95,7 @@ function ProfessionalTabs() {
 
       <Tab.Screen
         name="ProfessionalOffers"
-        component={RequestsScreen}
+        component={ProfessionalOffersScreen}
         options={{
           title: "Ofertas",
         }}
@@ -141,9 +111,7 @@ function ProfessionalTabs() {
 
       <Tab.Screen
         name="ProfessionalProfile"
-        component={
-          ProfessionalProfileScreen
-        }
+        component={ProfessionalProfileScreen}
         options={{
           title: "Perfil",
         }}
@@ -157,19 +125,17 @@ export default function ProfessionalNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-      }}
-    >
-      <Stack.Screen
-        name="ProfessionalTabs"
-        component={
-          ProfessionalTabs
-        }
-      />
+      }}>
+      <Stack.Screen name="ProfessionalTabs" component={ProfessionalTabs} />
 
       <Stack.Screen
-        name="Balance"
-        component={BalanceScreen}
+        name="ProfessionalRequestDetail"
+        component={ProfessionalRequestDetailScreen}
       />
+
+      <Stack.Screen name="CreateOffer" component={CreateOfferScreen} />
+
+      <Stack.Screen name="Balance" component={BalanceScreen} />
     </Stack.Navigator>
   );
 }

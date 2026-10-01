@@ -1,36 +1,35 @@
-import {
-  api,
-} from "../../../core/api/client";
+import { api } from "../../../core/api/client";
 
-import {
-  mapRequestsFromApi,
-} from "../mappers/request.mapper";
+import { mapRequestsFromApi } from "../mappers/request.mapper";
 
 const getList = (data) => {
   if (Array.isArray(data)) {
     return data;
   }
 
-  return (
-    data?.results ||
-    data?.items ||
-    data?.data ||
-    []
-  );
+  return data?.results || data?.items || data?.data || [];
 };
 
-export const fetchClientPublications =
-  async () => {
-    const { data } =
-      await api.get(
-        "/publicaciones/mis-publicaciones"
-      );
+export const fetchClientPublications = async () => {
+  const { data } = await api.get("/publicaciones/mis-publicaciones");
 
-    const list =
-      getList(data);
+  const list = getList(data);
 
-    const mapped =
-      mapRequestsFromApi(list);
+  const mapped = mapRequestsFromApi(list);
 
-    return mapped;
-  };
+  return mapped;
+};
+
+export const fetchProfessionalPublications = async () => {
+  const data = await api.get("/publicaciones/categorias-prestador");
+
+  const list = getList(data);
+
+  return list;
+};
+
+export const fetchPublicationById = async (publicationId) => {
+  const { data } = await api.get(`/publicaciones/${publicationId}`);
+
+  return data;
+};
