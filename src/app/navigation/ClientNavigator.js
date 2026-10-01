@@ -8,32 +8,20 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "../../theme";
 
-// TEMPORAL:
-// seguimos usando tus pantallas actuales.
-// Las iremos sustituyendo en la Fase 7.
 
 import ClientHomeScreen from "../../features/requests/screen/client/ClientHomeScreen";
 import ClientRequestsScreen from "../../features/requests/screen/client/ClientRequestsScreen";
 import RequestDetailScreen from "../../features/requests/screen/client/RequestDetailScreen";
-import { ProfileScreen } from "../../screens/ProfileScreen";
+import  ClientProfileScreen  from "../../features/profile/screens/ClientProfileScreen";
 import NotificationsScreen from "../../features/notifications/screen/NotificationsScreen";
 
-// Si todavía no existe NotificationsScreen,
-// créala temporalmente más adelante.
-// Por ahora podemos ocultarla o usar un placeholder.
 
 import DescribeScreen from "../../features/requests/screen/client/create/DescribeScreen";
-
 import CategoryScreen from "../../features/requests/screen/client/create/CategoryScreen";
-
 import LocationScreen from "../../features/requests/screen/client/create/LocationScreen";
-
 import UrgencyScreen from "../../features/requests/screen/client/create/UrgencyScreen";
-
 import PhotosScreen from "../../features/requests/screen/client/create/PhotosScreen";
-
 import ReviewScreen from "../../features/requests/screen/client/create/ReviewScreen";
-
 import SuccessScreen from "../../features/requests/screen/client/create/SuccessScreen";
 
 const Tab = createBottomTabNavigator();
@@ -110,7 +98,7 @@ function ClientTabs() {
 
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ClientProfileScreen}
         options={{
           title: "Perfil",
         }}

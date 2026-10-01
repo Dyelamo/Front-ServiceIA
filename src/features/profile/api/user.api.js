@@ -1,4 +1,4 @@
-import { api } from "../../../core/api/client";
+import { api } from "../../../../src/core/api/client";
 
 export const getMyProfileApi = async () => {
   const response = await api.get(

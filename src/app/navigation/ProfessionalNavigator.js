@@ -18,7 +18,7 @@ import CreateOfferScreen from "../../features/offers/screens/CreateOfferScreen";
 
 import ProfessionalProfileScreen from "../../features/professional/screens/ProfessionalProfileScreen";
 import ProfessionalOffersScreen from "../../features/offers/screens/ProfessionalOffersScreen";
-import BalanceScreen from "../../features/wallet/BalanceScreen";
+import BalanceScreen from "../../features/wallet/screens/BalanceScreen";
 import JobsScreen from "../../features/jobs/screens/JobsScreen";
 const Tab = createBottomTabNavigator();
 
@@ -108,6 +108,13 @@ function ProfessionalTabs() {
           title: "Trabajos",
         }}
       />
+
+      {/* <Stack.Screen name="Balance" 
+      component={BalanceScreen} 
+      optiions={{
+        title: "Saldo",
+      }}
+      /> */}
 
       <Tab.Screen
         name="ProfessionalProfile"

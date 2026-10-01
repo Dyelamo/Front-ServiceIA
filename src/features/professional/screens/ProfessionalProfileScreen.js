@@ -1,55 +1,57 @@
-// src/screens/professional/ProfileScreen.js
 import React, { useCallback, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  Image,
-} from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors, spacing, radius, typography } from "../../theme";
-import AppHeader from "../../components/AppHeader";
-import SecondaryButton from "../../components/SecondaryButton";
-import { MOCK_PROFESSIONAL } from "../../data/mockData";
-import {
-  getMyProfileApi,
-  getMyProfessionalProfileApi,
-} from "../../features/usuario/usuario.api";
 
-export default function ProfileScreen() {
-  const [profile, setProfile] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+import { StyleSheet, Text, View } from "react-native";
+
+import { Ionicons } from "@expo/vector-icons";
+
+import { useFocusEffect } from "@react-navigation/native";
+
+import { colors, radius, spacing } from "../../../theme/index";
+
+import { Avatar, Button, Card, ErrorState, Skeleton } from "../../../shared/ui/index";
+
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
+
+import { getMyProfileApi } from "../../profile/api/user.api";
+
+import { getMyProfessionalProfileApi } from "../api/professional.api";
+
+import { useAuth } from "../../../hook/useAuth";
+
+import { useAppMode } from "../../app-mode/hooks/useAppMode";
+
+import { categories as serviceCategories } from "../../requests/data/categories";
+
+export default function ProfessionalProfileScreen() {
+  const { logout } = useAuth();
+
+  const { setMode } = useAppMode();
+
+  const [user, setUser] = useState(null);
+
+  const [professional, setProfessional] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState(false);
 
   const loadProfile = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const [user, professional] = await Promise.all([
+      setError(false);
+
+      const [userData, professionalData] = await Promise.all([
         getMyProfileApi(),
         getMyProfessionalProfileApi(),
       ]);
 
-      setUserProfile(user);
-      setProfile({
-        ...user,
-        ...professional,
-        nombre_completo: user?.nombre_completo || professional?.nombre_completo,
-        email: user?.email || professional?.email,
-        telefono: user?.telefono || professional?.telefono,
-        ubicacion: user?.ubicacion || professional?.ubicacion,
-      });
-    } catch (error) {
-      console.error("Error cargando perfil profesional:", error);
-      Alert.alert(
-        "No se pudo cargar el perfil",
-        error?.response?.data?.detail || "Inténtalo de nuevo más tarde.",
-      );
+      setUser(userData);
+      setProfessional(professionalData);
+    } catch (err) {
+      console.error("Error cargando perfil profesional:", err);
+
+      setError(true);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
@@ -59,416 +61,458 @@ export default function ProfileScreen() {
     }, [loadProfile]),
   );
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Cargando perfil profesional...</Text>
-      </View>
+      <Screen>
+        <AppHeader title="Mi perfil" />
+
+        <ResponsiveContainer maxWidth={1040} style={styles.container}>
+          <Skeleton height={210} style={styles.skeleton} />
+
+          <Skeleton height={180} />
+        </ResponsiveContainer>
+      </Screen>
+    );
+  }
+
+  if (error) {
+    return (
+      <Screen>
+        <AppHeader title="Mi perfil" />
+
+        <ResponsiveContainer maxWidth={1040} style={styles.container}>
+          <ErrorState
+            title="No pudimos cargar tu perfil profesional"
+            description="Intenta nuevamente."
+            onRetry={loadProfile}
+          />
+        </ResponsiveContainer>
+      </Screen>
     );
   }
 
   const fullName =
-    profile?.nombre_completo ||
-    userProfile?.nombre_completo ||
-    MOCK_PROFESSIONAL.name;
-  const initial = fullName.charAt(0).toUpperCase();
-  const categories = Array.isArray(profile?.categorias)
-    ? profile.categorias
-    : Array.isArray(profile?.especialidades)
-      ? profile.especialidades
+    user?.nombre_completo ||
+    user?.nombre ||
+    user?.nombres ||
+    professional?.nombre_completo ||
+    "Profesional";
+
+  const email = user?.email || professional?.email || "No registrado";
+
+  const phone = user?.telefono || professional?.telefono || "No registrado";
+
+  const location =
+    user?.ubicacion || professional?.ubicacion || "Valledupar, Cesar";
+
+  const description = professional?.descripcion || professional?.sobre_mi || "";
+
+  const specialties = Array.isArray(professional?.categorias)
+    ? professional.categorias
+    : Array.isArray(professional?.especialidades)
+      ? professional.especialidades
       : [];
-  const isAvailable = profile?.disponible ?? true;
-  const isActive = profile?.activo ?? true;
+
+  const isAvailable = professional?.disponible ?? true;
+
+  const isActive = professional?.activo ?? true;
+
+  const isVerified = professional?.verificado ?? false;
 
   return (
-    <View style={styles.screen}>
-      <AppHeader />
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.headerRow}>
-            <View style={styles.avatar}>
-              {profile?.foto_perfil ? (
-                <Image
-                  source={{ uri: profile.foto_perfil }}
-                  style={styles.avatarImage}
-                />
-              ) : (
-                <Text style={styles.avatarText}>{initial}</Text>
-              )}
-            </View>
-            <View style={{ marginLeft: spacing.md, flex: 1 }}>
-              <Text style={styles.name}>{fullName}</Text>
-              <Text style={styles.role}>Prestador de servicios</Text>
-              <View
-                style={[
-                  styles.availabilityPill,
-                  isAvailable ? styles.available : styles.unavailable,
-                ]}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    isAvailable ? styles.availableDot : styles.unavailableDot,
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.availabilityText,
-                    isAvailable ? styles.availableText : styles.unavailableText,
-                  ]}>
-                  {isAvailable ? "Disponible" : "No disponible"}
-                </Text>
-              </View>
-              {profile?.verificado && (
-                <View style={styles.verifiedPill}>
+    <Screen scroll backgroundColor={colors.background}>
+      <AppHeader title="Mi perfil" />
+
+      <ResponsiveContainer maxWidth={1040} style={styles.container}>
+        <Card variant="outlined" style={styles.heroCard}>
+          <View style={styles.hero}>
+            <Avatar name={fullName} size={76} />
+
+            <View style={styles.heroCopy}>
+              <View style={styles.nameRow}>
+                <Text style={styles.name}>{fullName}</Text>
+
+                {isVerified ? (
                   <Ionicons
                     name="checkmark-circle"
-                    size={12}
+                    size={20}
                     color={colors.success}
                   />
-                  <Text style={styles.verifiedText}>Verificado</Text>
+                ) : null}
+              </View>
+
+              <Text style={styles.role}>Profesional de servicios</Text>
+
+              <View style={styles.metaRow}>
+                <StatusPill active={isAvailable} />
+
+                <View style={styles.locationRow}>
+                  <Ionicons
+                    name="location-outline"
+                    size={15}
+                    color={colors.textMuted}
+                  />
+
+                  <Text style={styles.location}>{location}</Text>
                 </View>
-              )}
-            </View>
-          </View>
-
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Ionicons name="star-outline" size={16} color={colors.primary} />
-              <Text style={styles.statValue}>{MOCK_PROFESSIONAL.rating}</Text>
-              <Text style={styles.statLabel}>Calificación</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={16}
-                color={colors.primary}
-              />
-              <Text style={styles.statValue}>{MOCK_PROFESSIONAL.services}</Text>
-              <Text style={styles.statLabel}>Servicios</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={16}
-                color={colors.primary}
-              />
-              <Text style={styles.statValue}>{MOCK_PROFESSIONAL.reviews}</Text>
-              <Text style={styles.statLabel}>Reseñas</Text>
-            </View>
-          </View>
-
-          <View style={styles.locationRow}>
-            <Ionicons
-              name="location-outline"
-              size={14}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.locationText}>
-              {profile?.ubicacion ||
-                userProfile?.ubicacion ||
-                "Ubicación no registrada"}
-            </Text>
-            <View style={styles.accountStatus}>
-              <Ionicons
-                name={isActive ? "checkmark-circle" : "close-circle"}
-                size={14}
-                color={isActive ? colors.success : colors.danger}
-              />
-              <Text
-                style={[
-                  styles.accountStatusText,
-                  { color: isActive ? colors.success : colors.danger },
-                ]}>
-                {isActive ? "Perfil activo" : "Perfil inactivo"}
-              </Text>
-            </View>
-          </View>
-
-          <SecondaryButton
-            title="Actualizar perfil"
-            icon="refresh"
-            onPress={loadProfile}
-            style={{ marginTop: spacing.lg }}
-          />
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Sobre mí</Text>
-          <Text style={styles.aboutText}>
-            {profile?.descripcion ||
-              profile?.sobre_mi ||
-              "Aún no has agregado una descripción profesional."}
-          </Text>
-          <InfoLine
-            icon="mail-outline"
-            label="Correo"
-            value={profile?.email || userProfile?.email}
-          />
-          <InfoLine
-            icon="call-outline"
-            label="Teléfono"
-            value={profile?.telefono || userProfile?.telefono}
-          />
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Mis categorías</Text>
-          {categories.length > 0 ? (
-            categories.map((category, index) => {
-              const categoryName =
-                category.nombre || category.name || category.label || category;
-              const categoryDescription =
-                category.descripcion || category.description || "";
-
-              return (
-                <View
-                  style={styles.categoryRow}
-                  key={`${categoryName}-${index}`}>
-                  <View style={styles.categoryIcon}>
-                    <Ionicons
-                      name="briefcase-outline"
-                      size={17}
-                      color={colors.primary}
-                    />
-                  </View>
-                  <View style={styles.categoryCopy}>
-                    <Text style={styles.categoryName}>{categoryName}</Text>
-                    {!!categoryDescription && (
-                      <Text style={styles.categoryDescription}>
-                        {categoryDescription}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              );
-            })
-          ) : (
-            <Text style={styles.aboutText}>No hay categorías registradas.</Text>
-          )}
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.verificationHeader}>
-            <Ionicons
-              name="shield-checkmark-outline"
-              size={16}
-              color={colors.success}
-            />
-            <Text style={styles.sectionTitle}> Verificación</Text>
-          </View>
-          {MOCK_PROFESSIONAL.verification.map((item) => (
-            <View key={item.id} style={styles.verificationRow}>
-              <Text style={styles.verificationLabel}>{item.label}</Text>
-              <View style={styles.verificationStatus}>
-                {item.status === "verificado" ? (
-                  <>
-                    <Ionicons
-                      name="document-text-outline"
-                      size={14}
-                      color={colors.success}
-                    />
-                    <Text style={styles.verifiedStatusText}>Verificado</Text>
-                  </>
-                ) : (
-                  <Text style={styles.pendingStatusText}>Pendiente</Text>
-                )}
               </View>
             </View>
-          ))}
+          </View>
+        </Card>
+
+        <View style={styles.columns}>
+          <View style={styles.mainColumn}>
+            <SectionCard title="Sobre mí" icon="person-outline">
+              <Text style={description ? styles.description : styles.emptyText}>
+                {description ||
+                  "Aún no has agregado una descripción profesional."}
+              </Text>
+            </SectionCard>
+
+            <SectionCard title="Especialidades" icon="construct-outline">
+              {specialties.length > 0 ? (
+                <View style={styles.specialties}>
+                  {specialties.map((specialty, index) => {
+                    const name = getSpecialtyName(specialty);
+
+                    return (
+                      <View key={`${name}-${index}`} style={styles.specialty}>
+                        <Ionicons
+                          name="checkmark-circle-outline"
+                          size={16}
+                          color={colors.primary}
+                        />
+
+                        <Text style={styles.specialtyText}>{name}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : (
+                <Text style={styles.emptyText}>
+                  No tienes especialidades registradas.
+                </Text>
+              )}
+            </SectionCard>
+          </View>
+
+          <View style={styles.sideColumn}>
+            <SectionCard title="Información" icon="information-circle-outline">
+              <InfoRow icon="mail-outline" label="Correo" value={email} />
+
+              <Divider />
+
+              <InfoRow icon="call-outline" label="Teléfono" value={phone} />
+
+              <Divider />
+
+              <InfoRow
+                icon="shield-checkmark-outline"
+                label="Estado"
+                value={isActive ? "Perfil activo" : "Perfil inactivo"}
+              />
+            </SectionCard>
+
+            <SectionCard title="Cuenta" icon="settings-outline">
+              <Button variant="outline" onPress={loadProfile}>
+                Actualizar información
+              </Button>
+
+              <View style={styles.buttonGap} />
+
+              <Button variant="outline" onPress={() => setMode("cliente")}>
+                Cambiar a modo cliente
+              </Button>
+
+              <View style={styles.buttonGap} />
+
+              <Button variant="outline" onPress={logout}>
+                Cerrar sesión
+              </Button>
+            </SectionCard>
+          </View>
         </View>
-      </ScrollView>
+      </ResponsiveContainer>
+    </Screen>
+  );
+}
+
+function getSpecialtyName(specialty) {
+  if (typeof specialty === "string") {
+    const category = serviceCategories.find((item) => item.id === specialty);
+
+    return category?.label || specialty;
+  }
+
+  const id = specialty?.id || specialty?.categoria_id;
+
+  const category = serviceCategories.find((item) => item.id === id);
+
+  return (
+    specialty?.nombre ||
+    specialty?.name ||
+    specialty?.label ||
+    category?.label ||
+    "Servicio"
+  );
+}
+
+function SectionCard({ title, icon, children }) {
+  return (
+    <Card variant="outlined" style={styles.sectionCard}>
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionIcon}>
+          <Ionicons name={icon} size={19} color={colors.primary} />
+        </View>
+
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+
+      <View style={styles.sectionContent}>{children}</View>
+    </Card>
+  );
+}
+
+function InfoRow({ icon, label, value }) {
+  return (
+    <View style={styles.infoRow}>
+      <Ionicons name={icon} size={18} color={colors.primary} />
+
+      <View style={styles.infoCopy}>
+        <Text style={styles.infoLabel}>{label}</Text>
+
+        <Text style={styles.infoValue}>{value || "No registrado"}</Text>
+      </View>
     </View>
   );
 }
 
-function InfoLine({ icon, label, value }) {
+function StatusPill({ active }) {
   return (
-    <View style={styles.infoLine}>
-      <Ionicons name={icon} size={16} color={colors.primary} />
-      <Text style={styles.infoLineLabel}>{label}</Text>
-      <Text style={styles.infoLineValue}>{value || "No registrado"}</Text>
+    <View
+      style={[
+        styles.statusPill,
+        {
+          backgroundColor: active ? "#DCFCE7" : "#FEE2E2",
+        },
+      ]}>
+      <View
+        style={[
+          styles.statusDot,
+          {
+            backgroundColor: active ? "#16A34A" : "#DC2626",
+          },
+        ]}
+      />
+
+      <Text
+        style={[
+          styles.statusText,
+          {
+            color: active ? "#15803D" : "#B91C1C",
+          },
+        ]}>
+        {active ? "Disponible" : "No disponible"}
+      </Text>
     </View>
   );
+}
+
+function Divider() {
+  return <View style={styles.divider} />;
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.background,
+  container: {
+    paddingVertical: spacing.xxl,
   },
-  loadingText: {
-    ...typography.body,
+
+  skeleton: {
+    marginBottom: spacing.lg,
+  },
+
+  heroCard: {
+    padding: spacing.xxl,
+  },
+
+  hero: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  heroCopy: {
+    flex: 1,
+    marginLeft: spacing.xl,
+  },
+
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+
+  name: {
+    color: colors.text,
+    fontSize: 25,
+    fontWeight: "800",
+  },
+
+  role: {
     color: colors.textSecondary,
+    fontSize: 14,
+    marginTop: 3,
+  },
+
+  metaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.md,
     marginTop: spacing.md,
   },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  headerRow: {
+
+  statusPill: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.lg,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
     borderRadius: radius.pill,
-    backgroundColor: colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
-  avatarImage: { width: "100%", height: "100%", borderRadius: radius.pill },
-  avatarText: { ...typography.h1, color: colors.primary },
-  name: { ...typography.h3, color: colors.textPrimary },
-  role: { ...typography.caption, color: colors.textSecondary, marginBottom: 4 },
-  availabilityPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    borderRadius: radius.pill,
-    paddingVertical: 3,
-    paddingHorizontal: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  available: { backgroundColor: colors.successLight },
-  unavailable: { backgroundColor: colors.dangerLight },
+
   statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: radius.pill,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
     marginRight: spacing.xs,
   },
-  availableDot: { backgroundColor: colors.success },
-  unavailableDot: { backgroundColor: colors.danger },
-  availabilityText: { ...typography.small, fontWeight: "700" },
-  availableText: { color: colors.success },
-  unavailableText: { color: colors.danger },
-  verifiedPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: colors.successLight,
-    borderRadius: radius.pill,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-  },
-  verifiedText: {
-    ...typography.small,
-    color: colors.success,
+
+  statusText: {
+    fontSize: 12,
     fontWeight: "700",
-    marginLeft: 4,
   },
-  statsRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg },
-  statBox: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-  },
-  statValue: { ...typography.h3, color: colors.textPrimary, marginTop: 4 },
-  statLabel: { ...typography.small, color: colors.textSecondary },
-  locationRow: { flexDirection: "row", alignItems: "center" },
-  locationText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginLeft: 6,
-    flex: 1,
-  },
-  accountStatus: { flexDirection: "row", alignItems: "center" },
-  accountStatusText: {
-    ...typography.small,
-    fontWeight: "700",
-    marginLeft: spacing.xs,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-  },
-  aboutText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    lineHeight: 21,
-  },
-  infoLine: {
+
+  locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.md,
-    marginTop: spacing.lg,
   },
-  infoLineLabel: {
-    ...typography.caption,
+
+  location: {
     color: colors.textSecondary,
-    marginLeft: spacing.sm,
+    fontSize: 13,
+    marginLeft: 5,
   },
-  infoLineValue: {
-    ...typography.caption,
-    color: colors.textPrimary,
-    fontWeight: "600",
-    marginLeft: "auto",
+
+  columns: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xl,
+    marginTop: spacing.xl,
   },
-  categoryRow: {
+
+  mainColumn: {
+    flexGrow: 2,
+    flexBasis: 540,
+    gap: spacing.xl,
+  },
+
+  sideColumn: {
+    flexGrow: 1,
+    flexBasis: 300,
+    gap: spacing.xl,
+  },
+
+  sectionCard: {
+    padding: spacing.xl,
+  },
+
+  sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.background,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
   },
-  categoryIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.pill,
+
+  sectionIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
     backgroundColor: colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: spacing.sm,
   },
-  categoryCopy: { flex: 1 },
-  categoryName: { ...typography.bodyBold, color: colors.textPrimary },
-  categoryDescription: {
-    ...typography.small,
+
+  sectionTitle: {
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: "700",
+    marginLeft: spacing.md,
+  },
+
+  sectionContent: {
+    marginTop: spacing.xl,
+  },
+
+  description: {
     color: colors.textSecondary,
-    marginTop: 2,
+    fontSize: 14,
+    lineHeight: 22,
   },
-  verificationHeader: {
+
+  emptyText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+
+  specialties: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+
+  specialty: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.md,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  verificationRow: {
+
+  specialtyText: {
+    color: colors.primaryDark,
+    fontSize: 13,
+    fontWeight: "600",
+    marginLeft: spacing.xs,
+  },
+
+  infoRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    alignItems: "flex-start",
   },
-  verificationLabel: { ...typography.caption, color: colors.textPrimary },
-  verificationStatus: { flexDirection: "row", alignItems: "center" },
-  verifiedStatusText: {
-    ...typography.small,
-    color: colors.success,
-    fontWeight: "700",
-    marginLeft: 4,
+
+  infoCopy: {
+    flex: 1,
+    marginLeft: spacing.md,
   },
-  pendingStatusText: {
-    ...typography.small,
-    color: colors.warning,
-    fontWeight: "700",
+
+  infoLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+  },
+
+  infoValue: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "600",
+    marginTop: 3,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.lg,
+  },
+
+  buttonGap: {
+    height: spacing.md,
   },
 });
