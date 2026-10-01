@@ -4,17 +4,19 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { colors, spacing } from "../../../../../theme";
+import { colors, spacing } from "../../../../theme/index";
 
-import { Button, Card, Input } from "../../../../../shared/ui";
+import { Button, Card, Input } from "../../../../shared/ui/index";
 
-import { ResponsiveContainer, Screen } from "../../../../../shared/layout";
+import { ResponsiveContainer, Screen } from "../../../../shared/layout/index";
 
-import { categories } from "../../../data/categories";
+import { categories } from "../../../requests/data/categories";
 
-import { useRequestDraft } from "../../../context/RequestDraftContext";
+import { useRequestDraft } from "../../../requests/context/RequestDraftContext";
 
-import CategoryCard from "../../../components/CategoryCard";
+import CategoryCard from "../../../requests/components/CategoryCard";
+
+
 
 export default function ClientHomeScreen({ navigation }) {
   const { updateDraft } = useRequestDraft();

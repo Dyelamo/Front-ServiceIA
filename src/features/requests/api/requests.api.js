@@ -1,4 +1,10 @@
-import { api } from "../../../core/api/client";
+import {
+  api,
+} from "../../../core/api/client";
+
+import {
+  mapRequestsFromApi,
+} from "../mappers/request.mapper";
 
 const getList = (data) => {
   if (Array.isArray(data)) {
@@ -13,65 +19,18 @@ const getList = (data) => {
   );
 };
 
-export const createServiceRequest =
-  async (payload) => {
-    const body = {
-      descripcion:
-        payload.description,
-
-      categoria_id:
-        payload.categoryId,
-
-      urgencia:
-        payload.urgency,
-    };
-
-    const { data } = await api.post(
-      "/publicaciones",
-      body
-    );
-
-    return {
-      apiData: data,
-
-      description:
-        payload.description,
-
-      category:
-        payload.categoryLabel,
-
-      serviceType:
-        "Servicio general",
-
-      urgency:
-        payload.urgency,
-
-      presentialVisit: true,
-
-      location:
-        payload.location,
-
-      followUpQuestions: [
-        "¿Cuándo notaste el problema por primera vez?",
-        "¿Tienes fotos adicionales del área afectada?",
-      ],
-    };
-  };
-
 export const fetchClientPublications =
   async () => {
-    const { data } = await api.get(
-      "/publicaciones/mis-publicaciones"
-    );
+    const { data } =
+      await api.get(
+        "/publicaciones/mis-publicaciones"
+      );
 
-    return getList(data);
-  };
+    const list =
+      getList(data);
 
-export const fetchProfessionalPublications =
-  async () => {
-    const { data } = await api.get(
-      "/publicaciones/categorias-prestador"
-    );
+    const mapped =
+      mapRequestsFromApi(list);
 
-    return getList(data);
+    return mapped;
   };

@@ -10,8 +10,8 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, typography } from "../theme";
-import { getMyProfileApi } from "../features/professional/api/professional.api";
+import { colors, radius, spacing, typography } from "../theme/index";
+import {getMyProfileApi} from "../features/profile/api/user.api";
 import { useAuth } from "../hook/useAuth";
 
 export const ProfileScreen = ({ navigation, onBack }) => {

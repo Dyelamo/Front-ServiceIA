@@ -12,9 +12,11 @@ import { colors } from "../../theme";
 // seguimos usando tus pantallas actuales.
 // Las iremos sustituyendo en la Fase 7.
 
-import ClientHomeScreen from "../../features/requests/screen/client/create/ClientHomeScreen";
-import ClientRequestsScreen from "../../screens/client/ClientRequestsScreen";
+import ClientHomeScreen from "../../features/requests/screen/client/ClientHomeScreen";
+import ClientRequestsScreen from "../../features/requests/screen/client/ClientRequestsScreen";
+import RequestDetailScreen from "../../features/requests/screen/client/RequestDetailScreen";
 import { ProfileScreen } from "../../screens/ProfileScreen";
+import NotificationsScreen from "../../features/notifications/screen/NotificationsScreen";
 
 // Si todavía no existe NotificationsScreen,
 // créala temporalmente más adelante.
@@ -71,6 +73,10 @@ function ClientTabs() {
             iconName = focused ? "document-text" : "document-text-outline";
           }
 
+          if(route.name === "Notifications") {
+            iconName = focused ? "notifications" : "notifications-outline";
+          }
+
           if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           }
@@ -95,6 +101,14 @@ function ClientTabs() {
       />
 
       <Tab.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{
+          title: "Notificaciones",
+        }}
+      />
+
+      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
@@ -112,6 +126,8 @@ export default function ClientNavigator() {
         headerShown: false,
       }}>
       <Stack.Screen name="ClientTabs" component={ClientTabs} />
+
+      <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
 
       <Stack.Screen
         name="CreateRequestDescription"

@@ -42,6 +42,11 @@ export default function SuccessScreen({ navigation, route }) {
       Por ahora mandamos al tab de
       publicaciones.
     */
+    /*NOTIFICAIONES*/
+
+    navigation.navigate("ClientTabs", {
+      screen: "MyRequests",
+    });
 
     navigation.popToTop();
 
