@@ -1,21 +1,12 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-  spacing,
-} from "../../../../theme/index";
+import { colors, layout, spacing } from "../../../../theme/index";
 
-import {
-  Card,
-} from "../../../../shared/ui/index";
+import { Card } from "../../../../shared/ui/index";
 
 import {
   AppHeader,
@@ -23,148 +14,155 @@ import {
   Screen,
 } from "../../../../shared/layout/index";
 
-import RequestStatusBadge
-  from "../../components/RequestStatusBadge";
+import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
-export default function RequestDetailScreen({
-  navigation,
-  route,
-}) {
-  const request =
-    route?.params?.request;
+import RequestStatusBadge from "../../components/RequestStatusBadge";
+
+export default function RequestDetailScreen({ navigation, route }) {
+  const { isDesktop } = useResponsive();
+
+  const request = route?.params?.request;
 
   if (!request) {
     return (
       <Screen>
         <AppHeader
           title="Publicación"
-          onBack={() =>
-            navigation.goBack()
-          }
+          onBack={() => navigation.goBack()}
+          maxWidth={layout.content.wide}
         />
 
         <ResponsiveContainer
-          maxWidth={800}
-          style={styles.container}
-        >
-          <Text>
-            No encontramos la publicación.
-          </Text>
+          maxWidth={layout.content.medium}
+          style={styles.container}>
+          <Text style={styles.notFound}>No encontramos la publicación.</Text>
         </ResponsiveContainer>
       </Screen>
     );
   }
 
   const description =
-    request.descripcion ||
-    request.description ||
-    "Sin descripción";
+    request.description || request.descripcion || "Sin descripción";
 
   const category =
+    request.categoryName ||
     request.categoria?.nombre ||
     request.categoria_nombre ||
     request.category ||
     "Servicio";
 
   const urgency =
+    request.urgencyLabel ||
     request.urgencia ||
     request.urgency ||
     "No especificada";
 
-  const status =
-    request.estado ||
-    request.status ||
-    "publicada";
+  const status = request.status || request.estado || "publicada";
+
+  const location = request.location || request.ubicacion || "Valledupar, Cesar";
+
+  const createdAt = request.createdAt || request.created_at;
 
   return (
-    <Screen
-      scroll
-      backgroundColor={
-        colors.background
-      }
-    >
+    <Screen scroll backgroundColor={colors.background}>
       <AppHeader
         title="Detalle de publicación"
-        onBack={() =>
-          navigation.goBack()
-        }
+        onBack={() => navigation.goBack()}
+        maxWidth={layout.content.wide}
       />
 
       <ResponsiveContainer
-        maxWidth={800}
-        style={styles.container}
-      >
-        <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text style={styles.category}>
-              {request.category}
-            </Text>
+        maxWidth={layout.content.wide}
+        style={styles.container}>
+        {/* ENCABEZADO */}
 
-            <Text style={styles.title}>
-              {request.description}
+        <View style={[styles.header, !isDesktop && styles.headerMobile]}>
+          <View style={styles.headerText}>
+            <Text style={styles.category}>{category}</Text>
+
+            <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
+              {description}
             </Text>
           </View>
 
-          <RequestStatusBadge
-            status={request.status}
-          />
+          <View style={[styles.status, !isDesktop && styles.statusMobile]}>
+            <RequestStatusBadge status={status} />
+          </View>
         </View>
 
-        <Card
-          variant="outlined"
-          style={styles.card}
-        >
-          <InfoRow
-            icon="document-text-outline"
-            label="Descripción"
-            value={request.description}
-          />
+        {/* INFORMACIÓN PRINCIPAL */}
 
-          <Divider />
+        <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>
+          <View style={[styles.mainColumn, !isDesktop && styles.fullColumn]}>
+            <Card variant="outlined" style={styles.card}>
+              <SectionHeader icon="document-text-outline" title="Descripción" />
 
-          <InfoRow
-            icon="grid-outline"
-            label="Categoría"
-            value={request.category}
-          />
+              <Text style={styles.description}>{description}</Text>
+            </Card>
+          </View>
 
-          <Divider />
+          <View
+            style={[
+              styles.sideColumn,
 
-          <InfoRow
-            icon="time-outline"
-            label="Urgencia"
-            value={request.urgency}
-          />
+              !isDesktop && styles.fullColumn,
 
-          <Divider />
-
-          <InfoRow
-            icon="location-outline"
-            label="Ubicación"
-            value={request.ubicacion || "Valledupar, Cesar"}
-          />
-        </Card>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Ofertas recibidas
-          </Text>
-
-          <Card variant="outlined">
-            <View style={styles.emptyOffers}>
-              <Ionicons
-                name="people-outline"
-                size={32}
-                color={colors.textMuted}
+              !isDesktop && styles.sideMobile,
+            ]}>
+            <Card variant="outlined" style={styles.card}>
+              <SectionHeader
+                icon="information-circle-outline"
+                title="Información"
               />
 
-              <Text style={styles.emptyTitle}>
-                Aún no hay ofertas
-              </Text>
+              <InfoRow icon="grid-outline" label="Categoría" value={category} />
+
+              <Divider />
+
+              <InfoRow icon="time-outline" label="Urgencia" value={urgency} />
+
+              <Divider />
+
+              <InfoRow
+                icon="location-outline"
+                label="Ubicación"
+                value={location}
+              />
+
+              {createdAt ? (
+                <>
+                  <Divider />
+
+                  <InfoRow
+                    icon="calendar-outline"
+                    label="Publicada"
+                    value={formatDate(createdAt)}
+                  />
+                </>
+              ) : null}
+            </Card>
+          </View>
+        </View>
+
+        {/* OFERTAS */}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ofertas recibidas</Text>
+
+          <Card variant="outlined" style={styles.offersCard}>
+            <View style={styles.emptyOffers}>
+              <View style={styles.emptyIcon}>
+                <Ionicons
+                  name="people-outline"
+                  size={30}
+                  color={colors.primary}
+                />
+              </View>
+
+              <Text style={styles.emptyTitle}>Aún no hay ofertas</Text>
 
               <Text style={styles.emptyText}>
-                Cuando un profesional envíe
-                una propuesta aparecerá aquí.
+                Cuando un profesional envíe una propuesta, aparecerá aquí.
               </Text>
             </View>
           </Card>
@@ -174,38 +172,52 @@ export default function RequestDetailScreen({
   );
 }
 
-function InfoRow({
-  icon,
-  label,
-  value,
-}) {
+function SectionHeader({ icon, title }) {
   return (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIcon}>
-        <Ionicons
-          name={icon}
-          size={20}
-          color={colors.primary}
-        />
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionIcon}>
+        <Ionicons name={icon} size={19} color={colors.primary} />
       </View>
 
-      <View style={styles.infoContent}>
-        <Text style={styles.infoLabel}>
-          {label}
-        </Text>
+      <Text style={styles.cardTitle}>{title}</Text>
+    </View>
+  );
+}
 
-        <Text style={styles.infoValue}>
-          {value}
-        </Text>
+function InfoRow({ icon, label, value }) {
+  return (
+    <View style={styles.infoRow}>
+      <Ionicons name={icon} size={18} color={colors.primary} />
+
+      <View style={styles.infoContent}>
+        <Text style={styles.infoLabel}>{label}</Text>
+
+        <Text style={styles.infoValue}>{value}</Text>
       </View>
     </View>
   );
 }
 
 function Divider() {
-  return (
-    <View style={styles.divider} />
-  );
+  return <View style={styles.divider} />;
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 const styles = StyleSheet.create({
@@ -213,72 +225,176 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
   },
 
+  notFound: {
+    color: colors.textSecondary,
+
+    fontSize: 15,
+  },
+
   header: {
     flexDirection: "row",
+
     alignItems: "flex-start",
+
     justifyContent: "space-between",
+
     marginBottom: spacing.xxl,
+  },
+
+  headerMobile: {
+    flexDirection: "column",
   },
 
   headerText: {
     flex: 1,
-    marginRight: spacing.lg,
+
+    maxWidth: 800,
   },
 
   category: {
     color: colors.primary,
+
     fontSize: 13,
+
     fontWeight: "700",
   },
 
   title: {
     marginTop: spacing.xs,
+
     color: colors.text,
+
     fontSize: 24,
     lineHeight: 32,
+
     fontWeight: "800",
   },
 
+  titleDesktop: {
+    fontSize: 30,
+    lineHeight: 39,
+  },
+
+  status: {
+    marginLeft: spacing.xl,
+  },
+
+  statusMobile: {
+    marginLeft: 0,
+
+    marginTop: spacing.md,
+  },
+
+  columns: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.xl,
+  },
+
+  columnsMobile: {
+    flexDirection: "column",
+    gap: 0,
+  },
+
+  mainColumn: {
+    flex: 2,
+  },
+
+  sideColumn: {
+    flex: 1,
+    minWidth: 300,
+  },
+
+  fullColumn: {
+    width: "100%",
+    minWidth: 0,
+
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: "auto",
+  },
+
+  sideMobile: {
+    marginTop: spacing.lg,
+  },
+
   card: {
+    width: "100%",
+
     padding: spacing.xl,
   },
 
-  infoRow: {
+  sectionHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
+
+    marginBottom: spacing.xl,
   },
 
-  infoIcon: {
+  sectionIcon: {
     width: 38,
     height: 38,
-    borderRadius: 10,
-    backgroundColor:
-      colors.primaryLight,
+
+    borderRadius: 11,
+
+    backgroundColor: colors.primaryLight,
+
     alignItems: "center",
     justifyContent: "center",
   },
 
+  cardTitle: {
+    color: colors.text,
+
+    fontSize: 17,
+    fontWeight: "800",
+
+    marginLeft: spacing.md,
+  },
+
+  description: {
+    color: colors.textSecondary,
+
+    fontSize: 15,
+    lineHeight: 24,
+  },
+
+  infoRow: {
+    flexDirection: "row",
+
+    alignItems: "flex-start",
+  },
+
   infoContent: {
     flex: 1,
+
     marginLeft: spacing.md,
   },
 
   infoLabel: {
     color: colors.textMuted,
-    fontSize: 12,
+
+    fontSize: 11,
+
     fontWeight: "600",
   },
 
   infoValue: {
-    marginTop: 4,
+    marginTop: 3,
+
     color: colors.text,
-    fontSize: 15,
-    lineHeight: 22,
+
+    fontSize: 14,
+    lineHeight: 20,
+
+    fontWeight: "600",
   },
 
   divider: {
     height: 1,
+
     backgroundColor: colors.border,
+
     marginVertical: spacing.lg,
   },
 
@@ -288,27 +404,56 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     color: colors.text,
+
     fontSize: 20,
-    fontWeight: "700",
+
+    fontWeight: "800",
+
     marginBottom: spacing.lg,
+  },
+
+  offersCard: {
+    padding: spacing.xl,
   },
 
   emptyOffers: {
     alignItems: "center",
+
     paddingVertical: spacing.xxl,
+  },
+
+  emptyIcon: {
+    width: 64,
+    height: 64,
+
+    borderRadius: 32,
+
+    backgroundColor: colors.primaryLight,
+
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   emptyTitle: {
     marginTop: spacing.md,
+
     color: colors.text,
+
     fontSize: 16,
+
     fontWeight: "700",
   },
 
   emptyText: {
     marginTop: spacing.xs,
+
     color: colors.textSecondary,
+
     fontSize: 13,
+    lineHeight: 19,
+
     textAlign: "center",
+
+    maxWidth: 380,
   },
 });

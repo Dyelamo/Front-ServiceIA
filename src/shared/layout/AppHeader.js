@@ -1,109 +1,148 @@
 import React from "react";
 
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-  spacing,
-} from "../../theme";
+import { colors, spacing } from "../../theme/index";
+
+import { useResponsive } from "../hooks/useResponsive";
+
+import ResponsiveContainer from "./ResponsiveContainer";
 
 export default function AppHeader({
   title,
   subtitle,
   onBack,
   right,
+  maxWidth = 1200,
+  showBorder = true,
 }) {
+  const { isDesktop } = useResponsive();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.leftSection}>
-        {onBack ? (
-          <Pressable
-            onPress={onBack}
-            style={({ pressed }) => [
-              styles.backButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={23}
-              color={colors.text}
-            />
-          </Pressable>
-        ) : null}
+    <View style={[styles.header, showBorder && styles.headerBorder]}>
+      <ResponsiveContainer maxWidth={maxWidth}>
+        <View style={[styles.row, isDesktop && styles.rowDesktop]}>
+          <View style={styles.leftSection}>
+            {onBack ? (
+              <Pressable
+                onPress={onBack}
+                style={({ pressed }) => [
+                  styles.backButton,
 
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>
-            {title}
-          </Text>
+                  pressed && styles.pressed,
+                ]}
+                hitSlop={8}>
+                <Ionicons name="arrow-back" size={22} color={colors.text} />
+              </Pressable>
+            ) : null}
 
-          {subtitle ? (
-            <Text style={styles.subtitle}>
-              {subtitle}
-            </Text>
-          ) : null}
+            <View style={styles.titleArea}>
+              {title ? (
+                <Text
+                  style={[styles.title, isDesktop && styles.titleDesktop]}
+                  numberOfLines={1}>
+                  {title}
+                </Text>
+              ) : null}
+
+              {subtitle ? (
+                <Text style={styles.subtitle} numberOfLines={1}>
+                  {subtitle}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+
+          {right ? <View style={styles.rightSection}>{right}</View> : null}
         </View>
-      </View>
-
-      {right ? (
-        <View>
-          {right}
-        </View>
-      ) : null}
+      </ResponsiveContainer>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    minHeight: 64,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+  header: {
+    width: "100%",
+
     backgroundColor: colors.surface,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  },
+
+  headerBorder: {
     borderBottomWidth: 1,
+
     borderBottomColor: colors.border,
+  },
+
+  row: {
+    minHeight: 64,
+
+    flexDirection: "row",
+
+    alignItems: "center",
+
+    justifyContent: "space-between",
+  },
+
+  rowDesktop: {
+    minHeight: 70,
   },
 
   leftSection: {
     flex: 1,
+
     flexDirection: "row",
+
     alignItems: "center",
   },
 
-  textContainer: {
-    flex: 1,
+  backButton: {
+    width: 40,
+    height: 40,
+
+    borderRadius: 12,
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    marginRight: spacing.sm,
   },
 
-  backButton: {
-    width: 44,
-    height: 44,
-    justifyContent: "center",
-    marginRight: spacing.sm,
+  pressed: {
+    opacity: 0.7,
+  },
+
+  titleArea: {
+    flex: 1,
   },
 
   title: {
     color: colors.text,
+
+    fontSize: 18,
+
+    fontWeight: "800",
+  },
+
+  titleDesktop: {
     fontSize: 20,
-    fontWeight: "700",
   },
 
   subtitle: {
-    marginTop: 2,
     color: colors.textSecondary,
-    fontSize: 13,
+
+    fontSize: 12,
+
+    marginTop: 2,
   },
 
-  pressed: {
-    opacity: 0.6,
+  rightSection: {
+    marginLeft: spacing.md,
+
+    flexDirection: "row",
+
+    alignItems: "center",
   },
 });

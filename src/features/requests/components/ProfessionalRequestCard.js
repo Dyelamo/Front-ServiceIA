@@ -68,6 +68,7 @@ export default function ProfessionalRequestCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+
         pressed &&
           styles.pressed,
       ]}
@@ -89,29 +90,47 @@ export default function ProfessionalRequestCard({
                 "construct-outline"
               }
               size={22}
-              color={
-                colors.primary
-              }
+              color={colors.primary}
             />
           </View>
 
-          <View>
+          <View
+            style={
+              styles.categoryContent
+            }
+          >
             <Text
+              numberOfLines={1}
               style={
                 styles.category
               }
             >
-              {category?.name ||
+              {category?.label ||
+                category?.name ||
                 "Servicio"}
             </Text>
 
-            <Text
+            <View
               style={
-                styles.location
+                styles.locationRow
               }
             >
-              Valledupar
-            </Text>
+              <Ionicons
+                name="location-outline"
+                size={13}
+                color={
+                  colors.textMuted
+                }
+              />
+
+              <Text
+                style={
+                  styles.location
+                }
+              >
+                Valledupar
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -138,7 +157,8 @@ export default function ProfessionalRequestCard({
           styles.description
         }
       >
-        {request.descripcion}
+        {request.descripcion ||
+          "Sin descripción"}
       </Text>
 
       <View style={styles.footer}>
@@ -149,14 +169,10 @@ export default function ProfessionalRequestCard({
         </Text>
 
         <View
-          style={
-            styles.viewRow
-          }
+          style={styles.viewRow}
         >
           <Text
-            style={
-              styles.viewText
-            }
+            style={styles.viewText}
           >
             Ver solicitud
           </Text>
@@ -164,9 +180,7 @@ export default function ProfessionalRequestCard({
           <Ionicons
             name="chevron-forward"
             size={18}
-            color={
-              colors.primary
-            }
+            color={colors.primary}
           />
         </View>
       </View>
@@ -179,13 +193,23 @@ function formatDate(value) {
     return "";
   }
 
-  return new Date(
-    value
-  ).toLocaleDateString(
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  return date.toLocaleDateString(
     "es-CO",
     {
       day: "numeric",
       month: "short",
+      year: "numeric",
     }
   );
 }
@@ -193,6 +217,9 @@ function formatDate(value) {
 const styles =
   StyleSheet.create({
     card: {
+      width: "100%",
+      height: "100%",
+
       backgroundColor:
         colors.surface,
 
@@ -205,9 +232,6 @@ const styles =
 
       padding:
         spacing.lg,
-
-      marginBottom:
-        spacing.md,
     },
 
     pressed: {
@@ -216,15 +240,25 @@ const styles =
 
     header: {
       flexDirection: "row",
+
       justifyContent:
         "space-between",
+
       alignItems:
         "flex-start",
     },
 
     categoryRow: {
+      flex: 1,
+
       flexDirection: "row",
       alignItems: "center",
+
+      marginRight:
+        spacing.md,
+    },
+
+    categoryContent: {
       flex: 1,
     },
 
@@ -238,8 +272,7 @@ const styles =
         colors.primaryLight,
 
       alignItems: "center",
-      justifyContent:
-        "center",
+      justifyContent: "center",
 
       marginRight:
         spacing.md,
@@ -247,15 +280,26 @@ const styles =
 
     category: {
       color: colors.text,
+
       fontWeight: "700",
+
       fontSize: 15,
+    },
+
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+
+      marginTop: 4,
     },
 
     location: {
       color:
         colors.textSecondary,
+
       fontSize: 12,
-      marginTop: 3,
+
+      marginLeft: 3,
     },
 
     urgencyBadge: {
@@ -274,6 +318,7 @@ const styles =
 
     urgencyText: {
       color: "#B45309",
+
       fontSize: 11,
       fontWeight: "700",
     },
@@ -286,6 +331,8 @@ const styles =
 
       fontSize: 15,
       lineHeight: 22,
+
+      minHeight: 66,
     },
 
     footer: {
@@ -296,10 +343,12 @@ const styles =
         spacing.md,
 
       borderTopWidth: 1,
+
       borderTopColor:
         colors.border,
 
       flexDirection: "row",
+
       justifyContent:
         "space-between",
 
@@ -320,7 +369,11 @@ const styles =
 
     viewText: {
       color: colors.primary,
+
       fontWeight: "700",
-      fontSize: 13,
+
+      fontSize: 12,
+
+      marginRight: 3,
     },
   });

@@ -12,6 +12,7 @@ import {
 
 import {
   colors,
+  layout,
   spacing,
 } from "../../../../theme/index";
 
@@ -25,6 +26,10 @@ import {
   ResponsiveContainer,
   Screen,
 } from "../../../../shared/layout/index";
+
+import {
+  useResponsive,
+} from "../../../../shared/hooks/useResponsive";
 
 import {
   categories,
@@ -57,6 +62,10 @@ export default function ProfessionalRequestDetailScreen({
   navigation,
   route,
 }) {
+  const {
+    isDesktop,
+  } = useResponsive();
+
   const request =
     route?.params?.request;
 
@@ -68,7 +77,26 @@ export default function ProfessionalRequestDetailScreen({
           onBack={() =>
             navigation.goBack()
           }
+          maxWidth={
+            layout.content.wide
+          }
         />
+
+        <ResponsiveContainer
+          maxWidth={
+            layout.content.medium
+          }
+          style={styles.container}
+        >
+          <Text
+            style={
+              styles.notFound
+            }
+          >
+            No encontramos la
+            solicitud.
+          </Text>
+        </ResponsiveContainer>
       </Screen>
     );
   }
@@ -77,6 +105,22 @@ export default function ProfessionalRequestDetailScreen({
     getCategory(
       request.categoria_id
     );
+
+  const categoryName =
+    category?.label ||
+    category?.name ||
+    "Servicio";
+
+  const description =
+    request.descripcion ||
+    "Sin descripción";
+
+  const urgency =
+    urgencyLabels[
+      request.urgencia
+    ] ||
+    request.urgencia ||
+    "No especificada";
 
   return (
     <Screen
@@ -90,12 +134,19 @@ export default function ProfessionalRequestDetailScreen({
         onBack={() =>
           navigation.goBack()
         }
+        maxWidth={
+          layout.content.wide
+        }
       />
 
       <ResponsiveContainer
-        maxWidth={760}
+        maxWidth={
+          layout.content.wide
+        }
         style={styles.container}
       >
+        {/* ENCABEZADO */}
+
         <View style={styles.heading}>
           <View
             style={
@@ -122,97 +173,189 @@ export default function ProfessionalRequestDetailScreen({
                 styles.category
               }
             >
-              {category?.label ||
-                "Servicio"}
+              {categoryName}
             </Text>
 
             <Text
-              style={
-                styles.description
-              }
+              style={[
+                styles.title,
+
+                isDesktop &&
+                  styles.titleDesktop,
+              ]}
             >
-              {request.descripcion}
+              {description}
             </Text>
           </View>
         </View>
 
-        <Card
-          variant="outlined"
-          style={styles.card}
-        >
-          <InfoRow
-            icon="location-outline"
-            label="Ubicación"
-            value="Valledupar, Cesar"
-          />
-
-          <Divider />
-
-          <InfoRow
-            icon="time-outline"
-            label="Urgencia"
-            value={
-              urgencyLabels[
-                request.urgencia
-              ] ||
-              request.urgencia
-            }
-          />
-
-          <Divider />
-
-          <InfoRow
-            icon="calendar-outline"
-            label="Publicado"
-            value={formatDate(
-              request.created_at
-            )}
-          />
-        </Card>
+        {/* COLUMNAS */}
 
         <View
-          style={
-            styles.notice
-          }
-        >
-          <Ionicons
-            name="information-circle-outline"
-            size={20}
-            color={colors.primary}
-          />
+          style={[
+            styles.columns,
 
-          <Text
-            style={
-              styles.noticeText
-            }
+            !isDesktop &&
+              styles.columnsMobile,
+          ]}
+        >
+          {/* DESCRIPCIÓN */}
+
+          <View
+            style={[
+              styles.mainColumn,
+
+              !isDesktop &&
+                styles.fullColumn,
+            ]}
           >
-            Revisa los detalles antes de
-            enviar una oferta. Podrás
-            indicar precio,
-            disponibilidad y un mensaje.
-          </Text>
-        </View>
+            <Card
+              variant="outlined"
+              style={styles.card}
+            >
+              <SectionHeader
+                icon="document-text-outline"
+                title="Descripción"
+              />
 
-        <View
-          style={
-            styles.action
-          }
-        >
-          <Button
-            onPress={() =>
-              navigation.navigate(
-                "CreateOffer",
-                {
-                  request,
+              <Text
+                style={
+                  styles.description
                 }
-              )
-            }
+              >
+                {description}
+              </Text>
+            </Card>
+          </View>
+
+          {/* SIDEBAR */}
+
+          <View
+            style={[
+              styles.sideColumn,
+
+              !isDesktop &&
+                styles.fullColumn,
+
+              !isDesktop &&
+                styles.sideMobile,
+            ]}
           >
-            Enviar oferta
-          </Button>
+            <Card
+              variant="outlined"
+              style={styles.card}
+            >
+              <SectionHeader
+                icon="information-circle-outline"
+                title="Información"
+              />
+
+              <InfoRow
+                icon="grid-outline"
+                label="Categoría"
+                value={categoryName}
+              />
+
+              <Divider />
+
+              <InfoRow
+                icon="location-outline"
+                label="Ubicación"
+                value="Valledupar, Cesar"
+              />
+
+              <Divider />
+
+              <InfoRow
+                icon="time-outline"
+                label="Urgencia"
+                value={urgency}
+              />
+
+              <Divider />
+
+              <InfoRow
+                icon="calendar-outline"
+                label="Publicado"
+                value={formatDate(
+                  request.created_at
+                )}
+              />
+            </Card>
+
+            <View
+              style={styles.notice}
+            >
+              <Ionicons
+                name="information-circle-outline"
+                size={20}
+                color={colors.primary}
+              />
+
+              <Text
+                style={
+                  styles.noticeText
+                }
+              >
+                Revisa los detalles
+                antes de enviar una
+                oferta. Podrás indicar
+                precio, disponibilidad
+                y un mensaje.
+              </Text>
+            </View>
+
+            <View
+              style={styles.action}
+            >
+              <Button
+                onPress={() =>
+                  navigation.navigate(
+                    "CreateOffer",
+                    {
+                      request,
+                    }
+                  )
+                }
+              >
+                Enviar oferta
+              </Button>
+            </View>
+          </View>
         </View>
       </ResponsiveContainer>
     </Screen>
+  );
+}
+
+function SectionHeader({
+  icon,
+  title,
+}) {
+  return (
+    <View
+      style={
+        styles.sectionHeader
+      }
+    >
+      <View
+        style={
+          styles.sectionIcon
+        }
+      >
+        <Ionicons
+          name={icon}
+          size={19}
+          color={colors.primary}
+        />
+      </View>
+
+      <Text
+        style={styles.cardTitle}
+      >
+        {title}
+      </Text>
+    </View>
   );
 }
 
@@ -223,21 +366,13 @@ function InfoRow({
 }) {
   return (
     <View
-      style={
-        styles.infoRow
-      }
+      style={styles.infoRow}
     >
-      <View
-        style={
-          styles.infoIcon
-        }
-      >
-        <Ionicons
-          name={icon}
-          size={20}
-          color={colors.primary}
-        />
-      </View>
+      <Ionicons
+        name={icon}
+        size={18}
+        color={colors.primary}
+      />
 
       <View
         style={
@@ -277,9 +412,18 @@ function formatDate(value) {
     return "";
   }
 
-  return new Date(
-    value
-  ).toLocaleDateString(
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  return date.toLocaleDateString(
     "es-CO",
     {
       day: "numeric",
@@ -296,8 +440,16 @@ const styles =
         spacing.xxl,
     },
 
+    notFound: {
+      color:
+        colors.textSecondary,
+
+      fontSize: 15,
+    },
+
     heading: {
       flexDirection: "row",
+
       alignItems:
         "flex-start",
 
@@ -315,8 +467,7 @@ const styles =
         colors.primaryLight,
 
       alignItems: "center",
-      justifyContent:
-        "center",
+      justifyContent: "center",
     },
 
     headingContent: {
@@ -333,7 +484,7 @@ const styles =
       fontWeight: "700",
     },
 
-    description: {
+    title: {
       color: colors.text,
 
       fontSize: 22,
@@ -344,29 +495,103 @@ const styles =
       marginTop: 3,
     },
 
+    titleDesktop: {
+      fontSize: 29,
+      lineHeight: 38,
+
+      maxWidth: 800,
+    },
+
+    columns: {
+      flexDirection: "row",
+
+      alignItems:
+        "flex-start",
+
+      gap:
+        spacing.xl,
+    },
+
+    columnsMobile: {
+      flexDirection: "column",
+
+      gap: 0,
+    },
+
+    mainColumn: {
+      flex: 2,
+    },
+
+    sideColumn: {
+      flex: 1,
+
+      minWidth: 320,
+    },
+
+    fullColumn: {
+      width: "100%",
+      minWidth: 0,
+
+      flexGrow: 0,
+      flexShrink: 0,
+      flexBasis: "auto",
+    },
+
+    sideMobile: {
+      marginTop:
+        spacing.lg,
+    },
+
     card: {
+      width: "100%",
+
       padding:
         spacing.xl,
+    },
+
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+
+      marginBottom:
+        spacing.xl,
+    },
+
+    sectionIcon: {
+      width: 38,
+      height: 38,
+
+      borderRadius: 11,
+
+      backgroundColor:
+        colors.primaryLight,
+
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    cardTitle: {
+      color: colors.text,
+
+      fontSize: 17,
+      fontWeight: "800",
+
+      marginLeft:
+        spacing.md,
+    },
+
+    description: {
+      color:
+        colors.textSecondary,
+
+      fontSize: 15,
+      lineHeight: 24,
     },
 
     infoRow: {
       flexDirection: "row",
       alignItems:
         "flex-start",
-    },
-
-    infoIcon: {
-      width: 38,
-      height: 38,
-
-      borderRadius: 10,
-
-      backgroundColor:
-        colors.primaryLight,
-
-      alignItems: "center",
-      justifyContent:
-        "center",
     },
 
     infoContent: {
@@ -380,13 +605,16 @@ const styles =
       color:
         colors.textMuted,
 
-      fontSize: 12,
+      fontSize: 11,
     },
 
     infoValue: {
       color: colors.text,
 
-      fontSize: 15,
+      fontSize: 14,
+      lineHeight: 20,
+
+      fontWeight: "600",
 
       marginTop: 3,
     },
@@ -404,8 +632,11 @@ const styles =
     notice: {
       flexDirection: "row",
 
+      alignItems:
+        "flex-start",
+
       marginTop:
-        spacing.xxl,
+        spacing.lg,
 
       padding:
         spacing.lg,
@@ -431,6 +662,6 @@ const styles =
 
     action: {
       marginTop:
-        spacing.xxxl,
+        spacing.lg,
     },
   });

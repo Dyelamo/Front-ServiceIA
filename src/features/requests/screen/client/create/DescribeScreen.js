@@ -4,7 +4,7 @@ import { Text, StyleSheet } from "react-native";
 
 import { TextArea } from "../../../../../shared/ui/index";
 
-import { colors, spacing } from "../../../../../theme/index.js";
+import { colors, spacing } from "../../../../../theme/index";
 
 import { useRequestDraft } from "../../../context/RequestDraftContext";
 

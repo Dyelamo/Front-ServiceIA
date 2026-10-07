@@ -11,12 +11,14 @@ import {
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { colors, spacing } from "../../../theme";
+import { colors, spacing } from "../../../theme/index";
 
-import { Button, Input } from "../../../shared/ui";
+import { Button, Input } from "../../../shared/ui/index";
 
 import AuthLayout from "../components/AuthLayout";
 import AuthHeader from "../components/AuthHeader";
+
+import { useResponsive } from "../../../shared/hooks/useResponsive";
 
 import { registerApi } from "../api/auth.api";
 
@@ -51,6 +53,8 @@ export default function RegisterScreen({ navigation }) {
       }));
     }
   };
+
+  const { isMobile } = useResponsive();
 
   const validate = () => {
     const nextErrors = {};
@@ -167,7 +171,7 @@ export default function RegisterScreen({ navigation }) {
           </View>
         ) : null}
 
-        <View style={styles.nameRow}>
+        <View style={[styles.nameRow, isMobile && styles.nameRowMobile]}>
           <View style={styles.nameField}>
             <Input
               label="Nombre"
@@ -179,7 +183,9 @@ export default function RegisterScreen({ navigation }) {
             />
           </View>
 
-          <View style={styles.nameSpacer} />
+          <View
+            style={[styles.nameSpacer, isMobile && styles.nameSpacerMobile]}
+          />
 
           <View style={styles.nameField}>
             <Input
@@ -347,5 +353,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginLeft: spacing.sm,
+  },
+  nameRowMobile: {
+    flexDirection: "column",
+  },
+
+  nameSpacerMobile: {
+    width: 0,
+    height: spacing.lg,
   },
 });

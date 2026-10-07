@@ -6,11 +6,23 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useFocusEffect } from "@react-navigation/native";
 
-import { colors, radius, spacing } from "../../../theme/index";
+import { colors, layout, spacing } from "../../../theme/index";
 
-import { Avatar, Button, Card, ErrorState, Skeleton } from "../../../shared/ui/index";
+import {
+  Avatar,
+  Button,
+  Card,
+  ErrorState,
+  Skeleton,
+} from "../../../shared/ui/index";
 
-import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
+import {
+  AppHeader,
+  ResponsiveContainer,
+  Screen,
+} from "../../../shared/layout/index";
+
+import { useResponsive } from "../../../shared/hooks/useResponsive";
 
 import { getMyProfileApi } from "../api/user.api";
 
@@ -22,6 +34,8 @@ export default function ClientProfileScreen() {
   const { logout } = useAuth();
 
   const { setMode } = useAppMode();
+
+  const { isMobile, isDesktop } = useResponsive();
 
   const [profile, setProfile] = useState(null);
 
@@ -54,9 +68,11 @@ export default function ClientProfileScreen() {
   if (loading) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" />
+        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer maxWidth={760} style={styles.container}>
+        <ResponsiveContainer
+          maxWidth={layout.content.wide}
+          style={styles.container}>
           <Skeleton height={190} />
         </ResponsiveContainer>
       </Screen>
@@ -66,9 +82,11 @@ export default function ClientProfileScreen() {
   if (error) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" />
+        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer maxWidth={760} style={styles.container}>
+        <ResponsiveContainer
+          maxWidth={layout.content.wide}
+          style={styles.container}>
           <ErrorState
             title="No pudimos cargar tu perfil"
             description="Intenta nuevamente."
@@ -91,44 +109,56 @@ export default function ClientProfileScreen() {
 
   return (
     <Screen scroll backgroundColor={colors.background}>
-      <AppHeader title="Mi perfil" />
+      <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-      <ResponsiveContainer maxWidth={760} style={styles.container}>
+      <ResponsiveContainer
+        maxWidth={layout.content.wide}
+        style={styles.container}>
         <Card variant="outlined" style={styles.heroCard}>
-          <View style={styles.hero}>
-            <Avatar name={fullName} size={72} />
+          <View style={[styles.hero, isMobile && styles.heroMobile]}>
+            <Avatar name={fullName} size={76} />
 
-            <View style={styles.heroCopy}>
+            <View style={[styles.heroCopy, isMobile && styles.heroCopyMobile]}>
               <Text style={styles.name}>{fullName}</Text>
 
               <Text style={styles.role}>Cliente</Text>
+
+              <Text style={styles.heroDescription}>
+                Gestiona tu información personal y el modo de tu cuenta.
+              </Text>
             </View>
           </View>
         </Card>
 
-        <Text style={styles.sectionTitle}>Información personal</Text>
+        <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>
+          <View style={[styles.mainColumn, !isDesktop && styles.fullColumn]}>
+            <Text style={styles.sectionTitle}>Información personal</Text>
 
-        <Card variant="outlined" style={styles.card}>
-          <InfoRow icon="mail-outline" label="Correo" value={email} />
+            <Card variant="outlined" style={styles.card}>
+              <InfoRow icon="mail-outline" label="Correo" value={email} />
 
-          <Divider />
+              <Divider />
 
-          <InfoRow icon="call-outline" label="Teléfono" value={phone} />
-        </Card>
+              <InfoRow icon="call-outline" label="Teléfono" value={phone} />
+            </Card>
+          </View>
 
-        <Text style={styles.sectionTitle}>Cuenta</Text>
+          <View style={[styles.sideColumn, !isDesktop && styles.fullColumn]}>
+            <Text style={styles.sectionTitle}>Cuenta</Text>
 
-        <Card variant="outlined" style={styles.card}>
-          <Button variant="outline" onPress={() => setMode("profesional")}>
-            Cambiar a modo profesional
-          </Button>
+            <Card variant="outlined" style={styles.card}>
+              <Button variant="outline" onPress={() => setMode("profesional")}>
+                Cambiar a modo profesional
+              </Button>
 
-          <View style={styles.buttonGap} />
+              <View style={styles.buttonGap} />
 
-          <Button variant="outline" onPress={logout}>
-            Cerrar sesión
-          </Button>
-        </Card>
+              <Button variant="outline" onPress={logout}>
+                Cerrar sesión
+              </Button>
+            </Card>
+          </View>
+        </View>
       </ResponsiveContainer>
     </Screen>
   );
@@ -168,69 +198,153 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  heroMobile: {
+    flexDirection: "column",
+
+    alignItems: "flex-start",
+  },
+
   heroCopy: {
     flex: 1,
+
     marginLeft: spacing.lg,
+  },
+
+  heroCopyMobile: {
+    marginLeft: 0,
+
+    marginTop: spacing.lg,
   },
 
   name: {
     color: colors.text,
-    fontSize: 23,
+
+    fontSize: 25,
+
     fontWeight: "800",
   },
 
   role: {
-    color: colors.textSecondary,
+    color: colors.primary,
+
     fontSize: 13,
+
+    fontWeight: "700",
+
     marginTop: 4,
+  },
+
+  heroDescription: {
+    color: colors.textSecondary,
+
+    fontSize: 13,
+
+    lineHeight: 20,
+
+    marginTop: spacing.sm,
+
+    maxWidth: 520,
+  },
+
+  columns: {
+    flexDirection: "row",
+
+    alignItems: "flex-start",
+
+    gap: spacing.xl,
+  },
+
+  columnsMobile: {
+    flexDirection: "column",
+
+    gap: 0,
+  },
+
+  mainColumn: {
+    flex: 2,
+  },
+
+  sideColumn: {
+    flex: 1,
+
+    minWidth: 300,
+  },
+
+  fullColumn: {
+    width: "100%",
+
+    minWidth: 0,
+
+    flexGrow: 0,
+
+    flexShrink: 0,
+
+    flexBasis: "auto",
   },
 
   sectionTitle: {
     color: colors.text,
+
     fontSize: 17,
+
     fontWeight: "700",
+
     marginTop: spacing.xxl,
+
     marginBottom: spacing.md,
   },
 
   card: {
+    width: "100%",
+
     padding: spacing.xl,
   },
 
   infoRow: {
     flexDirection: "row",
+
     alignItems: "center",
   },
 
   infoIcon: {
     width: 40,
     height: 40,
+
     borderRadius: 11,
+
     backgroundColor: colors.primaryLight,
+
     alignItems: "center",
     justifyContent: "center",
   },
 
   infoCopy: {
     flex: 1,
+
     marginLeft: spacing.md,
   },
 
   infoLabel: {
     color: colors.textMuted,
+
     fontSize: 11,
   },
 
   infoValue: {
     color: colors.text,
+
     fontSize: 14,
+
     fontWeight: "600",
+
     marginTop: 3,
   },
 
   divider: {
     height: 1,
+
     backgroundColor: colors.border,
+
     marginVertical: spacing.lg,
   },
 

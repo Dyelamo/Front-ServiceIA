@@ -5,4 +5,5 @@ export {radius} from './radius';
 export {shadows} from './shadows';
 export {breakpoints} from './breakpoints';
 export {typography} from './typography';
+export {layout} from './layout';    
 

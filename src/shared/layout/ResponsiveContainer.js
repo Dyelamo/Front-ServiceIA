@@ -1,38 +1,40 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { spacing } from "../../theme";
 
+import { useResponsive } from "../hooks/useResponsive";
+
 export default function ResponsiveContainer({
   children,
-  maxWidth = 1200,
   style,
+  maxWidth = 1200,
+  noPadding = false,
 }) {
-  const { width } = useWindowDimensions();
+  const { isMobile, isTablet } = useResponsive();
 
-  const horizontalPadding =
-    width >= 1024
-      ? spacing.xxxl
-      : width >= 768
-      ? spacing.xxl
-      : spacing.lg;
+  const horizontalPadding = noPadding
+    ? 0
+    : isMobile
+      ? spacing.md
+      : isTablet
+        ? spacing.lg
+        : spacing.xl;
 
   return (
     <View
       style={[
         styles.container,
+
         {
           maxWidth,
+
           paddingHorizontal: horizontalPadding,
         },
+
         style,
-      ]}
-    >
+      ]}>
       {children}
     </View>
   );
@@ -41,6 +43,7 @@ export default function ResponsiveContainer({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+
     alignSelf: "center",
   },
 });

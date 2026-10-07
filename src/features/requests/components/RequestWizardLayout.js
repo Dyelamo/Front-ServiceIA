@@ -1,26 +1,18 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import {
-  colors,
-  spacing,
-} from "../../../theme";
+import { colors, layout, radius, spacing } from "../../../theme/index";
 
-import {
-  Button,
-  Stepper,
-} from "../../../shared/ui";
+import { Button, Stepper } from "../../../shared/ui/index";
 
 import {
   AppHeader,
   ResponsiveContainer,
   Screen,
-} from "../../../shared/layout";
+} from "../../../shared/layout/index";
+
+import { useResponsive } from "../../../shared/hooks/useResponsive";
 
 export default function RequestWizardLayout({
   navigation,
@@ -39,128 +31,183 @@ export default function RequestWizardLayout({
   continueDisabled = false,
   loading = false,
 }) {
+  const { isMobile, isDesktop } = useResponsive();
+
   return (
-    <Screen
-      scroll
-      backgroundColor={
-        colors.background
-      }
-    >
+    <Screen scroll backgroundColor={colors.background}>
       <AppHeader
         title="Nueva solicitud"
-        onBack={() =>
-          navigation.goBack()
-        }
+        onBack={() => navigation.goBack()}
+        maxWidth={layout.content.medium}
       />
 
       <ResponsiveContainer
-        maxWidth={720}
-        style={styles.container}
-      >
-        <Stepper
-          current={
-            currentStep
-          }
-          total={
-            totalSteps
-          }
-        />
+        maxWidth={layout.content.medium}
+        style={styles.container}>
+        <View style={[styles.wizard, isDesktop && styles.wizardDesktop]}>
+          {/* PROGRESO */}
 
-        <View
-          style={
-            styles.heading
-          }
-        >
-          <Text
-            style={
-              styles.title
-            }
-          >
-            {title}
-          </Text>
+          <View style={[styles.inner, isDesktop && styles.innerDesktop]}>
+            <Stepper current={currentStep} total={totalSteps} />
 
-          {description ? (
-            <Text
-              style={
-                styles.description
-              }
-            >
-              {description}
-            </Text>
-          ) : null}
-        </View>
+            {/* ENCABEZADO */}
 
-        <View
-          style={
-            styles.content
-          }
-        >
-          {children}
-        </View>
+            <View style={[styles.heading, isDesktop && styles.headingDesktop]}>
+              <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
+                {title}
+              </Text>
 
-        {onContinue ? (
-          <View
-            style={
-              styles.footer
-            }
-          >
-            <Button
-              onPress={
-                onContinue
-              }
-              disabled={
-                continueDisabled
-              }
-              loading={
-                loading
-              }
-            >
-              {continueLabel}
-            </Button>
+              {description ? (
+                <Text
+                  style={[
+                    styles.description,
+
+                    isDesktop && styles.descriptionDesktop,
+                  ]}>
+                  {description}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* CONTENIDO */}
+
+            <View style={[styles.content, isDesktop && styles.contentDesktop]}>
+              {children}
+            </View>
+
+            {/* FOOTER */}
+
+            {onContinue ? (
+              <View style={[styles.footer, isDesktop && styles.footerDesktop]}>
+                <View
+                  style={[
+                    styles.footerButton,
+
+                    !isMobile && styles.footerButtonWide,
+                  ]}>
+                  <Button
+                    onPress={onContinue}
+                    disabled={continueDisabled}
+                    loading={loading}>
+                    {continueLabel}
+                  </Button>
+                </View>
+              </View>
+            ) : null}
           </View>
-        ) : null}
+        </View>
       </ResponsiveContainer>
     </Screen>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      paddingVertical:
-        spacing.xxl,
-    },
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: spacing.xl,
+  },
 
-    heading: {
-      marginTop:
-        spacing.xxxl,
-    },
+  /*
+   * En móvil el wizard se integra
+   * directamente con el fondo.
+   */
+  wizard: {
+    width: "100%",
+  },
 
-    title: {
-      color: colors.text,
-      fontSize: 26,
-      lineHeight: 34,
-      fontWeight: "800",
-    },
+  /*
+   * En desktop aparece como panel.
+   */
+  wizardDesktop: {
+    backgroundColor: colors.surface,
 
-    description: {
-      color:
-        colors.textSecondary,
-      fontSize: 15,
-      lineHeight: 22,
-      marginTop:
-        spacing.sm,
-    },
+    borderWidth: 1,
 
-    content: {
-      marginTop:
-        spacing.xxl,
-    },
+    borderColor: colors.border,
 
-    footer: {
-      marginTop:
-        spacing.xxxl,
-      paddingBottom:
-        spacing.xxl,
-    },
-  });
+    borderRadius: radius.lg,
+
+    paddingVertical: spacing.xxl,
+  },
+
+  inner: {
+    width: "100%",
+  },
+
+  innerDesktop: {
+    width: "100%",
+
+    maxWidth: 720,
+
+    alignSelf: "center",
+
+    paddingHorizontal: spacing.xxl,
+  },
+
+  heading: {
+    marginTop: spacing.xxl,
+  },
+
+  headingDesktop: {
+    marginTop: spacing.xxxl,
+  },
+
+  title: {
+    color: colors.text,
+
+    fontSize: 26,
+    lineHeight: 34,
+
+    fontWeight: "800",
+  },
+
+  titleDesktop: {
+    fontSize: 32,
+    lineHeight: 40,
+  },
+
+  description: {
+    color: colors.textSecondary,
+
+    fontSize: 15,
+    lineHeight: 22,
+
+    marginTop: spacing.sm,
+  },
+
+  descriptionDesktop: {
+    fontSize: 16,
+    lineHeight: 24,
+
+    maxWidth: 620,
+  },
+
+  content: {
+    marginTop: spacing.xxl,
+  },
+
+  contentDesktop: {
+    marginTop: spacing.xxxl,
+  },
+
+  footer: {
+    marginTop: spacing.xxxl,
+
+    paddingBottom: spacing.xxl,
+  },
+
+  footerDesktop: {
+    flexDirection: "row",
+
+    justifyContent: "flex-end",
+
+    paddingBottom: 0,
+  },
+
+  footerButton: {
+    width: "100%",
+  },
+
+  footerButtonWide: {
+    width: 220,
+  },
+});

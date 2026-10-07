@@ -1,15 +1,21 @@
 import React from "react";
 
-import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { colors, spacing, typography } from "../../../theme";
+import { colors, spacing } from "../../../theme/index";
 
-import { Screen, ResponsiveContainer } from "../../../shared/layout";
+import { ResponsiveContainer, Screen } from "../../../shared/layout/index";
+
+import { useResponsive } from "../../../shared/hooks/useResponsive";
 
 export default function AuthLayout({ children }) {
-  const { width } = useWindowDimensions();
+  const { isDesktop } = useResponsive();
 
-  const isDesktop = width >= 1024;
+  const formContent = (
+    <ResponsiveContainer maxWidth={520} style={styles.formContainer}>
+      {children}
+    </ResponsiveContainer>
+  );
 
   return (
     <Screen scroll={!isDesktop} backgroundColor={colors.surface}>
@@ -18,6 +24,8 @@ export default function AuthLayout({ children }) {
           <View style={styles.brandPanel}>
             <View style={styles.brandContent}>
               <Text style={styles.brand}>Serv-IA</Text>
+
+              <Text style={styles.heroEyebrow}>SERVICIOS CERCA DE TI</Text>
 
               <Text style={styles.heroTitle}>
                 Encuentra ayuda para lo que necesitas.
@@ -30,7 +38,9 @@ export default function AuthLayout({ children }) {
 
               <View style={styles.features}>
                 <Feature text="Publica lo que necesitas" />
+
                 <Feature text="Recibe ofertas de profesionales" />
+
                 <Feature text="Compara y elige" />
               </View>
             </View>
@@ -38,9 +48,16 @@ export default function AuthLayout({ children }) {
         ) : null}
 
         <View style={styles.formPanel}>
-          <ResponsiveContainer maxWidth={480} style={styles.formContainer}>
-            {children}
-          </ResponsiveContainer>
+          {isDesktop ? (
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.desktopScroll}>
+              {formContent}
+            </ScrollView>
+          ) : (
+            formContent
+          )}
         </View>
       </View>
     </Screen>
@@ -50,7 +67,9 @@ export default function AuthLayout({ children }) {
 function Feature({ text }) {
   return (
     <View style={styles.feature}>
-      <View style={styles.featureDot} />
+      <View style={styles.featureCheck}>
+        <Text style={styles.featureCheckText}>✓</Text>
+      </View>
 
       <Text style={styles.featureText}>{text}</Text>
     </View>
@@ -60,47 +79,79 @@ function Feature({ text }) {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
+
     backgroundColor: colors.surface,
   },
 
   wrapperDesktop: {
     flexDirection: "row",
+
     minHeight: "100%",
   },
 
   brandPanel: {
     flex: 1,
+
+    minWidth: 0,
+
     backgroundColor: colors.primary,
+
     justifyContent: "center",
-    padding: spacing.massive,
+
+    padding: spacing.xxxl,
   },
 
   brandContent: {
     width: "100%",
+
     maxWidth: 560,
+
     alignSelf: "center",
   },
 
   brand: {
-    fontSize: 26,
+    fontSize: 27,
+
     fontWeight: "800",
+
     color: colors.white,
-    marginBottom: spacing.massive,
+
+    marginBottom: spacing.xxxl,
+  },
+
+  heroEyebrow: {
+    color: "rgba(255,255,255,0.72)",
+
+    fontSize: 11,
+
+    fontWeight: "800",
+
+    letterSpacing: 1.2,
+
+    marginBottom: spacing.md,
   },
 
   heroTitle: {
     fontSize: 42,
+
     lineHeight: 50,
+
     fontWeight: "800",
+
     color: colors.white,
+
     maxWidth: 500,
   },
 
   heroDescription: {
-    marginTop: spacing.xxl,
-    fontSize: 18,
-    lineHeight: 28,
+    marginTop: spacing.xl,
+
+    fontSize: 17,
+
+    lineHeight: 27,
+
     color: "rgba(255,255,255,0.85)",
+
     maxWidth: 480,
   },
 
@@ -110,30 +161,62 @@ const styles = StyleSheet.create({
 
   feature: {
     flexDirection: "row",
+
     alignItems: "center",
+
     marginBottom: spacing.lg,
   },
 
-  featureDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.white,
+  featureCheck: {
+    width: 26,
+    height: 26,
+
+    borderRadius: 13,
+
+    backgroundColor: "rgba(255,255,255,0.15)",
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
     marginRight: spacing.md,
+  },
+
+  featureCheckText: {
+    color: colors.white,
+
+    fontSize: 13,
+
+    fontWeight: "800",
   },
 
   featureText: {
     color: colors.white,
+
     fontSize: 15,
+
+    fontWeight: "600",
   },
 
   formPanel: {
     flex: 1,
-    justifyContent: "center",
+
+    minWidth: 0,
+
     backgroundColor: colors.surface,
+
+    justifyContent: "center",
+  },
+
+  desktopScroll: {
+    flexGrow: 1,
+
+    justifyContent: "center",
+
+    paddingVertical: spacing.xxxl,
   },
 
   formContainer: {
-    paddingVertical: spacing.massive,
+    paddingVertical: spacing.xxl,
   },
 });

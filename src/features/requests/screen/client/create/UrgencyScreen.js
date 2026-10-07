@@ -4,7 +4,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { colors, radius, spacing } from "../../../../../theme";
+import { colors, radius, spacing } from "../../../../../theme/index";
+
+import { useResponsive } from "../../../../../shared/hooks/useResponsive";
 
 import { useRequestDraft } from "../../../context/RequestDraftContext";
 
@@ -17,21 +19,18 @@ const urgencyOptions = [
     description: "Necesito ayuda cuanto antes.",
     icon: "flash-outline",
   },
-
   {
     value: "hoy",
     label: "Hoy",
     description: "Quiero resolverlo durante el día.",
     icon: "today-outline",
   },
-
   {
     value: "esta semana",
     label: "Esta semana",
     description: "Tengo flexibilidad durante los próximos días.",
     icon: "calendar-outline",
   },
-
   {
     value: "no tengo prisa",
     label: "No tengo prisa",
@@ -43,9 +42,12 @@ const urgencyOptions = [
 export default function UrgencyScreen({ navigation }) {
   const { draft, updateDraft } = useRequestDraft();
 
+  const { isDesktop } = useResponsive();
+
   const handleSelect = (option) => {
     updateDraft({
       urgency: option.value,
+
       urgencyLabel: option.label,
     });
   };
@@ -67,46 +69,50 @@ export default function UrgencyScreen({ navigation }) {
       description="Selecciona la opción que mejor describa qué tan pronto necesitas ayuda."
       continueDisabled={!draft.urgency}
       onContinue={handleContinue}>
-      <View style={styles.list}>
+      <View style={styles.grid}>
         {urgencyOptions.map((option) => {
           const selected = draft.urgency === option.value;
 
           return (
-            <Pressable
+            <View
               key={option.value}
-              onPress={() => handleSelect(option)}
-              style={({ pressed }) => [
-                styles.option,
+              style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+              <Pressable
+                onPress={() => handleSelect(option)}
+                style={({ pressed }) => [
+                  styles.option,
 
-                selected && styles.optionSelected,
+                  selected && styles.optionSelected,
 
-                pressed && styles.optionPressed,
-              ]}>
-              <View
-                style={[
-                  styles.iconContainer,
-
-                  selected && styles.iconContainerSelected,
+                  pressed && styles.optionPressed,
                 ]}>
-                <Ionicons
-                  name={option.icon}
-                  size={24}
-                  color={selected ? colors.white : colors.primary}
-                />
-              </View>
+                <View
+                  style={[
+                    styles.iconContainer,
 
-              <View style={styles.content}>
-                <Text style={[styles.title, selected && styles.titleSelected]}>
-                  {option.label}
-                </Text>
+                    selected && styles.iconContainerSelected,
+                  ]}>
+                  <Ionicons
+                    name={option.icon}
+                    size={24}
+                    color={selected ? colors.white : colors.primary}
+                  />
+                </View>
 
-                <Text style={styles.description}>{option.description}</Text>
-              </View>
+                <View style={styles.content}>
+                  <Text
+                    style={[styles.title, selected && styles.titleSelected]}>
+                    {option.label}
+                  </Text>
 
-              <View style={[styles.radio, selected && styles.radioSelected]}>
-                {selected ? <View style={styles.radioDot} /> : null}
-              </View>
-            </Pressable>
+                  <Text style={styles.description}>{option.description}</Text>
+                </View>
+
+                <View style={[styles.radio, selected && styles.radioSelected]}>
+                  {selected ? <View style={styles.radioDot} /> : null}
+                </View>
+              </Pressable>
+            </View>
           );
         })}
       </View>
@@ -115,25 +121,38 @@ export default function UrgencyScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  list: {
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+
+    marginHorizontal: -6,
+  },
+
+  wrapper: {
     width: "100%",
+
+    padding: 6,
+  },
+
+  wrapperDesktop: {
+    width: "50%",
   },
 
   option: {
     width: "100%",
+    height: "100%",
 
-    minHeight: 92,
+    minHeight: 105,
 
     flexDirection: "row",
     alignItems: "center",
 
     padding: spacing.lg,
 
-    marginBottom: spacing.md,
-
     backgroundColor: colors.surface,
 
     borderWidth: 1,
+
     borderColor: colors.border,
 
     borderRadius: radius.lg,
@@ -168,13 +187,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
 
-    marginHorizontal: spacing.lg,
+    marginHorizontal: spacing.md,
   },
 
   title: {
     color: colors.text,
 
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
   },
 
@@ -187,8 +206,8 @@ const styles = StyleSheet.create({
 
     color: colors.textSecondary,
 
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 18,
   },
 
   radio: {
@@ -198,6 +217,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
 
     borderWidth: 2,
+
     borderColor: colors.borderStrong,
 
     alignItems: "center",

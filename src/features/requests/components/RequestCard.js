@@ -29,15 +29,26 @@ export default function RequestCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
-        pressed && styles.pressed,
+
+        pressed &&
+          styles.pressed,
       ]}
     >
       <View style={styles.header}>
-        <View style={styles.categoryRow}>
-          <View style={styles.iconContainer}>
+        <View
+          style={
+            styles.categoryRow
+          }
+        >
+          <View
+            style={
+              styles.iconContainer
+            }
+          >
             <Ionicons
               name={
-                request.categoryIcon
+                request.categoryIcon ||
+                "construct-outline"
               }
               size={20}
               color={colors.primary}
@@ -46,48 +57,71 @@ export default function RequestCard({
 
           <Text
             numberOfLines={1}
-            style={styles.category}
+            style={
+              styles.category
+            }
           >
-            {request.categoryName}
+            {request.categoryName ||
+              "Servicio"}
           </Text>
         </View>
 
         <RequestStatusBadge
-          status={
-            request.status
-          }
+          status={request.status}
         />
       </View>
 
       <Text
-        numberOfLines={2}
+        numberOfLines={3}
         style={styles.description}
       >
-        {request.description}
+        {request.description ||
+          "Sin descripción"}
       </Text>
 
       <View style={styles.meta}>
-        <View style={styles.metaItem}>
+        <View
+          style={
+            styles.metaItem
+          }
+        >
           <Ionicons
             name="location-outline"
             size={16}
-            color={colors.textMuted}
+            color={
+              colors.textMuted
+            }
           />
 
-          <Text style={styles.metaText}>
+          <Text
+            style={
+              styles.metaText
+            }
+          >
             Valledupar
           </Text>
         </View>
 
-        <View style={styles.metaItem}>
+        <View
+          style={
+            styles.metaItem
+          }
+        >
           <Ionicons
             name="time-outline"
             size={16}
-            color={colors.textMuted}
+            color={
+              colors.textMuted
+            }
           />
 
-          <Text style={styles.metaText}>
-            {request.urgencyLabel}
+          <Text
+            style={
+              styles.metaText
+            }
+          >
+            {request.urgencyLabel ||
+              "No especificada"}
           </Text>
         </View>
       </View>
@@ -99,11 +133,25 @@ export default function RequestCard({
           )}
         </Text>
 
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={colors.textMuted}
-        />
+        <View
+          style={
+            styles.viewAction
+          }
+        >
+          <Text
+            style={
+              styles.viewText
+            }
+          >
+            Ver detalle
+          </Text>
+
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={colors.primary}
+          />
+        </View>
       </View>
     </Pressable>
   );
@@ -117,6 +165,14 @@ function formatDate(value) {
   const date =
     new Date(value);
 
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
   return date.toLocaleDateString(
     "es-CO",
     {
@@ -129,6 +185,9 @@ function formatDate(value) {
 
 const styles = StyleSheet.create({
   card: {
+    width: "100%",
+    height: "100%",
+
     backgroundColor:
       colors.surface,
 
@@ -141,9 +200,6 @@ const styles = StyleSheet.create({
 
     padding:
       spacing.lg,
-
-    marginBottom:
-      spacing.md,
   },
 
   pressed: {
@@ -152,25 +208,29 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: "row",
+
     justifyContent:
       "space-between",
+
     alignItems:
       "flex-start",
   },
 
   categoryRow: {
     flex: 1,
+
     flexDirection: "row",
     alignItems: "center",
+
     marginRight:
       spacing.md,
   },
 
   iconContainer: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
 
-    borderRadius: 10,
+    borderRadius: 11,
 
     backgroundColor:
       colors.primaryLight,
@@ -184,7 +244,9 @@ const styles = StyleSheet.create({
 
   category: {
     flex: 1,
+
     color: colors.text,
+
     fontSize: 14,
     fontWeight: "700",
   },
@@ -197,6 +259,8 @@ const styles = StyleSheet.create({
 
     fontSize: 15,
     lineHeight: 22,
+
+    minHeight: 44,
   },
 
   meta: {
@@ -205,25 +269,28 @@ const styles = StyleSheet.create({
 
     flexDirection: "row",
     flexWrap: "wrap",
+
+    gap:
+      spacing.lg,
   },
 
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-
-    marginRight:
-      spacing.xl,
   },
 
   metaText: {
     marginLeft: 5,
+
     color:
       colors.textSecondary,
+
     fontSize: 13,
   },
 
   footer: {
     borderTopWidth: 1,
+
     borderTopColor:
       colors.border,
 
@@ -234,7 +301,9 @@ const styles = StyleSheet.create({
       spacing.md,
 
     flexDirection: "row",
+
     alignItems: "center",
+
     justifyContent:
       "space-between",
   },
@@ -242,6 +311,21 @@ const styles = StyleSheet.create({
   date: {
     color:
       colors.textMuted,
+
     fontSize: 12,
+  },
+
+  viewAction: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  viewText: {
+    color: colors.primary,
+
+    fontSize: 12,
+    fontWeight: "700",
+
+    marginRight: 3,
   },
 });

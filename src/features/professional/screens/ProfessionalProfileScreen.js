@@ -6,11 +6,21 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useFocusEffect } from "@react-navigation/native";
 
-import { colors, radius, spacing } from "../../../theme/index";
+import { colors, radius, spacing, layout } from "../../../theme/index";
 
-import { Avatar, Button, Card, ErrorState, Skeleton } from "../../../shared/ui/index";
+import {
+  Avatar,
+  Button,
+  Card,
+  ErrorState,
+  Skeleton,
+} from "../../../shared/ui/index";
 
-import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
+import {
+  AppHeader,
+  ResponsiveContainer,
+  Screen,
+} from "../../../shared/layout/index";
 
 import { getMyProfileApi } from "../../profile/api/user.api";
 
@@ -22,10 +32,14 @@ import { useAppMode } from "../../app-mode/hooks/useAppMode";
 
 import { categories as serviceCategories } from "../../requests/data/categories";
 
+import { useResponsive } from "../../../shared/hooks/useResponsive";
+
 export default function ProfessionalProfileScreen() {
   const { logout } = useAuth();
 
   const { setMode } = useAppMode();
+
+  const { isMobile, isDesktop } = useResponsive();
 
   const [user, setUser] = useState(null);
 
@@ -64,9 +78,11 @@ export default function ProfessionalProfileScreen() {
   if (loading) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" />
+        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer maxWidth={1040} style={styles.container}>
+        <ResponsiveContainer
+          maxWidth={layout.content.wide}
+          style={styles.container}>
           <Skeleton height={210} style={styles.skeleton} />
 
           <Skeleton height={180} />
@@ -78,9 +94,11 @@ export default function ProfessionalProfileScreen() {
   if (error) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" />
+        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer maxWidth={1040} style={styles.container}>
+        <ResponsiveContainer
+          maxWidth={layout.content.wide}
+          style={styles.container}>
           <ErrorState
             title="No pudimos cargar tu perfil profesional"
             description="Intenta nuevamente."
@@ -121,14 +139,16 @@ export default function ProfessionalProfileScreen() {
 
   return (
     <Screen scroll backgroundColor={colors.background}>
-      <AppHeader title="Mi perfil" />
+      <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-      <ResponsiveContainer maxWidth={1040} style={styles.container}>
+      <ResponsiveContainer
+        maxWidth={layout.content.wide}
+        style={styles.container}>
         <Card variant="outlined" style={styles.heroCard}>
-          <View style={styles.hero}>
+          <View style={[styles.hero, isMobile && styles.heroMobile]}>
             <Avatar name={fullName} size={76} />
 
-            <View style={styles.heroCopy}>
+            <View style={[styles.heroCopy, isMobile && styles.heroCopyMobile]}>
               <View style={styles.nameRow}>
                 <Text style={styles.name}>{fullName}</Text>
 
@@ -160,8 +180,8 @@ export default function ProfessionalProfileScreen() {
           </View>
         </Card>
 
-        <View style={styles.columns}>
-          <View style={styles.mainColumn}>
+        <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>
+          <View style={[styles.mainColumn, !isDesktop && styles.fullColumn]}>
             <SectionCard title="Sobre mí" icon="person-outline">
               <Text style={description ? styles.description : styles.emptyText}>
                 {description ||
@@ -196,7 +216,7 @@ export default function ProfessionalProfileScreen() {
             </SectionCard>
           </View>
 
-          <View style={styles.sideColumn}>
+          <View style={[styles.sideColumn, !isDesktop && styles.fullColumn]}>
             <SectionCard title="Información" icon="information-circle-outline">
               <InfoRow icon="mail-outline" label="Correo" value={email} />
 
@@ -337,11 +357,19 @@ const styles = StyleSheet.create({
 
   hero: {
     flexDirection: "row",
+
     alignItems: "center",
+  },
+
+  heroMobile: {
+    flexDirection: "column",
+
+    alignItems: "flex-start",
   },
 
   heroCopy: {
     flex: 1,
+
     marginLeft: spacing.xl,
   },
 
@@ -349,6 +377,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+  },
+
+  heroCopyMobile: {
+    marginLeft: 0,
+
+    marginTop: spacing.lg,
   },
 
   name: {
@@ -404,21 +438,44 @@ const styles = StyleSheet.create({
 
   columns: {
     flexDirection: "row",
-    flexWrap: "wrap",
+
+    alignItems: "flex-start",
+
     gap: spacing.xl,
+
     marginTop: spacing.xl,
   },
 
+  columnsMobile: {
+    flexDirection: "column",
+
+    gap: spacing.xl,
+  },
+
   mainColumn: {
-    flexGrow: 2,
-    flexBasis: 540,
+    flex: 2,
+
     gap: spacing.xl,
   },
 
   sideColumn: {
-    flexGrow: 1,
-    flexBasis: 300,
+    flex: 1,
+
+    minWidth: 300,
+
     gap: spacing.xl,
+  },
+
+  fullColumn: {
+    width: "100%",
+
+    minWidth: 0,
+
+    flexGrow: 0,
+
+    flexShrink: 0,
+
+    flexBasis: "auto",
   },
 
   sectionCard: {

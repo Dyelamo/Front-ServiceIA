@@ -20,31 +20,41 @@ import ProfessionalProfileScreen from "../../features/professional/screens/Profe
 import ProfessionalOffersScreen from "../../features/offers/screens/ProfessionalOffersScreen";
 import BalanceScreen from "../../features/wallet/screens/BalanceScreen";
 import JobsScreen from "../../features/jobs/screens/JobsScreen";
+
+import { StyleSheet } from "react-native";
+
+import { useResponsive } from "../../shared/hooks/useResponsive";
+
 const Tab = createBottomTabNavigator();
 
 const Stack = createNativeStackNavigator();
 
 function ProfessionalTabs() {
+  const { isDesktop } = useResponsive();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
 
+        tabBarPosition: isDesktop ? "left" : "bottom",
+
+        tabBarLabelPosition: isDesktop ? "beside-icon" : "below-icon",
+
         tabBarActiveTintColor: colors.primary,
 
         tabBarInactiveTintColor: colors.textMuted,
 
-        tabBarStyle: {
-          height: 64,
-          paddingTop: 6,
-          paddingBottom: 8,
-          borderTopColor: colors.border,
-        },
+        tabBarActiveBackgroundColor: isDesktop
+          ? colors.primaryLight
+          : undefined,
 
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "600",
-        },
+        tabBarHideOnKeyboard: true,
+
+        tabBarStyle: isDesktop ? styles.desktopTabBar : styles.mobileTabBar,
+
+        tabBarItemStyle: isDesktop ? styles.desktopTabItem : undefined,
+
+        tabBarLabelStyle: isDesktop ? styles.desktopLabel : styles.mobileLabel,
 
         tabBarIcon: ({ color, focused }) => {
           let iconName;
@@ -146,3 +156,60 @@ export default function ProfessionalNavigator() {
     </Stack.Navigator>
   );
 }
+
+const styles =
+  StyleSheet.create({
+    mobileTabBar: {
+      height: 64,
+
+      paddingTop: 6,
+
+      paddingBottom: 8,
+
+      borderTopColor:
+        colors.border,
+
+      backgroundColor:
+        colors.surface,
+    },
+
+    mobileLabel: {
+      fontSize: 11,
+
+      fontWeight: "600",
+    },
+
+    desktopTabBar: {
+      width: 230,
+
+      paddingHorizontal: 12,
+
+      paddingTop: 24,
+
+      paddingBottom: 24,
+
+      borderTopWidth: 0,
+
+      borderRightWidth: 1,
+
+      borderRightColor:
+        colors.border,
+
+      backgroundColor:
+        colors.surface,
+    },
+
+    desktopTabItem: {
+      minHeight: 50,
+
+      borderRadius: 12,
+
+      marginVertical: 3,
+    },
+
+    desktopLabel: {
+      fontSize: 14,
+
+      fontWeight: "700",
+    },
+  });

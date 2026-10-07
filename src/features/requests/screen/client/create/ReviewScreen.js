@@ -8,14 +8,18 @@ import { colors, spacing } from "../../../../../theme/index";
 
 import { Card } from "../../../../../shared/ui/index";
 
+import { useResponsive } from "../../../../../shared/hooks/useResponsive";
+
 import { createServiceRequest } from "../../../api/requests.api";
 
-import { useRequestDraft } from "../../../../requests/context/RequestDraftContext";
+import { useRequestDraft } from "../../../context/RequestDraftContext";
 
-import RequestWizardLayout from "../../../../requests/components/RequestWizardLayout";
+import RequestWizardLayout from "../../../components/RequestWizardLayout";
 
 export default function ReviewScreen({ navigation }) {
   const { draft } = useRequestDraft();
+
+  const { isDesktop } = useResponsive();
 
   const [loading, setLoading] = useState(false);
 
@@ -88,67 +92,79 @@ export default function ReviewScreen({ navigation }) {
         </View>
       ) : null}
 
-      <Card variant="outlined" style={styles.card}>
-        <ReviewRow
-          icon="document-text-outline"
-          label="Descripción"
-          value={draft.description}
-        />
+      <View style={styles.reviewGrid}>
+        <View
+          style={[styles.cardWrapper, isDesktop && styles.cardWrapperDesktop]}>
+          <Card variant="outlined" style={styles.card}>
+            <Text style={styles.cardTitle}>Solicitud</Text>
 
-        <Divider />
+            <ReviewRow
+              icon="document-text-outline"
+              label="Descripción"
+              value={draft.description}
+            />
 
-        <ReviewRow
-          icon="grid-outline"
-          label="Categoría"
-          value={draft.categoryName || "Sin categoría"}
-        />
-
-        <Divider />
-
-        <ReviewRow
-          icon="location-outline"
-          label="Ubicación"
-          value={
-            draft.address
-              ? `${draft.address}, Valledupar`
-              : draft.location || "Valledupar, Cesar"
-          }
-        />
-
-        {draft.reference ? (
-          <>
             <Divider />
 
             <ReviewRow
-              icon="navigate-outline"
-              label="Referencia"
-              value={draft.reference}
+              icon="grid-outline"
+              label="Categoría"
+              value={draft.categoryName || "Sin categoría"}
             />
-          </>
-        ) : null}
+          </Card>
+        </View>
 
-        <Divider />
+        <View
+          style={[styles.cardWrapper, isDesktop && styles.cardWrapperDesktop]}>
+          <Card variant="outlined" style={styles.card}>
+            <Text style={styles.cardTitle}>Detalles</Text>
 
-        <ReviewRow
-          icon="time-outline"
-          label="Urgencia"
-          value={draft.urgencyLabel || "No especificada"}
-        />
+            <ReviewRow
+              icon="location-outline"
+              label="Ubicación"
+              value={
+                draft.address
+                  ? `${draft.address}, Valledupar`
+                  : draft.location || "Valledupar, Cesar"
+              }
+            />
 
-        <Divider />
+            {draft.reference ? (
+              <>
+                <Divider />
 
-        <ReviewRow
-          icon="images-outline"
-          label="Fotos"
-          value={
-            draft.photos.length > 0
-              ? `${draft.photos.length} agregada${
-                  draft.photos.length === 1 ? "" : "s"
-                }`
-              : "Sin fotos"
-          }
-        />
-      </Card>
+                <ReviewRow
+                  icon="navigate-outline"
+                  label="Referencia"
+                  value={draft.reference}
+                />
+              </>
+            ) : null}
+
+            <Divider />
+
+            <ReviewRow
+              icon="time-outline"
+              label="Urgencia"
+              value={draft.urgencyLabel || "No especificada"}
+            />
+
+            <Divider />
+
+            <ReviewRow
+              icon="images-outline"
+              label="Fotos"
+              value={
+                draft.photos.length > 0
+                  ? `${draft.photos.length} agregada${
+                      draft.photos.length === 1 ? "" : "s"
+                    }`
+                  : "Sin fotos"
+              }
+            />
+          </Card>
+        </View>
+      </View>
 
       <View style={styles.notice}>
         <Ionicons
@@ -187,8 +203,36 @@ function Divider() {
 }
 
 const styles = StyleSheet.create({
+  reviewGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+
+    marginHorizontal: -6,
+  },
+
+  cardWrapper: {
+    width: "100%",
+
+    padding: 6,
+  },
+
+  cardWrapperDesktop: {
+    width: "50%",
+  },
+
   card: {
+    height: "100%",
+
     padding: spacing.xl,
+  },
+
+  cardTitle: {
+    color: colors.text,
+
+    fontSize: 17,
+    fontWeight: "800",
+
+    marginBottom: spacing.lg,
   },
 
   row: {
@@ -210,11 +254,13 @@ const styles = StyleSheet.create({
 
   rowContent: {
     flex: 1,
+
     marginLeft: spacing.md,
   },
 
   label: {
     color: colors.textSecondary,
+
     fontSize: 12,
     fontWeight: "600",
   },
@@ -223,14 +269,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
 
     color: colors.text,
-    fontSize: 15,
-    lineHeight: 22,
+
+    fontSize: 14,
+    lineHeight: 21,
+
     fontWeight: "500",
   },
 
   divider: {
     height: 1,
+
     backgroundColor: colors.border,
+
     marginVertical: spacing.lg,
   },
 
@@ -238,7 +288,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
 
-    marginTop: spacing.xxl,
+    marginTop: spacing.xl,
 
     padding: spacing.lg,
 

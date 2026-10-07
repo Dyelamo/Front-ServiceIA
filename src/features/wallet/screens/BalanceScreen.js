@@ -4,15 +4,13 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { colors, radius, spacing } from "../../../theme/index";
+import { colors, layout, radius, spacing } from "../../../theme/index";
 
 import { Button, Card, EmptyState } from "../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
+
+import { useResponsive } from "../../../shared/hooks/useResponsive";
 
 import { formatCOP } from "../../../utils";
 
@@ -24,49 +22,83 @@ import {
 import TransactionItem from "../components/TransactionItem";
 
 export default function BalanceScreen({ navigation }) {
+  const { isDesktop } = useResponsive();
+
   return (
     <Screen scroll backgroundColor={colors.background}>
-      <AppHeader title="Saldo y ganancias" onBack={() => navigation.goBack()} />
+      <AppHeader
+        title="Saldo y ganancias"
+        onBack={() => navigation.goBack()}
+        maxWidth={layout.content.wide}
+      />
 
-      <ResponsiveContainer maxWidth={900} style={styles.container}>
-        <Text style={styles.title}>Saldo y ganancias</Text>
+      <ResponsiveContainer
+        maxWidth={layout.content.wide}
+        style={styles.container}>
+        <View style={styles.heading}>
+          <Text style={styles.title}>Saldo y ganancias</Text>
 
-        <Text style={styles.subtitle}>
-          Consulta el resumen de tus servicios y movimientos.
-        </Text>
+          <Text style={styles.subtitle}>
+            Consulta el resumen de tus servicios y movimientos.
+          </Text>
+        </View>
 
-        <View style={styles.balanceCard}>
-          <View style={styles.balanceHeader}>
-            <Ionicons name="wallet-outline" size={18} color={colors.white} />
+        <View
+          style={[styles.balanceCard, isDesktop && styles.balanceCardDesktop]}>
+          <View>
+            <View style={styles.balanceHeader}>
+              <Ionicons name="wallet-outline" size={18} color={colors.white} />
 
-            <Text style={styles.balanceLabel}>Saldo disponible</Text>
+              <Text style={styles.balanceLabel}>Saldo disponible</Text>
+            </View>
+
+            <Text style={styles.balanceValue}>
+              {formatCOP(MOCK_BALANCE_SUMMARY.available)}
+            </Text>
           </View>
 
-          <Text style={styles.balanceValue}>
-            {formatCOP(MOCK_BALANCE_SUMMARY.available)}
-          </Text>
+          <View
+            style={[
+              styles.withdrawWrapper,
 
-          <Button variant="secondary" onPress={() => {}}>
-            Retirar a mi cuenta
-          </Button>
+              isDesktop && styles.withdrawDesktop,
+            ]}>
+            <Button variant="secondary" onPress={() => {}}>
+              Retirar a mi cuenta
+            </Button>
+          </View>
         </View>
 
         <View style={styles.stats}>
-          <Card variant="outlined" style={styles.statCard}>
-            <Text style={styles.statLabel}>Total facturado</Text>
+          <View
+            style={[
+              styles.statWrapper,
 
-            <Text style={styles.statValue}>
-              {formatCOP(MOCK_BALANCE_SUMMARY.totalBilled)}
-            </Text>
-          </Card>
+              isDesktop && styles.statWrapperDesktop,
+            ]}>
+            <Card variant="outlined" style={styles.statCard}>
+              <Text style={styles.statLabel}>Total facturado</Text>
 
-          <Card variant="outlined" style={styles.statCard}>
-            <Text style={styles.statLabel}>Comisión</Text>
+              <Text style={styles.statValue}>
+                {formatCOP(MOCK_BALANCE_SUMMARY.totalBilled)}
+              </Text>
+            </Card>
+          </View>
 
-            <Text style={[styles.statValue, styles.commissionValue]}>
-              -{formatCOP(MOCK_BALANCE_SUMMARY.commission)}
-            </Text>
-          </Card>
+          <View
+            style={[
+              styles.statWrapper,
+
+              isDesktop && styles.statWrapperDesktop,
+            ]}>
+            <Card variant="outlined" style={styles.statCard}>
+              <Text style={styles.statLabel}>Comisión</Text>
+
+              <Text style={[styles.statValue, styles.commissionValue]}>
+                -{formatCOP(MOCK_BALANCE_SUMMARY.commission)}
+              </Text>
+            </Card>
+          </View>
         </View>
 
         <Text style={styles.sectionTitle}>Movimientos recientes</Text>
@@ -99,10 +131,15 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
   },
 
+  heading: {
+    marginBottom: spacing.xl,
+  },
+
   title: {
     color: colors.text,
 
     fontSize: 26,
+
     fontWeight: "800",
   },
 
@@ -112,20 +149,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
 
     marginTop: spacing.xs,
-
-    marginBottom: spacing.xl,
   },
 
   balanceCard: {
     backgroundColor: colors.primary,
 
-    borderRadius: radius.xl || radius.lg,
+    borderRadius: radius.lg,
 
     padding: spacing.xxl,
   },
 
+  balanceCardDesktop: {
+    flexDirection: "row",
+
+    alignItems: "center",
+
+    justifyContent: "space-between",
+  },
+
   balanceHeader: {
     flexDirection: "row",
+
     alignItems: "center",
   },
 
@@ -143,11 +187,24 @@ const styles = StyleSheet.create({
     color: colors.white,
 
     fontSize: 34,
+
     fontWeight: "800",
 
     marginTop: spacing.sm,
+  },
 
-    marginBottom: spacing.xl,
+  withdrawWrapper: {
+    width: "100%",
+
+    marginTop: spacing.xl,
+  },
+
+  withdrawDesktop: {
+    width: 220,
+
+    marginTop: 0,
+
+    marginLeft: spacing.xl,
   },
 
   stats: {
@@ -155,14 +212,24 @@ const styles = StyleSheet.create({
 
     flexWrap: "wrap",
 
-    gap: spacing.md,
+    marginHorizontal: -6,
 
     marginTop: spacing.lg,
   },
 
+  statWrapper: {
+    width: "100%",
+
+    padding: 6,
+  },
+
+  statWrapperDesktop: {
+    width: "50%",
+  },
+
   statCard: {
-    flexGrow: 1,
-    flexBasis: 220,
+    width: "100%",
+    height: "100%",
 
     padding: spacing.lg,
   },
@@ -177,6 +244,7 @@ const styles = StyleSheet.create({
     color: colors.text,
 
     fontSize: 20,
+
     fontWeight: "800",
 
     marginTop: spacing.xs,
@@ -190,6 +258,7 @@ const styles = StyleSheet.create({
     color: colors.text,
 
     fontSize: 19,
+
     fontWeight: "700",
 
     marginTop: spacing.xxxl,
@@ -205,8 +274,11 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
 
     fontSize: 11,
+
     lineHeight: 17,
 
     marginTop: spacing.lg,
+
+    maxWidth: 620,
   },
 });

@@ -1,4 +1,7 @@
-import React, { useCallback, useState } from "react";
+import React, {
+  useCallback,
+  useState,
+} from "react";
 
 import {
   RefreshControl,
@@ -8,11 +11,21 @@ import {
   View,
 } from "react-native";
 
-import { useFocusEffect } from "@react-navigation/native";
+import {
+  useFocusEffect,
+} from "@react-navigation/native";
 
-import { colors, radius, spacing } from "../../../theme/index";
+import {
+  colors,
+  layout,
+  spacing,
+} from "../../../theme/index";
 
-import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui/index";
+import {
+  EmptyState,
+  ErrorState,
+  Skeleton,
+} from "../../../shared/ui/index";
 
 import {
   AppHeader,
@@ -21,54 +34,114 @@ import {
 } from "../../../shared/layout/index";
 
 import {
+  useResponsive,
+} from "../../../shared/hooks/useResponsive";
+
+import {
   fetchProfessionalOffersWithPublications,
 } from "../api/offers.api";
 
-import OfferCard from "../components/OfferCard";
+import OfferCard
+  from "../components/OfferCard";
 
 export default function ProfessionalOffersScreen() {
-  const [offers, setOffers] = useState([]);
+  const {
+    isDesktop,
+  } = useResponsive();
 
-  const [loading, setLoading] = useState(true);
+  const [
+    offers,
+    setOffers,
+  ] = useState([]);
 
-  const [refreshing, setRefreshing] = useState(false);
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-  const [error, setError] = useState(false);
+  const [
+    refreshing,
+    setRefreshing,
+  ] = useState(false);
 
-  const loadOffers = useCallback(async () => {
-    try {
-      setError(false);
+  const [
+    error,
+    setError,
+  ] = useState(false);
 
-      const data = await fetchProfessionalOffersWithPublications();
+  const loadOffers =
+    useCallback(async () => {
+      try {
+        setError(false);
 
-      console.log("OFERTAS PROFESIONAL:", data);
+        const data =
+          await fetchProfessionalOffersWithPublications();
 
-      setOffers(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Error cargando ofertas:", err);
+        setOffers(
+          Array.isArray(data)
+            ? data
+            : []
+        );
+      } catch (err) {
+        console.error(
+          "Error cargando ofertas:",
+          err
+        );
 
-      setError(true);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+        setError(true);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    }, []);
 
   useFocusEffect(
     useCallback(() => {
       loadOffers();
-    }, [loadOffers]),
+    }, [loadOffers])
   );
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+
+    loadOffers();
+  };
 
   if (loading) {
     return (
       <Screen>
-        <AppHeader title="Ofertas enviadas" />
+        <AppHeader
+          title="Ofertas enviadas"
+          maxWidth={
+            layout.content.wide
+          }
+        />
 
-        <ResponsiveContainer maxWidth={900} style={styles.container}>
-          <Skeleton height={140} style={styles.skeleton} />
+        <ResponsiveContainer
+          maxWidth={
+            layout.content.wide
+          }
+          style={styles.container}
+        >
+          <View style={styles.grid}>
+            {[1, 2, 3, 4].map(
+              (item) => (
+                <View
+                  key={item}
+                  style={[
+                    styles.wrapper,
 
-          <Skeleton height={140} />
+                    isDesktop &&
+                      styles.wrapperDesktop,
+                  ]}
+                >
+                  <Skeleton
+                    height={260}
+                  />
+                </View>
+              )
+            )}
+          </View>
         </ResponsiveContainer>
       </Screen>
     );
@@ -77,12 +150,25 @@ export default function ProfessionalOffersScreen() {
   if (error) {
     return (
       <Screen>
-        <AppHeader title="Ofertas enviadas" />
+        <AppHeader
+          title="Ofertas enviadas"
+          maxWidth={
+            layout.content.wide
+          }
+        />
 
-        <ResponsiveContainer maxWidth={900} style={styles.container}>
+        <ResponsiveContainer
+          maxWidth={
+            layout.content.wide
+          }
+          style={styles.container}
+        >
           <ErrorState
             title="No pudimos cargar tus ofertas"
-            onRetry={loadOffers}
+            description="Intenta nuevamente."
+            onRetry={
+              loadOffers
+            }
           />
         </ResponsiveContainer>
       </Screen>
@@ -90,20 +176,38 @@ export default function ProfessionalOffersScreen() {
   }
 
   return (
-    <Screen>
-      <AppHeader title="Ofertas enviadas" />
+    <Screen
+      backgroundColor={
+        colors.background
+      }
+    >
+      <AppHeader
+        title="Ofertas enviadas"
+        maxWidth={
+          layout.content.wide
+        }
+      />
 
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-              loadOffers();
-            }}
+            refreshing={
+              refreshing
+            }
+            onRefresh={
+              handleRefresh
+            }
           />
-        }>
-        <ResponsiveContainer maxWidth={900} style={styles.container}>
+        }
+        contentContainerStyle={
+          styles.scrollContent
+        }
+      >
+        <ResponsiveContainer
+          maxWidth={
+            layout.content.wide
+          }
+        >
           {offers.length === 0 ? (
             <EmptyState
               icon="paper-plane-outline"
@@ -111,7 +215,48 @@ export default function ProfessionalOffersScreen() {
               description="Las propuestas que envíes aparecerán aquí."
             />
           ) : (
-            offers.map((offer) => <OfferCard key={offer.id} offer={offer} />)
+            <>
+              <View
+                style={styles.heading}
+              >
+                <Text
+                  style={styles.title}
+                >
+                  Mis ofertas
+                </Text>
+
+                <Text
+                  style={
+                    styles.description
+                  }
+                >
+                  {offers.length}{" "}
+                  {offers.length === 1
+                    ? "oferta enviada"
+                    : "ofertas enviadas"}
+                </Text>
+              </View>
+
+              <View style={styles.grid}>
+                {offers.map(
+                  (offer) => (
+                    <View
+                      key={offer.id}
+                      style={[
+                        styles.wrapper,
+
+                        isDesktop &&
+                          styles.wrapperDesktop,
+                      ]}
+                    >
+                      <OfferCard
+                        offer={offer}
+                      />
+                    </View>
+                  )
+                )}
+              </View>
+            </>
           )}
         </ResponsiveContainer>
       </ScrollView>
@@ -119,116 +264,56 @@ export default function ProfessionalOffersScreen() {
   );
 }
 
-function OfferItem({ offer }) {
-  const price = offer.precio_ofertado ?? offer.precio ?? offer.price;
-
-  const availability =
-    offer.disponibilidad ?? offer.availability ?? "No especificada";
-
-  const message = offer.mensaje ?? offer.message ?? "";
-
-  const status = offer.estado ?? offer.status ?? "pendiente";
-
-  return (
-    <View style={styles.offerCard}>
-      <View style={styles.offerHeader}>
-        <Text style={styles.offerPrice}>{formatCurrency(price)}</Text>
-
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{status}</Text>
-        </View>
-      </View>
-
-      <Text style={styles.availability}>Disponibilidad: {availability}</Text>
-
-      {message ? <Text style={styles.message}>{message}</Text> : null}
-    </View>
-  );
-}
-
-function formatCurrency(value) {
-  const number = Number(value);
-
-  if (Number.isNaN(number)) {
-    return "$0";
-  }
-
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(number);
-}
-
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: spacing.xxl,
+    paddingVertical:
+      spacing.xxl,
   },
 
-  skeleton: {
-    marginBottom: spacing.md,
+  scrollContent: {
+    paddingVertical:
+      spacing.xxl,
   },
 
-  offerCard: {
-    backgroundColor: colors.surface,
-
-    borderWidth: 1,
-    borderColor: colors.border,
-
-    borderRadius: radius.lg,
-
-    padding: spacing.lg,
-
-    marginBottom: spacing.md,
+  heading: {
+    marginBottom:
+      spacing.xl,
   },
 
-  offerHeader: {
-    flexDirection: "row",
-
-    justifyContent: "space-between",
-
-    alignItems: "center",
-  },
-
-  offerPrice: {
+  title: {
     color: colors.text,
 
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "800",
   },
 
-  statusBadge: {
-    backgroundColor: colors.primaryLight,
-
-    paddingHorizontal: spacing.md,
-
-    paddingVertical: spacing.xs,
-
-    borderRadius: radius.pill,
-  },
-
-  statusText: {
-    color: colors.primaryDark,
-
-    fontWeight: "700",
-    fontSize: 12,
-    textTransform: "capitalize",
-  },
-
-  availability: {
-    color: colors.textSecondary,
-
-    marginTop: spacing.md,
-
-    fontSize: 13,
-  },
-
-  message: {
-    color: colors.text,
-
-    marginTop: spacing.md,
+  description: {
+    color:
+      colors.textSecondary,
 
     fontSize: 14,
-    lineHeight: 20,
+
+    marginTop:
+      spacing.xs,
+  },
+
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+
+    marginHorizontal: -6,
+  },
+
+  wrapper: {
+    width: "100%",
+
+    padding: 6,
+
+    marginBottom:
+      spacing.sm,
+  },
+
+  wrapperDesktop: {
+    width: "50%",
   },
 });

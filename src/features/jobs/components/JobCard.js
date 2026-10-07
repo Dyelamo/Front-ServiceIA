@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { colors, radius, spacing } from "../../../theme/index";
+import { colors, spacing } from "../../../theme/index";
 
 import { Badge, Card } from "../../../shared/ui/index";
 
@@ -60,9 +60,10 @@ export default function JobCard({ job }) {
 
 const styles = StyleSheet.create({
   card: {
-    padding: spacing.lg,
+    width: "100%",
+    height: "100%",
 
-    marginBottom: spacing.md,
+    padding: spacing.lg,
   },
 
   header: {
@@ -83,6 +84,8 @@ const styles = StyleSheet.create({
     color: colors.text,
 
     fontSize: 16,
+    lineHeight: 22,
+
     fontWeight: "700",
   },
 
@@ -96,12 +99,13 @@ const styles = StyleSheet.create({
 
   metaRow: {
     flexDirection: "row",
-
     flexWrap: "wrap",
 
     gap: spacing.md,
 
     marginTop: spacing.lg,
+
+    flex: 1,
   },
 
   metaItem: {
@@ -143,6 +147,9 @@ const styles = StyleSheet.create({
     color: colors.text,
 
     fontSize: 18,
+
     fontWeight: "800",
+
+    marginLeft: spacing.md,
   },
 });

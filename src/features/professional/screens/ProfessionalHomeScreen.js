@@ -13,6 +13,8 @@ import {
 
 import {
   colors,
+  layout,
+  radius,
   spacing,
 } from "../../../theme/index";
 
@@ -26,9 +28,24 @@ import {
   Screen,
 } from "../../../shared/layout/index";
 
+import {
+  useResponsive,
+} from "../../../shared/hooks/useResponsive";
+
 export default function ProfessionalHomeScreen({
   navigation,
 }) {
+  const {
+    isMobile,
+    isDesktop,
+  } = useResponsive();
+
+  const handleBalance = () => {
+    navigation
+      .getParent()
+      ?.navigate("Balance");
+  };
+
   return (
     <Screen
       scroll
@@ -38,141 +55,245 @@ export default function ProfessionalHomeScreen({
     >
       <AppHeader
         title="Inicio profesional"
+        maxWidth={
+          layout.content.wide
+        }
       />
 
       <ResponsiveContainer
-        maxWidth={1000}
+        maxWidth={
+          layout.content.wide
+        }
         style={styles.container}
       >
-        <Text
-          style={styles.greeting}
-        >
-          Encuentra nuevas oportunidades
-        </Text>
-
-        <Text
-          style={
-            styles.description
-          }
-        >
-          Revisa solicitudes compatibles
-          con tus especialidades y envía
-          propuestas.
-        </Text>
+        {/* HERO */}
 
         <View
-          style={
-            styles.stats
-          }
-        >
-          <Stat
-            icon="search-outline"
-            value="—"
-            label="Solicitudes"
-          />
+          style={[
+            styles.hero,
 
-          <Stat
-            icon="paper-plane-outline"
-            value="—"
-            label="Ofertas"
-          />
-
-          <Stat
-            icon="briefcase-outline"
-            value="—"
-            label="Trabajos"
-          />
-        </View>
-
-        <Text
-          style={
-            styles.sectionTitle
-          }
-        >
-          Acciones rápidas
-        </Text>
-
-        <Card
-          variant="outlined"
-          onPress={() =>
-            navigation.navigate(
-              "AvailableRequests"
-            )
-          }
-          style={styles.actionCard}
+            isDesktop &&
+              styles.heroDesktop,
+          ]}
         >
           <View
-            style={
-              styles.actionRow
-            }
+            style={styles.heroContent}
           >
-            <View
-              style={
-                styles.actionIcon
+            <Text style={styles.eyebrow}>
+              MODO PROFESIONAL
+            </Text>
+
+            <Text
+              style={[
+                styles.greeting,
+
+                isDesktop &&
+                  styles.greetingDesktop,
+              ]}
+            >
+              Encuentra nuevas
+              oportunidades
+            </Text>
+
+            <Text
+              style={[
+                styles.description,
+
+                isDesktop &&
+                  styles.descriptionDesktop,
+              ]}
+            >
+              Revisa solicitudes
+              compatibles con tus
+              especialidades y envía
+              propuestas a nuevos
+              clientes.
+            </Text>
+
+            <Pressable
+              onPress={() =>
+                navigation.navigate(
+                  "AvailableRequests"
+                )
               }
+              style={({
+                pressed,
+              }) => [
+                styles.heroAction,
+
+                !isMobile &&
+                  styles.heroActionWide,
+
+                pressed &&
+                  styles.pressed,
+              ]}
             >
               <Ionicons
                 name="search-outline"
-                size={24}
-                color={
-                  colors.primary
-                }
+                size={20}
+                color={colors.white}
               />
-            </View>
 
-            <View
-              style={
-                styles.actionContent
-              }
-            >
               <Text
                 style={
-                  styles.actionTitle
+                  styles.heroActionText
                 }
               >
                 Ver solicitudes
               </Text>
+            </Pressable>
+          </View>
+
+          {isDesktop ? (
+            <View
+              style={styles.heroVisual}
+            >
+              <View
+                style={
+                  styles.heroVisualIcon
+                }
+              >
+                <Ionicons
+                  name="briefcase-outline"
+                  size={46}
+                  color={colors.primary}
+                />
+              </View>
 
               <Text
                 style={
-                  styles.actionDescription
+                  styles.heroVisualTitle
                 }
               >
-                Encuentra trabajos disponibles
-                según tus especialidades.
+                Haz crecer tu trabajo
+              </Text>
+
+              <Text
+                style={
+                  styles.heroVisualText
+                }
+              >
+                Encuentra solicitudes,
+                envía ofertas y gestiona
+                tus servicios desde un
+                solo lugar.
               </Text>
             </View>
-          </View>
-        </Card>
+          ) : null}
+        </View>
 
-        <Pressable
-          onPress={() =>
-            navigation
-              .getParent()
-              ?.navigate(
-                "Balance"
-              )
-          }
-          style={
-            styles.walletLink
-          }
+        {/* MÉTRICAS */}
+
+        <Text
+          style={styles.sectionTitle}
         >
-          <Ionicons
-            name="wallet-outline"
-            size={20}
-            color={
-              colors.primary
+          Resumen
+        </Text>
+
+        <View style={styles.statsGrid}>
+          <View
+            style={[
+              styles.statWrapper,
+
+              isMobile &&
+                styles.statWrapperMobile,
+            ]}
+          >
+            <Stat
+              icon="search-outline"
+              value="—"
+              label="Solicitudes"
+            />
+          </View>
+
+          <View
+            style={[
+              styles.statWrapper,
+
+              isMobile &&
+                styles.statWrapperMobile,
+            ]}
+          >
+            <Stat
+              icon="paper-plane-outline"
+              value="—"
+              label="Ofertas"
+            />
+          </View>
+
+          <View
+            style={[
+              styles.statWrapper,
+
+              isMobile &&
+                styles.statWrapperMobile,
+            ]}
+          >
+            <Stat
+              icon="briefcase-outline"
+              value="—"
+              label="Trabajos"
+            />
+          </View>
+        </View>
+
+        {/* ACCIONES */}
+
+        <Text
+          style={styles.sectionTitle}
+        >
+          Acciones rápidas
+        </Text>
+
+        <View
+          style={styles.actionsGrid}
+        >
+          <QuickAction
+            icon="search-outline"
+            title="Solicitudes"
+            description="Encuentra trabajos disponibles."
+            onPress={() =>
+              navigation.navigate(
+                "AvailableRequests"
+              )
             }
+            isDesktop={isDesktop}
           />
 
-          <Text
-            style={
-              styles.walletText
+          <QuickAction
+            icon="paper-plane-outline"
+            title="Mis ofertas"
+            description="Consulta las propuestas que has enviado."
+            onPress={() =>
+              navigation.navigate(
+                "ProfessionalOffers"
+              )
             }
-          >
-            Ver saldo
-          </Text>
-        </Pressable>
+            isDesktop={isDesktop}
+          />
+
+          <QuickAction
+            icon="briefcase-outline"
+            title="Trabajos"
+            description="Revisa tus servicios activos y completados."
+            onPress={() =>
+              navigation.navigate(
+                "Jobs"
+              )
+            }
+            isDesktop={isDesktop}
+          />
+
+          <QuickAction
+            icon="wallet-outline"
+            title="Saldo"
+            description="Consulta tu balance y movimientos."
+            onPress={
+              handleBalance
+            }
+            isDesktop={isDesktop}
+          />
+        </View>
       </ResponsiveContainer>
     </Screen>
   );
@@ -184,176 +305,413 @@ function Stat({
   label,
 }) {
   return (
-    <View style={styles.stat}>
-      <Ionicons
-        name={icon}
-        size={20}
-        color={colors.primary}
-      />
+    <Card
+      variant="outlined"
+      style={styles.stat}
+    >
+      <View
+        style={styles.statIcon}
+      >
+        <Ionicons
+          name={icon}
+          size={20}
+          color={colors.primary}
+        />
+      </View>
 
       <Text
-        style={
-          styles.statValue
-        }
+        style={styles.statValue}
       >
         {value}
       </Text>
 
       <Text
-        style={
-          styles.statLabel
-        }
+        style={styles.statLabel}
       >
         {label}
       </Text>
+    </Card>
+  );
+}
+
+function QuickAction({
+  icon,
+  title,
+  description,
+  onPress,
+  isDesktop,
+}) {
+  return (
+    <View
+      style={[
+        styles.actionWrapper,
+
+        isDesktop &&
+          styles.actionWrapperDesktop,
+      ]}
+    >
+      <Pressable
+        onPress={onPress}
+        style={({
+          pressed,
+        }) => [
+          styles.actionCard,
+
+          pressed &&
+            styles.pressed,
+        ]}
+      >
+        <View
+          style={styles.actionIcon}
+        >
+          <Ionicons
+            name={icon}
+            size={23}
+            color={colors.primary}
+          />
+        </View>
+
+        <View
+          style={
+            styles.actionContent
+          }
+        >
+          <Text
+            style={
+              styles.actionTitle
+            }
+          >
+            {title}
+          </Text>
+
+          <Text
+            style={
+              styles.actionDescription
+            }
+          >
+            {description}
+          </Text>
+        </View>
+
+        <Ionicons
+          name="chevron-forward"
+          size={19}
+          color={colors.textMuted}
+        />
+      </Pressable>
     </View>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      paddingVertical:
-        spacing.xxl,
-    },
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical:
+      spacing.xl,
+  },
 
-    greeting: {
-      color: colors.text,
+  hero: {
+    backgroundColor:
+      colors.primaryLight,
 
-      fontSize: 27,
-      fontWeight: "800",
-    },
+    borderRadius:
+      radius.lg,
 
-    description: {
-      color:
-        colors.textSecondary,
+    padding:
+      spacing.xl,
+  },
 
-      fontSize: 15,
-      lineHeight: 22,
+  heroDesktop: {
+    flexDirection: "row",
+    alignItems: "center",
 
-      marginTop:
-        spacing.sm,
-    },
+    minHeight: 320,
 
-    stats: {
-      flexDirection: "row",
+    padding:
+      spacing.xxl,
+  },
 
-      marginTop:
-        spacing.xxxl,
+  heroContent: {
+    flex: 1,
+  },
 
-      gap:
-        spacing.md,
-    },
+  eyebrow: {
+    color: colors.primary,
 
-    stat: {
-      flex: 1,
+    fontSize: 11,
+    fontWeight: "800",
 
-      padding:
-        spacing.lg,
+    letterSpacing: 1.1,
 
-      backgroundColor:
-        colors.surface,
+    marginBottom:
+      spacing.sm,
+  },
 
-      borderWidth: 1,
-      borderColor:
-        colors.border,
+  greeting: {
+    color: colors.text,
 
-      borderRadius: 16,
-    },
+    fontSize: 29,
+    lineHeight: 37,
 
-    statValue: {
-      color: colors.text,
+    fontWeight: "800",
 
-      fontSize: 22,
-      fontWeight: "800",
+    maxWidth: 600,
+  },
 
-      marginTop:
-        spacing.sm,
-    },
+  greetingDesktop: {
+    fontSize: 42,
+    lineHeight: 50,
+  },
 
-    statLabel: {
-      color:
-        colors.textSecondary,
+  description: {
+    color:
+      colors.textSecondary,
 
-      fontSize: 12,
+    fontSize: 15,
+    lineHeight: 23,
 
-      marginTop: 2,
-    },
+    maxWidth: 580,
 
-    sectionTitle: {
-      color: colors.text,
+    marginTop:
+      spacing.md,
+  },
 
-      fontSize: 20,
-      fontWeight: "700",
+  descriptionDesktop: {
+    fontSize: 16,
+    lineHeight: 25,
+  },
 
-      marginTop:
-        spacing.massive,
+  heroAction: {
+    minHeight: 48,
 
-      marginBottom:
-        spacing.lg,
-    },
+    flexDirection: "row",
 
-    actionCard: {
-      padding:
-        spacing.lg,
-    },
+    alignItems: "center",
+    justifyContent: "center",
 
-    actionRow: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
+    backgroundColor:
+      colors.primary,
 
-    actionIcon: {
-      width: 48,
-      height: 48,
+    borderRadius:
+      radius.md,
 
-      borderRadius: 14,
+    paddingHorizontal:
+      spacing.lg,
 
-      backgroundColor:
-        colors.primaryLight,
+    marginTop:
+      spacing.xl,
+  },
 
-      alignItems: "center",
-      justifyContent: "center",
-    },
+  heroActionWide: {
+    alignSelf: "flex-start",
+  },
 
-    actionContent: {
-      flex: 1,
+  heroActionText: {
+    color: colors.white,
 
-      marginLeft:
-        spacing.lg,
-    },
+    fontSize: 14,
+    fontWeight: "700",
 
-    actionTitle: {
-      color: colors.text,
+    marginLeft:
+      spacing.sm,
+  },
 
-      fontSize: 16,
-      fontWeight: "700",
-    },
+  heroVisual: {
+    width: 320,
 
-    actionDescription: {
-      color:
-        colors.textSecondary,
+    marginLeft:
+      spacing.xxl,
 
-      fontSize: 13,
-      lineHeight: 19,
+    padding:
+      spacing.xl,
 
-      marginTop: 3,
-    },
+    backgroundColor:
+      colors.surface,
 
-    walletLink: {
-      flexDirection: "row",
-      alignItems: "center",
+    borderWidth: 1,
+    borderColor:
+      colors.border,
 
-      marginTop:
-        spacing.xxl,
-    },
+    borderRadius:
+      radius.lg,
+  },
 
-    walletText: {
-      marginLeft:
-        spacing.sm,
+  heroVisualIcon: {
+    width: 82,
+    height: 82,
 
-      color: colors.primary,
+    borderRadius: 41,
 
-      fontWeight: "700",
-    },
-  });
+    backgroundColor:
+      colors.primaryLight,
+
+    alignItems: "center",
+    justifyContent: "center",
+
+    marginBottom:
+      spacing.lg,
+  },
+
+  heroVisualTitle: {
+    color: colors.text,
+
+    fontSize: 18,
+    fontWeight: "800",
+  },
+
+  heroVisualText: {
+    color:
+      colors.textSecondary,
+
+    fontSize: 13,
+    lineHeight: 20,
+
+    marginTop:
+      spacing.sm,
+  },
+
+  sectionTitle: {
+    color: colors.text,
+
+    fontSize: 20,
+    fontWeight: "800",
+
+    marginTop:
+      spacing.xxxl,
+
+    marginBottom:
+      spacing.lg,
+  },
+
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+
+    marginHorizontal: -6,
+  },
+
+  statWrapper: {
+    width: "33.3333%",
+    padding: 6,
+  },
+
+  statWrapperMobile: {
+    width: "100%",
+  },
+
+  stat: {
+    width: "100%",
+
+    padding:
+      spacing.lg,
+  },
+
+  statIcon: {
+    width: 40,
+    height: 40,
+
+    borderRadius: 11,
+
+    backgroundColor:
+      colors.primaryLight,
+
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  statValue: {
+    color: colors.text,
+
+    fontSize: 23,
+    fontWeight: "800",
+
+    marginTop:
+      spacing.md,
+  },
+
+  statLabel: {
+    color:
+      colors.textSecondary,
+
+    fontSize: 12,
+
+    marginTop: 2,
+  },
+
+  actionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+
+    marginHorizontal: -6,
+  },
+
+  actionWrapper: {
+    width: "100%",
+    padding: 6,
+  },
+
+  actionWrapperDesktop: {
+    width: "50%",
+  },
+
+  actionCard: {
+    width: "100%",
+    minHeight: 105,
+
+    flexDirection: "row",
+    alignItems: "center",
+
+    backgroundColor:
+      colors.surface,
+
+    borderWidth: 1,
+    borderColor:
+      colors.border,
+
+    borderRadius:
+      radius.lg,
+
+    padding:
+      spacing.lg,
+  },
+
+  actionIcon: {
+    width: 48,
+    height: 48,
+
+    borderRadius: 14,
+
+    backgroundColor:
+      colors.primaryLight,
+
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  actionContent: {
+    flex: 1,
+
+    marginHorizontal:
+      spacing.md,
+  },
+
+  actionTitle: {
+    color: colors.text,
+
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  actionDescription: {
+    color:
+      colors.textSecondary,
+
+    fontSize: 12,
+    lineHeight: 18,
+
+    marginTop: 3,
+  },
+
+  pressed: {
+    opacity: 0.82,
+  },
+});

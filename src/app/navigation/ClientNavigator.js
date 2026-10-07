@@ -8,13 +8,11 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "../../theme";
 
-
 import ClientHomeScreen from "../../features/requests/screen/client/ClientHomeScreen";
 import ClientRequestsScreen from "../../features/requests/screen/client/ClientRequestsScreen";
 import RequestDetailScreen from "../../features/requests/screen/client/RequestDetailScreen";
-import  ClientProfileScreen  from "../../features/profile/screens/ClientProfileScreen";
+import ClientProfileScreen from "../../features/profile/screens/ClientProfileScreen";
 import NotificationsScreen from "../../features/notifications/screen/NotificationsScreen";
-
 
 import DescribeScreen from "../../features/requests/screen/client/create/DescribeScreen";
 import CategoryScreen from "../../features/requests/screen/client/create/CategoryScreen";
@@ -24,33 +22,42 @@ import PhotosScreen from "../../features/requests/screen/client/create/PhotosScr
 import ReviewScreen from "../../features/requests/screen/client/create/ReviewScreen";
 import SuccessScreen from "../../features/requests/screen/client/create/SuccessScreen";
 
+import { StyleSheet } from "react-native";
+
+import { useResponsive } from "../../shared/hooks/useResponsive";
+
 const Tab = createBottomTabNavigator();
 
 const Stack = createNativeStackNavigator();
 
 function ClientTabs() {
+  const { isDesktop } = useResponsive();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
 
+        tabBarPosition: isDesktop ? "left" : "bottom",
+
+        tabBarLabelPosition: isDesktop ? "beside-icon" : "below-icon",
+
         tabBarActiveTintColor: colors.primary,
 
         tabBarInactiveTintColor: colors.textMuted,
 
-        tabBarStyle: {
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-          borderTopColor: colors.border,
-        },
+        tabBarActiveBackgroundColor: isDesktop
+          ? colors.primaryLight
+          : undefined,
 
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "600",
-        },
+        tabBarHideOnKeyboard: true,
 
-        tabBarIcon: ({ color, size, focused }) => {
+        tabBarStyle: isDesktop ? styles.desktopTabBar : styles.mobileTabBar,
+
+        tabBarItemStyle: isDesktop ? styles.desktopTabItem : undefined,
+
+        tabBarLabelStyle: isDesktop ? styles.desktopLabel : styles.mobileLabel,
+
+        tabBarIcon: ({ color, focused }) => {
           let iconName;
 
           if (route.name === "Home") {
@@ -61,7 +68,7 @@ function ClientTabs() {
             iconName = focused ? "document-text" : "document-text-outline";
           }
 
-          if(route.name === "Notifications") {
+          if (route.name === "Notifications") {
             iconName = focused ? "notifications" : "notifications-outline";
           }
 
@@ -136,3 +143,60 @@ export default function ClientNavigator() {
     </Stack.Navigator>
   );
 }
+
+const styles =
+  StyleSheet.create({
+    mobileTabBar: {
+      height: 64,
+
+      paddingBottom: 8,
+
+      paddingTop: 6,
+
+      borderTopColor:
+        colors.border,
+
+      backgroundColor:
+        colors.surface,
+    },
+
+    mobileLabel: {
+      fontSize: 12,
+
+      fontWeight: "600",
+    },
+
+    desktopTabBar: {
+      width: 230,
+
+      paddingHorizontal: 12,
+
+      paddingTop: 24,
+
+      paddingBottom: 24,
+
+      borderTopWidth: 0,
+
+      borderRightWidth: 1,
+
+      borderRightColor:
+        colors.border,
+
+      backgroundColor:
+        colors.surface,
+    },
+
+    desktopTabItem: {
+      minHeight: 50,
+
+      borderRadius: 12,
+
+      marginVertical: 3,
+    },
+
+    desktopLabel: {
+      fontSize: 14,
+
+      fontWeight: "700",
+    },
+  });

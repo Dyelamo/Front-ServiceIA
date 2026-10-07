@@ -8,6 +8,8 @@ import { colors, radius, spacing } from "../../../../../theme/index";
 
 import { Card } from "../../../../../shared/ui/index";
 
+import { useResponsive } from "../../../../../shared/hooks/useResponsive";
+
 import { useRequestDraft } from "../../../context/RequestDraftContext";
 
 import RequestWizardLayout from "../../../components/RequestWizardLayout";
@@ -15,13 +17,12 @@ import RequestWizardLayout from "../../../components/RequestWizardLayout";
 export default function PhotosScreen({ navigation }) {
   const { draft, updateDraft } = useRequestDraft();
 
-  const handleAddMockPhoto = () => {
-    // TEMPORAL:
-    // todavía no estamos usando cámara,
-    // galería ni subida real al backend.
+  const { isMobile } = useResponsive();
 
+  const handleAddMockPhoto = () => {
     const nextPhoto = {
       id: Date.now().toString(),
+
       name: `foto-${draft.photos.length + 1}`,
     };
 
@@ -52,7 +53,9 @@ export default function PhotosScreen({ navigation }) {
         disabled={draft.photos.length >= 5}
         style={({ pressed }) => [
           styles.uploader,
+
           pressed && styles.pressed,
+
           draft.photos.length >= 5 && styles.disabled,
         ]}>
         <View style={styles.uploadIcon}>
@@ -72,27 +75,35 @@ export default function PhotosScreen({ navigation }) {
 
           <View style={styles.grid}>
             {draft.photos.map((photo, index) => (
-              <Card key={photo.id} variant="outlined" style={styles.photoCard}>
-                <View style={styles.photoPlaceholder}>
-                  <Ionicons
-                    name="image-outline"
-                    size={30}
-                    color={colors.primary}
-                  />
+              <View
+                key={photo.id}
+                style={[
+                  styles.photoWrapper,
 
-                  <Text style={styles.photoText}>Foto {index + 1}</Text>
-                </View>
+                  isMobile ? styles.photoMobile : styles.photoWide,
+                ]}>
+                <Card variant="outlined" style={styles.photoCard}>
+                  <View style={styles.photoPlaceholder}>
+                    <Ionicons
+                      name="image-outline"
+                      size={30}
+                      color={colors.primary}
+                    />
 
-                <Pressable
-                  onPress={() => handleRemovePhoto(photo.id)}
-                  style={styles.removeButton}>
-                  <Ionicons
-                    name="trash-outline"
-                    size={18}
-                    color={colors.error}
-                  />
-                </Pressable>
-              </Card>
+                    <Text style={styles.photoText}>Foto {index + 1}</Text>
+                  </View>
+
+                  <Pressable
+                    onPress={() => handleRemovePhoto(photo.id)}
+                    style={styles.removeButton}>
+                    <Ionicons
+                      name="trash-outline"
+                      size={18}
+                      color={colors.error}
+                    />
+                  </Pressable>
+                </Card>
+              </View>
             ))}
           </View>
         </View>
@@ -116,11 +127,12 @@ export default function PhotosScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   uploader: {
-    minHeight: 180,
+    minHeight: 190,
 
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: colors.borderStrong,
+
     borderRadius: radius.lg,
 
     backgroundColor: colors.surface,
@@ -134,6 +146,7 @@ const styles = StyleSheet.create({
   uploadIcon: {
     width: 56,
     height: 56,
+
     borderRadius: 28,
 
     backgroundColor: colors.primaryLight,
@@ -146,19 +159,24 @@ const styles = StyleSheet.create({
 
   uploadTitle: {
     color: colors.text,
+
     fontSize: 16,
     fontWeight: "700",
   },
 
   uploadDescription: {
     color: colors.textSecondary,
+
     fontSize: 14,
+
     marginTop: 4,
   },
 
   uploadLimit: {
     color: colors.textMuted,
+
     fontSize: 12,
+
     marginTop: spacing.sm,
   },
 
@@ -176,26 +194,42 @@ const styles = StyleSheet.create({
 
   photosTitle: {
     color: colors.text,
+
     fontSize: 16,
     fontWeight: "700",
+
     marginBottom: spacing.md,
   },
 
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
+
     marginHorizontal: -6,
   },
 
+  photoWrapper: {
+    padding: 6,
+  },
+
+  photoMobile: {
+    width: "50%",
+  },
+
+  photoWide: {
+    width: "33.3333%",
+  },
+
   photoCard: {
-    width: "47%",
-    margin: 6,
+    width: "100%",
+
     padding: spacing.md,
+
     position: "relative",
   },
 
   photoPlaceholder: {
-    height: 100,
+    height: 105,
 
     borderRadius: radius.md,
 
@@ -207,17 +241,21 @@ const styles = StyleSheet.create({
 
   photoText: {
     color: colors.textSecondary,
+
     fontSize: 13,
+
     marginTop: 6,
   },
 
   removeButton: {
     position: "absolute",
+
     top: 8,
     right: 8,
 
     width: 34,
     height: 34,
+
     borderRadius: 17,
 
     backgroundColor: colors.surface,
@@ -241,6 +279,7 @@ const styles = StyleSheet.create({
 
   infoText: {
     flex: 1,
+
     marginLeft: spacing.sm,
 
     color: colors.textSecondary,

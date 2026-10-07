@@ -16,7 +16,9 @@ export default function TransactionItem({ transaction }) {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>{transaction.title}</Text>
+        <Text style={styles.title} numberOfLines={2}>
+          {transaction.title}
+        </Text>
 
         <Text style={styles.meta}>{transaction.date}</Text>
 
@@ -25,7 +27,9 @@ export default function TransactionItem({ transaction }) {
         </Text>
       </View>
 
-      <Text style={styles.amount}>+{formatCOP(transaction.amount)}</Text>
+      <View style={styles.amountBox}>
+        <Text style={styles.amount}>+{formatCOP(transaction.amount)}</Text>
+      </View>
     </View>
   );
 }
@@ -33,11 +37,13 @@ export default function TransactionItem({ transaction }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
+
     alignItems: "center",
 
     paddingVertical: spacing.lg,
 
     borderBottomWidth: 1,
+
     borderBottomColor: colors.border,
   },
 
@@ -56,6 +62,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
 
+    minWidth: 0,
+
     marginLeft: spacing.md,
   },
 
@@ -63,6 +71,7 @@ const styles = StyleSheet.create({
     color: colors.text,
 
     fontSize: 14,
+
     fontWeight: "700",
   },
 
@@ -82,12 +91,19 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  amountBox: {
+    flexShrink: 0,
+
+    marginLeft: spacing.sm,
+  },
+
   amount: {
     color: colors.primaryDark,
 
     fontSize: 15,
+
     fontWeight: "800",
 
-    marginLeft: spacing.md,
+    textAlign: "right",
   },
 });

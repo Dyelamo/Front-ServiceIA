@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  View,
 } from "react-native";
 
 import {
@@ -16,6 +17,7 @@ import {
 
 import {
   colors,
+  layout,
   spacing,
 } from "../../../../theme/index";
 
@@ -32,6 +34,10 @@ import {
 } from "../../../../shared/layout/index";
 
 import {
+  useResponsive,
+} from "../../../../shared/hooks/useResponsive";
+
+import {
   fetchProfessionalPublications,
 } from "../../api/requests.api";
 
@@ -41,6 +47,10 @@ import ProfessionalRequestCard
 export default function AvailableRequestsScreen({
   navigation,
 }) {
+  const {
+    isDesktop,
+  } = useResponsive();
+
   const [
     requests,
     setRequests,
@@ -93,26 +103,50 @@ export default function AvailableRequestsScreen({
     }, [loadRequests])
   );
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+
+    loadRequests();
+  };
+
   if (loading) {
     return (
       <Screen>
         <AppHeader
           title="Solicitudes"
+          maxWidth={
+            layout.content.wide
+          }
         />
 
         <ResponsiveContainer
-          maxWidth={900}
+          maxWidth={
+            layout.content.wide
+          }
           style={styles.container}
         >
-          <Skeleton
-            height={160}
-            style={styles.skeleton}
-          />
+          <View style={styles.grid}>
+            {[
+              1,
+              2,
+              3,
+              4,
+            ].map((item) => (
+              <View
+                key={item}
+                style={[
+                  styles.wrapper,
 
-          <Skeleton
-            height={160}
-            style={styles.skeleton}
-          />
+                  isDesktop &&
+                    styles.wrapperDesktop,
+                ]}
+              >
+                <Skeleton
+                  height={190}
+                />
+              </View>
+            ))}
+          </View>
         </ResponsiveContainer>
       </Screen>
     );
@@ -123,10 +157,15 @@ export default function AvailableRequestsScreen({
       <Screen>
         <AppHeader
           title="Solicitudes"
+          maxWidth={
+            layout.content.wide
+          }
         />
 
         <ResponsiveContainer
-          maxWidth={900}
+          maxWidth={
+            layout.content.wide
+          }
           style={styles.container}
         >
           <ErrorState
@@ -142,9 +181,16 @@ export default function AvailableRequestsScreen({
   }
 
   return (
-    <Screen>
+    <Screen
+      backgroundColor={
+        colors.background
+      }
+    >
       <AppHeader
         title="Solicitudes"
+        maxWidth={
+          layout.content.wide
+        }
       />
 
       <ScrollView
@@ -153,54 +199,82 @@ export default function AvailableRequestsScreen({
             refreshing={
               refreshing
             }
-            onRefresh={() => {
-              setRefreshing(true);
-
-              loadRequests();
-            }}
+            onRefresh={
+              handleRefresh
+            }
           />
+        }
+        contentContainerStyle={
+          styles.scrollContent
         }
       >
         <ResponsiveContainer
-          maxWidth={900}
-          style={styles.container}
+          maxWidth={
+            layout.content.wide
+          }
         >
-          <Text
-            style={
-              styles.description
-            }
+          <View
+            style={styles.heading}
           >
-            Solicitudes disponibles
-            según tus especialidades.
-          </Text>
+            <Text
+              style={styles.title}
+            >
+              Solicitudes disponibles
+            </Text>
 
-          {requests.length === 0 ? (
+            <Text
+              style={
+                styles.description
+              }
+            >
+              Encuentra solicitudes
+              compatibles con tus
+              especialidades y envía
+              una propuesta.
+            </Text>
+          </View>
+
+          {requests.length ===
+          0 ? (
             <EmptyState
               icon="search-outline"
               title="No hay solicitudes disponibles"
               description="Cuando aparezcan solicitudes compatibles con tus especialidades las verás aquí."
             />
           ) : (
-            requests.map(
-              (request) => (
-                <ProfessionalRequestCard
-                  key={request.id}
-                  request={
-                    request
-                  }
-                  onPress={() =>
-                    navigation
-                      .getParent()
-                      ?.navigate(
-                        "ProfessionalRequestDetail",
-                        {
-                          request,
-                        }
-                      )
-                  }
-                />
-              )
-            )
+            <View
+              style={styles.grid}
+            >
+              {requests.map(
+                (request) => (
+                  <View
+                    key={request.id}
+                    style={[
+                      styles.wrapper,
+
+                      isDesktop &&
+                        styles.wrapperDesktop,
+                    ]}
+                  >
+                    <ProfessionalRequestCard
+                      request={
+                        request
+                      }
+                      onPress={() =>
+                        navigation
+                          .getParent()
+                          ?.navigate(
+                            "ProfessionalRequestDetail",
+                            {
+                              request,
+                            }
+                          )
+                      }
+                    />
+                  </View>
+                )
+              )}
+            </View>
           )}
         </ResponsiveContainer>
       </ScrollView>
@@ -215,18 +289,53 @@ const styles =
         spacing.xxl,
     },
 
+    scrollContent: {
+      paddingVertical:
+        spacing.xxl,
+    },
+
+    heading: {
+      marginBottom:
+        spacing.xl,
+    },
+
+    title: {
+      color: colors.text,
+
+      fontSize: 24,
+      fontWeight: "800",
+    },
+
     description: {
       color:
         colors.textSecondary,
 
       fontSize: 14,
+      lineHeight: 21,
 
-      marginBottom:
-        spacing.xxl,
+      marginTop:
+        spacing.xs,
+
+      maxWidth: 620,
     },
 
-    skeleton: {
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+
+      marginHorizontal: -6,
+    },
+
+    wrapper: {
+      width: "100%",
+
+      padding: 6,
+
       marginBottom:
-        spacing.md,
+        spacing.sm,
+    },
+
+    wrapperDesktop: {
+      width: "50%",
     },
   });
