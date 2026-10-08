@@ -8,7 +8,11 @@ import { colors, layout, radius, spacing } from "../../../theme/index";
 
 import { Button, Card, Input, TextArea } from "../../../shared/ui/index";
 
-import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
+import {
+  AppHeader,
+  ResponsiveContainer,
+  Screen,
+} from "../../../shared/layout/index";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
@@ -51,7 +55,7 @@ export default function CreateOfferScreen({ navigation, route }) {
   const isValid = Number(price) > 0 && availability.trim() && message.trim();
 
   const handleSubmit = async () => {
-    if (!request?.id || !isValid) {
+    if (loading || !request?.id || !isValid) {
       return;
     }
 
@@ -71,27 +75,57 @@ export default function CreateOfferScreen({ navigation, route }) {
 
       navigation.navigate("ProfessionalTabs", {
         screen: "ProfessionalOffers",
+
+        params: {
+          offerSent: true,
+        },
       });
     } catch (err) {
       console.error("Error enviando oferta:", err);
 
-      const backendMessage =
-        err?.response?.data?.detail || err?.response?.data?.message;
-
       setError(
-        backendMessage || "No pudimos enviar la oferta. Intenta nuevamente.",
+        getApiErrorMessage(
+          err,
+          "No pudimos enviar la oferta. Intenta nuevamente.",
+        ),
       );
     } finally {
       setLoading(false);
     }
   };
 
+  function getApiErrorMessage(err, fallback) {
+    const detail = err?.response?.data?.detail ?? err?.response?.data?.message;
+
+    if (typeof detail === "string") {
+      return detail;
+    }
+
+    if (Array.isArray(detail)) {
+      const first = detail[0];
+
+      if (typeof first === "string") {
+        return first;
+      }
+
+      if (first?.msg) {
+        return first.msg;
+      }
+    }
+
+    if (detail?.msg) {
+      return detail.msg;
+    }
+
+    return fallback;
+  }
+
   if (!request) {
     return (
       <Screen>
         <AppHeader
           title="Enviar oferta"
-          onBack={() => navigation.goBack()}
+          onBack={loading ? undefined : () => navigation.goBack()}
           maxWidth={layout.content.wide}
         />
 
@@ -200,7 +234,14 @@ export default function CreateOfferScreen({ navigation, route }) {
                     placeholder="Ej. 120000"
                     keyboardType="numeric"
                     value={price}
-                    onChangeText={setPrice}
+                    editable={!loading}
+                    onChangeText={(value) => {
+                      setPrice(value);
+
+                      if (error) {
+                        setError("");
+                      }
+                    }}
                     helperText="Valor en pesos colombianos"
                   />
                 </View>
@@ -210,7 +251,14 @@ export default function CreateOfferScreen({ navigation, route }) {
                     label="Disponibilidad"
                     placeholder="Ej. Hoy después de las 3:00 p.m."
                     value={availability}
-                    onChangeText={setAvailability}
+                    editable={!loading}
+                    onChangeText={(value) => {
+                      setAvailability(value);
+
+                      if (error) {
+                        setError("");
+                      }
+                    }}
                   />
                 </View>
               </View>
@@ -220,7 +268,14 @@ export default function CreateOfferScreen({ navigation, route }) {
                   label="Mensaje"
                   placeholder="Cuéntale al cliente cómo puedes ayudarlo..."
                   value={message}
-                  onChangeText={setMessage}
+                  editable={!loading}
+                  onChangeText={(value) => {
+                    setMessage(value);
+
+                    if (error) {
+                      setError("");
+                    }
+                  }}
                   maxLength={500}
                 />
 
@@ -236,8 +291,9 @@ export default function CreateOfferScreen({ navigation, route }) {
                   ]}>
                   <Button
                     onPress={handleSubmit}
-                    disabled={!isValid}
-                    loading={loading}>
+                    disabled={!isValid || loading}
+                    loading={loading}
+                    loadingLabel="Enviando oferta...">
                     Enviar oferta
                   </Button>
                 </View>

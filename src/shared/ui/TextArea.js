@@ -2,20 +2,21 @@ import React from "react";
 
 import Input from "./Input";
 
-export default function TextArea({
-  numberOfLines = 5,
-  ...props
-}) {
+export default function TextArea({ numberOfLines = 5, inputStyle, ...props }) {
   return (
     <Input
       {...props}
       multiline
       numberOfLines={numberOfLines}
       textAlignVertical="top"
-      inputStyle={{
-        minHeight: 120,
-        paddingTop: 14,
-      }}
+      inputStyle={[
+        {
+          minHeight: 120,
+          paddingTop: 14,
+        },
+
+        inputStyle,
+      ]}
     />
   );
 }

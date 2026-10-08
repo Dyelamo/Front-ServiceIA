@@ -47,12 +47,14 @@ export default function ProfessionalProfileScreen() {
 
   const [loading, setLoading] = useState(true);
 
+  const [retrying, setRetrying] = useState(false);
+
+  const [updating, setUpdating] = useState(false);
+
   const [error, setError] = useState(false);
 
   const loadProfile = useCallback(async () => {
     try {
-      setError(false);
-
       const [userData, professionalData] = await Promise.all([
         getMyProfileApi(),
         getMyProfessionalProfileApi(),
@@ -60,6 +62,7 @@ export default function ProfessionalProfileScreen() {
 
       setUser(userData);
       setProfessional(professionalData);
+      setError(false);
     } catch (err) {
       console.error("Error cargando perfil profesional:", err);
 
@@ -68,6 +71,22 @@ export default function ProfessionalProfileScreen() {
       setLoading(false);
     }
   }, []);
+
+  const handleRetry = async () => {
+    setRetrying(true);
+
+    await loadProfile();
+
+    setRetrying(false);
+  };
+
+  const handleUpdate = async () => {
+    setUpdating(true);
+
+    await loadProfile();
+
+    setUpdating(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -91,7 +110,7 @@ export default function ProfessionalProfileScreen() {
     );
   }
 
-  if (error) {
+  if (error && !user && !professional) {
     return (
       <Screen>
         <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
@@ -102,7 +121,8 @@ export default function ProfessionalProfileScreen() {
           <ErrorState
             title="No pudimos cargar tu perfil profesional"
             description="Intenta nuevamente."
-            onRetry={loadProfile}
+            onRetry={handleRetry}
+            retrying={retrying}
           />
         </ResponsiveContainer>
       </Screen>
@@ -144,6 +164,17 @@ export default function ProfessionalProfileScreen() {
       <ResponsiveContainer
         maxWidth={layout.content.wide}
         style={styles.container}>
+        {error && (user || professional) ? (
+          <View style={styles.updateWarning}>
+            <Text style={styles.updateWarningTitle}>
+              No pudimos actualizar tu perfil
+            </Text>
+
+            <Text style={styles.updateWarningText}>
+              Seguimos mostrando la última información disponible.
+            </Text>
+          </View>
+        ) : null}
         <Card variant="outlined" style={styles.heroCard}>
           <View style={[styles.hero, isMobile && styles.heroMobile]}>
             <Avatar name={fullName} size={76} />
@@ -234,7 +265,11 @@ export default function ProfessionalProfileScreen() {
             </SectionCard>
 
             <SectionCard title="Cuenta" icon="settings-outline">
-              <Button variant="outline" onPress={loadProfile}>
+              <Button
+                variant="outline"
+                onPress={handleUpdate}
+                loading={updating}
+                loadingLabel="Actualizando...">
                 Actualizar información
               </Button>
 

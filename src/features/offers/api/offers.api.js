@@ -31,7 +31,7 @@ export const createProfessionalOffer = async ({
     throw new Error("No hay un profesional autenticado");
   }
 
-  const { data } = await api.post("/postulaciones", {
+  const { data } = await api.post("/postulaciones/", {
     publicacion_id: publicationId,
 
     prestador_id: prestadorId,
@@ -47,7 +47,7 @@ export const createProfessionalOffer = async ({
 };
 
 export const fetchProfessionalOffers = async () => {
-  const { data } = await api.get("/postulaciones", {
+  const { data } = await api.get("/postulaciones/", {
     params: {
       limit: 20,
       offset: 0,
@@ -60,7 +60,7 @@ export const fetchProfessionalOffers = async () => {
 export const fetchProfessionalOffersWithPublications =
   async () => {
     const { data } = await api.get(
-      "/postulaciones",
+      "/postulaciones/",
       {
         params: {
           limit: 20,

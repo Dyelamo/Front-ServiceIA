@@ -41,15 +41,16 @@ export default function ClientProfileScreen() {
 
   const [loading, setLoading] = useState(true);
 
+  const [retrying, setRetrying] = useState(false);
+
   const [error, setError] = useState(false);
 
   const loadProfile = useCallback(async () => {
     try {
-      setError(false);
-
       const data = await getMyProfileApi();
 
       setProfile(data);
+      setError(false);
     } catch (err) {
       console.error("Error cargando perfil:", err);
 
@@ -58,6 +59,14 @@ export default function ClientProfileScreen() {
       setLoading(false);
     }
   }, []);
+
+  const handleRetry = async () => {
+    setRetrying(true);
+
+    await loadProfile();
+
+    setRetrying(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -79,7 +88,7 @@ export default function ClientProfileScreen() {
     );
   }
 
-  if (error) {
+  if (error && !profile) {
     return (
       <Screen>
         <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
@@ -90,7 +99,8 @@ export default function ClientProfileScreen() {
           <ErrorState
             title="No pudimos cargar tu perfil"
             description="Intenta nuevamente."
-            onRetry={loadProfile}
+            onRetry={handleRetry}
+            retrying={retrying}
           />
         </ResponsiveContainer>
       </Screen>
@@ -114,6 +124,18 @@ export default function ClientProfileScreen() {
       <ResponsiveContainer
         maxWidth={layout.content.wide}
         style={styles.container}>
+        {error && profile ? (
+          <View style={styles.updateWarning}>
+            <Text style={styles.updateWarningTitle}>
+              No pudimos actualizar tu perfil
+            </Text>
+
+            <Text style={styles.updateWarningText}>
+              Estamos mostrando la última información que cargamos
+              correctamente.
+            </Text>
+          </View>
+        ) : null}
         <Card variant="outlined" style={styles.heroCard}>
           <View style={[styles.hero, isMobile && styles.heroMobile]}>
             <Avatar name={fullName} size={76} />

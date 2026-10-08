@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors, layout, spacing } from "../../../../theme/index";
 
-import { Card } from "../../../../shared/ui/index";
+import { Card, EmptyState } from "../../../../shared/ui/index";
 
 import {
   AppHeader,
@@ -150,21 +150,12 @@ export default function RequestDetailScreen({ navigation, route }) {
           <Text style={styles.sectionTitle}>Ofertas recibidas</Text>
 
           <Card variant="outlined" style={styles.offersCard}>
-            <View style={styles.emptyOffers}>
-              <View style={styles.emptyIcon}>
-                <Ionicons
-                  name="people-outline"
-                  size={30}
-                  color={colors.primary}
-                />
-              </View>
-
-              <Text style={styles.emptyTitle}>Aún no hay ofertas</Text>
-
-              <Text style={styles.emptyText}>
-                Cuando un profesional envíe una propuesta, aparecerá aquí.
-              </Text>
-            </View>
+            <EmptyState
+              compact
+              icon="people-outline"
+              title="Aún no hay ofertas"
+              description="Cuando un profesional envíe una propuesta, aparecerá aquí."
+            />
           </Card>
         </View>
       </ResponsiveContainer>
@@ -414,46 +405,5 @@ const styles = StyleSheet.create({
 
   offersCard: {
     padding: spacing.xl,
-  },
-
-  emptyOffers: {
-    alignItems: "center",
-
-    paddingVertical: spacing.xxl,
-  },
-
-  emptyIcon: {
-    width: 64,
-    height: 64,
-
-    borderRadius: 32,
-
-    backgroundColor: colors.primaryLight,
-
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  emptyTitle: {
-    marginTop: spacing.md,
-
-    color: colors.text,
-
-    fontSize: 16,
-
-    fontWeight: "700",
-  },
-
-  emptyText: {
-    marginTop: spacing.xs,
-
-    color: colors.textSecondary,
-
-    fontSize: 13,
-    lineHeight: 19,
-
-    textAlign: "center",
-
-    maxWidth: 380,
   },
 });

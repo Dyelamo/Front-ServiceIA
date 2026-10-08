@@ -17,7 +17,7 @@ import { useRequestDraft } from "../../../context/RequestDraftContext";
 import RequestWizardLayout from "../../../components/RequestWizardLayout";
 
 export default function ReviewScreen({ navigation }) {
-  const { draft } = useRequestDraft();
+  const { draft, resetDraft } = useRequestDraft();
 
   const { isDesktop } = useResponsive();
 
@@ -26,6 +26,16 @@ export default function ReviewScreen({ navigation }) {
   const [error, setError] = useState("");
 
   const handlePublish = async () => {
+    if (loading) {
+      return;
+    }
+
+    if (!draft.description?.trim() || !draft.categoryId || !draft.urgency) {
+      setError("Falta información necesaria para publicar la solicitud.");
+
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -50,23 +60,64 @@ export default function ReviewScreen({ navigation }) {
         photos: draft.photos,
       });
 
-      navigation.replace("CreateRequestSuccess", {
-        result,
+      resetDraft();
+
+      navigation.reset({
+        index: 1,
+
+        routes: [
+          {
+            name: "ClientTabs",
+          },
+
+          {
+            name: "CreateRequestSuccess",
+
+            params: {
+              result,
+            },
+          },
+        ],
       });
     } catch (err) {
       console.error("Error publicando solicitud:", err);
 
-      const backendMessage =
-        err?.response?.data?.detail || err?.response?.data?.message;
-
       setError(
-        backendMessage ||
+        getApiErrorMessage(
+          err,
           "No pudimos publicar tu solicitud. Intenta nuevamente.",
+        ),
       );
     } finally {
       setLoading(false);
     }
   };
+
+  function getApiErrorMessage(err, fallback) {
+    const detail = err?.response?.data?.detail ?? err?.response?.data?.message;
+
+    if (typeof detail === "string") {
+      return detail;
+    }
+
+    if (Array.isArray(detail)) {
+      const first = detail[0];
+
+      if (typeof first === "string") {
+        return first;
+      }
+
+      if (first?.msg) {
+        return first.msg;
+      }
+    }
+
+    if (detail?.msg) {
+      return detail.msg;
+    }
+
+    return fallback;
+  }
 
   return (
     <RequestWizardLayout
@@ -76,6 +127,7 @@ export default function ReviewScreen({ navigation }) {
       title="Revisa tu solicitud"
       description="Verifica que la información esté correcta antes de publicarla."
       continueLabel="Publicar solicitud"
+      loadingLabel="Publicando..."
       onContinue={handlePublish}
       loading={loading}>
       {error ? (
@@ -86,9 +138,7 @@ export default function ReviewScreen({ navigation }) {
             color={colors.error}
           />
 
-          <Text style={styles.errorText}>
-            {Array.isArray(error) ? error[0]?.msg : error?.msg || error}
-          </Text>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : null}
 

@@ -1,60 +1,72 @@
 import React from "react";
-import {
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
 
-import {
-  colors,
-  radius,
-  shadows,
-  spacing,
-} from "../../theme";
+import { Pressable, StyleSheet, View } from "react-native";
+
+import { colors, radius, shadows, spacing } from "../../theme";
 
 export default function Card({
   children,
+
   onPress,
+
+  disabled = false,
+
   variant = "default",
+
+  accessibilityLabel,
+
   style,
+
+  ...pressableProps
 }) {
   const cardStyles = [
     styles.base,
+
     variant === "outlined" && styles.outlined,
+
     variant === "elevated" && styles.elevated,
+
+    disabled && styles.disabled,
+
     style,
   ];
 
   if (onPress) {
     return (
       <Pressable
+        {...pressableProps}
         onPress={onPress}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityState={{
+          disabled,
+        }}
         style={({ pressed }) => [
           ...cardStyles,
-          pressed && styles.pressed,
-        ]}
-      >
+
+          pressed && !disabled && styles.pressed,
+        ]}>
         {children}
       </Pressable>
     );
   }
 
-  return (
-    <View style={cardStyles}>
-      {children}
-    </View>
-  );
+  return <View style={cardStyles}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
   base: {
     backgroundColor: colors.surface,
+
     borderRadius: radius.lg,
+
     padding: spacing.lg,
   },
 
   outlined: {
     borderWidth: 1,
+
     borderColor: colors.border,
   },
 
@@ -63,6 +75,10 @@ const styles = StyleSheet.create({
   },
 
   pressed: {
-    opacity: 0.9,
+    opacity: 0.88,
+  },
+
+  disabled: {
+    opacity: 0.55,
   },
 });

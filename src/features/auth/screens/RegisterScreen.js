@@ -46,6 +46,8 @@ export default function RegisterScreen({ navigation }) {
       [field]: value,
     }));
 
+    setGeneralError("");
+
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -95,45 +97,70 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const handleRegister = async () => {
+    if (loading) {
+      return;
+    }
+
     setGeneralError("");
 
     if (!validate()) {
       return;
     }
 
+    const payload = {
+      email: form.email.trim().toLowerCase(),
+
+      password: form.password,
+
+      nombre_completo:
+        `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+
+      telefono: form.phone.trim(),
+
+      ubicacion: "Valledupar, Cesar",
+    };
+
+    // console.log("PAYLOAD REGISTER:", payload);
+
     try {
       setLoading(true);
 
-      /*
-        IMPORTANTE:
-
-        Sustituye estas propiedades
-        por las mismas que actualmente
-        utiliza tu RegisterScreen viejo
-        si el backend espera otros nombres.
-      */
-
-      const payload = {
-        nombre: form.firstName.trim(),
-        apellido: form.lastName.trim(),
-        email: form.email.trim().toLowerCase(),
-        telefono: form.phone.trim(),
-        password: form.password,
-      };
-
       await registerApi(payload);
 
-      navigation.goBack("Login");
+      navigation.goBack();
     } catch (err) {
       console.error("Error registrando usuario:", err);
 
+      console.log(
+        "REGISTER RESPONSE:",
+        JSON.stringify(err?.response?.data, null, 2),
+      );
+
       const status = err?.response?.status;
 
-      const backendMessage =
-        err?.response?.data?.detail || err?.response?.data?.message;
+      const detail =
+        err?.response?.data?.detail ?? err?.response?.data?.message;
 
-      if (backendMessage) {
-        setGeneralError(String(backendMessage));
+      if (Array.isArray(detail)) {
+        const message = detail
+          .map((item) => {
+            const field = Array.isArray(item?.loc)
+              ? item.loc[item.loc.length - 1]
+              : null;
+
+            const text = item?.msg || "Dato inválido";
+
+            return field ? `${field}: ${text}` : text;
+          })
+          .join("\n");
+
+        setGeneralError(message);
+
+        return;
+      }
+
+      if (typeof detail === "string") {
+        setGeneralError(detail);
 
         return;
       }

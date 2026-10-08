@@ -28,9 +28,10 @@ export default function AppHeader({
             {onBack ? (
               <Pressable
                 onPress={onBack}
+                accessibilityRole="button"
+                accessibilityLabel="Volver"
                 style={({ pressed }) => [
                   styles.backButton,
-
                   pressed && styles.pressed,
                 ]}
                 hitSlop={8}>
@@ -41,6 +42,7 @@ export default function AppHeader({
             <View style={styles.titleArea}>
               {title ? (
                 <Text
+                  accessibilityRole="header"
                   style={[styles.title, isDesktop && styles.titleDesktop]}
                   numberOfLines={1}>
                   {title}

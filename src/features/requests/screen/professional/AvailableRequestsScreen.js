@@ -1,7 +1,4 @@
-import React, {
-  useCallback,
-  useState,
-} from "react";
+import React, { useCallback, useState } from "react";
 
 import {
   RefreshControl,
@@ -11,21 +8,11 @@ import {
   View,
 } from "react-native";
 
-import {
-  useFocusEffect,
-} from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 
-import {
-  colors,
-  layout,
-  spacing,
-} from "../../../../theme/index";
+import { colors, layout, spacing } from "../../../../theme/index";
 
-import {
-  EmptyState,
-  ErrorState,
-  Skeleton,
-} from "../../../../shared/ui/index";
+import { EmptyState, ErrorState, Skeleton } from "../../../../shared/ui/index";
 
 import {
   AppHeader,
@@ -33,74 +20,45 @@ import {
   Screen,
 } from "../../../../shared/layout/index";
 
-import {
-  useResponsive,
-} from "../../../../shared/hooks/useResponsive";
+import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
-import {
-  fetchProfessionalPublications,
-} from "../../api/requests.api";
+import { fetchProfessionalPublications } from "../../api/requests.api";
 
-import ProfessionalRequestCard
-  from "../../components/ProfessionalRequestCard";
+import ProfessionalRequestCard from "../../components/ProfessionalRequestCard";
 
-export default function AvailableRequestsScreen({
-  navigation,
-}) {
-  const {
-    isDesktop,
-  } = useResponsive();
+export default function AvailableRequestsScreen({ navigation }) {
+  const { isDesktop } = useResponsive();
 
-  const [
-    requests,
-    setRequests,
-  ] = useState([]);
+  const [requests, setRequests] = useState([]);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+  const [retrying, setRetrying] = useState(false);
 
-  const [
-    refreshing,
-    setRefreshing,
-  ] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const [
-    error,
-    setError,
-  ] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadRequests =
-    useCallback(async () => {
-      try {
-        setError(false);
+  const [error, setError] = useState(false);
 
-        const data =
-          await fetchProfessionalPublications();
+  const loadRequests = useCallback(async () => {
+    try {
+      const data = await fetchProfessionalPublications();
 
-        setRequests(
-          Array.isArray(data)
-            ? data
-            : []
-        );
-      } catch (err) {
-        console.error(
-          "Error cargando solicitudes profesionales:",
-          err
-        );
+      setRequests(Array.isArray(data) ? data : []);
+      setError(false);
+    } catch (err) {
+      console.error("Error cargando solicitudes profesionales:", err);
 
-        setError(true);
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }, []);
+      setError(true);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       loadRequests();
-    }, [loadRequests])
+    }, [loadRequests]),
   );
 
   const handleRefresh = () => {
@@ -109,41 +67,28 @@ export default function AvailableRequestsScreen({
     loadRequests();
   };
 
+  const handleRetry = async () => {
+    setRetrying(true);
+
+    await loadRequests();
+
+    setRetrying(false);
+  };
+
   if (loading) {
     return (
       <Screen>
-        <AppHeader
-          title="Solicitudes"
-          maxWidth={
-            layout.content.wide
-          }
-        />
+        <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
 
         <ResponsiveContainer
-          maxWidth={
-            layout.content.wide
-          }
-          style={styles.container}
-        >
+          maxWidth={layout.content.wide}
+          style={styles.container}>
           <View style={styles.grid}>
-            {[
-              1,
-              2,
-              3,
-              4,
-            ].map((item) => (
+            {[1, 2, 3, 4].map((item) => (
               <View
                 key={item}
-                style={[
-                  styles.wrapper,
-
-                  isDesktop &&
-                    styles.wrapperDesktop,
-                ]}
-              >
-                <Skeleton
-                  height={190}
-                />
+                style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+                <Skeleton height={190} />
               </View>
             ))}
           </View>
@@ -152,28 +97,19 @@ export default function AvailableRequestsScreen({
     );
   }
 
-  if (error) {
+  if (error && requests.length === 0) {
     return (
       <Screen>
-        <AppHeader
-          title="Solicitudes"
-          maxWidth={
-            layout.content.wide
-          }
-        />
+        <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
 
         <ResponsiveContainer
-          maxWidth={
-            layout.content.wide
-          }
-          style={styles.container}
-        >
+          maxWidth={layout.content.wide}
+          style={styles.container}>
           <ErrorState
             title="No pudimos cargar las solicitudes"
             description="Intenta nuevamente."
-            onRetry={
-              loadRequests
-            }
+            onRetry={handleRetry}
+            retrying={retrying}
           />
         </ResponsiveContainer>
       </Screen>
@@ -181,99 +117,60 @@ export default function AvailableRequestsScreen({
   }
 
   return (
-    <Screen
-      backgroundColor={
-        colors.background
-      }
-    >
-      <AppHeader
-        title="Solicitudes"
-        maxWidth={
-          layout.content.wide
-        }
-      />
+    <Screen backgroundColor={colors.background}>
+      <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
 
       <ScrollView
         refreshControl={
-          <RefreshControl
-            refreshing={
-              refreshing
-            }
-            onRefresh={
-              handleRefresh
-            }
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-        contentContainerStyle={
-          styles.scrollContent
-        }
-      >
-        <ResponsiveContainer
-          maxWidth={
-            layout.content.wide
-          }
-        >
-          <View
-            style={styles.heading}
-          >
-            <Text
-              style={styles.title}
-            >
-              Solicitudes disponibles
-            </Text>
+        contentContainerStyle={styles.scrollContent}>
+        <ResponsiveContainer maxWidth={layout.content.wide}>
+          <View style={styles.heading}>
+            <Text style={styles.title}>Solicitudes disponibles</Text>
 
-            <Text
-              style={
-                styles.description
-              }
-            >
-              Encuentra solicitudes
-              compatibles con tus
-              especialidades y envía
+            <Text style={styles.description}>
+              Encuentra solicitudes compatibles con tus especialidades y envía
               una propuesta.
             </Text>
           </View>
+          {error && requests.length > 0 ? (
+            <View style={styles.updateWarning}>
+              <Text style={styles.updateWarningTitle}>
+                No pudimos actualizar
+              </Text>
 
-          {requests.length ===
-          0 ? (
+              <Text style={styles.updateWarningText}>
+                Estas son las últimas solicitudes que pudimos cargar. Desliza
+                hacia abajo para reintentar.
+              </Text>
+            </View>
+          ) : null}
+
+          {requests.length === 0 ? (
             <EmptyState
               icon="search-outline"
               title="No hay solicitudes disponibles"
               description="Cuando aparezcan solicitudes compatibles con tus especialidades las verás aquí."
             />
           ) : (
-            <View
-              style={styles.grid}
-            >
-              {requests.map(
-                (request) => (
-                  <View
-                    key={request.id}
-                    style={[
-                      styles.wrapper,
-
-                      isDesktop &&
-                        styles.wrapperDesktop,
-                    ]}
-                  >
-                    <ProfessionalRequestCard
-                      request={
-                        request
-                      }
-                      onPress={() =>
-                        navigation
-                          .getParent()
-                          ?.navigate(
-                            "ProfessionalRequestDetail",
-                            {
-                              request,
-                            }
-                          )
-                      }
-                    />
-                  </View>
-                )
-              )}
+            <View style={styles.grid}>
+              {requests.map((request) => (
+                <View
+                  key={request.id}
+                  style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+                  <ProfessionalRequestCard
+                    request={request}
+                    onPress={() =>
+                      navigation
+                        .getParent()
+                        ?.navigate("ProfessionalRequestDetail", {
+                          request,
+                        })
+                    }
+                  />
+                </View>
+              ))}
             </View>
           )}
         </ResponsiveContainer>
@@ -282,60 +179,53 @@ export default function AvailableRequestsScreen({
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      paddingVertical:
-        spacing.xxl,
-    },
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: spacing.xxl,
+  },
 
-    scrollContent: {
-      paddingVertical:
-        spacing.xxl,
-    },
+  scrollContent: {
+    paddingVertical: spacing.xxl,
+  },
 
-    heading: {
-      marginBottom:
-        spacing.xl,
-    },
+  heading: {
+    marginBottom: spacing.xl,
+  },
 
-    title: {
-      color: colors.text,
+  title: {
+    color: colors.text,
 
-      fontSize: 24,
-      fontWeight: "800",
-    },
+    fontSize: 24,
+    fontWeight: "800",
+  },
 
-    description: {
-      color:
-        colors.textSecondary,
+  description: {
+    color: colors.textSecondary,
 
-      fontSize: 14,
-      lineHeight: 21,
+    fontSize: 14,
+    lineHeight: 21,
 
-      marginTop:
-        spacing.xs,
+    marginTop: spacing.xs,
 
-      maxWidth: 620,
-    },
+    maxWidth: 620,
+  },
 
-    grid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
 
-      marginHorizontal: -6,
-    },
+    marginHorizontal: -6,
+  },
 
-    wrapper: {
-      width: "100%",
+  wrapper: {
+    width: "100%",
 
-      padding: 6,
+    padding: 6,
 
-      marginBottom:
-        spacing.sm,
-    },
+    marginBottom: spacing.sm,
+  },
 
-    wrapperDesktop: {
-      width: "50%",
-    },
-  });
+  wrapperDesktop: {
+    width: "50%",
+  },
+});

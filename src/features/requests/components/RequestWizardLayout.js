@@ -14,6 +14,8 @@ import {
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
+import { usePreventRemove } from "@react-navigation/native";
+
 export default function RequestWizardLayout({
   navigation,
 
@@ -29,15 +31,19 @@ export default function RequestWizardLayout({
   continueLabel = "Continuar",
 
   continueDisabled = false,
+
   loading = false,
+  loadingLabel = "Procesando...",
 }) {
   const { isMobile, isDesktop } = useResponsive();
+
+  usePreventRemove(loading, () => {});
 
   return (
     <Screen scroll backgroundColor={colors.background}>
       <AppHeader
         title="Nueva solicitud"
-        onBack={() => navigation.goBack()}
+        onBack={loading ? undefined : () => navigation.goBack()}
         maxWidth={layout.content.medium}
       />
 
@@ -87,8 +93,9 @@ export default function RequestWizardLayout({
                   ]}>
                   <Button
                     onPress={onContinue}
-                    disabled={continueDisabled}
-                    loading={loading}>
+                    disabled={continueDisabled || loading}
+                    loading={loading}
+                    loadingLabel={loadingLabel}>
                     {continueLabel}
                   </Button>
                 </View>

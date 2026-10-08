@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   ActivityIndicator,
   Pressable,
@@ -7,7 +8,7 @@ import {
   View,
 } from "react-native";
 
-import { colors, radius, spacing } from "../../theme";
+import { colors, radius, spacing } from "../../theme/index";
 
 const VARIANTS = {
   primary: {
@@ -64,59 +65,95 @@ const SIZES = {
 export default function Button({
   children,
   onPress,
+
   variant = "primary",
   size = "md",
+
   disabled = false,
   loading = false,
+
+  loadingLabel,
+
   fullWidth = true,
+
   leftIcon,
   rightIcon,
+
+  accessibilityLabel,
+
   style,
+
+  ...pressableProps
 }) {
   const variantStyle = VARIANTS[variant] || VARIANTS.primary;
+
   const sizeStyle = SIZES[size] || SIZES.md;
 
   const isDisabled = disabled || loading;
 
   return (
     <Pressable
+      {...pressableProps}
       onPress={onPress}
       disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityLabel={
+        accessibilityLabel ||
+        (typeof children === "string" ? children : undefined)
+      }
+      accessibilityState={{
+        disabled: isDisabled,
+        busy: loading,
+      }}
       style={({ pressed }) => [
         styles.button,
+
         {
           backgroundColor: variantStyle.backgroundColor,
+
           borderColor: variantStyle.borderColor,
+
           minHeight: sizeStyle.minHeight,
+
           paddingHorizontal: sizeStyle.paddingHorizontal,
         },
+
         fullWidth && styles.fullWidth,
+
         pressed && !isDisabled && styles.pressed,
+
         isDisabled && styles.disabled,
+
         style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={variantStyle.textColor} />
-      ) : (
-        <View style={styles.content}>
-          {leftIcon ? <View style={styles.icon}>{leftIcon}</View> : null}
+      ]}>
+      <View style={styles.content}>
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={variantStyle.textColor}
+            style={styles.loadingIndicator}
+          />
+        ) : leftIcon ? (
+          <View style={styles.leftIcon}>{leftIcon}</View>
+        ) : null}
 
-          <Text
-            style={[
-              styles.label,
-              {
-                color: variantStyle.textColor,
-                fontSize: sizeStyle.fontSize,
-              },
-            ]}
-          >
-            {children}
-          </Text>
+        <Text
+          style={[
+            styles.label,
 
-          {rightIcon ? <View style={styles.icon}>{rightIcon}</View> : null}
-        </View>
-      )}
+            {
+              color: variantStyle.textColor,
+
+              fontSize: sizeStyle.fontSize,
+            },
+          ]}>
+          {loading && loadingLabel ? loadingLabel : children}
+        </Text>
+
+        {!loading && rightIcon ? (
+          <View style={styles.rightIcon}>{rightIcon}</View>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -124,8 +161,11 @@ export default function Button({
 const styles = StyleSheet.create({
   button: {
     borderWidth: 1,
+
     borderRadius: radius.md,
+
     justifyContent: "center",
+
     alignItems: "center",
   },
 
@@ -135,20 +175,32 @@ const styles = StyleSheet.create({
 
   content: {
     flexDirection: "row",
+
     alignItems: "center",
+
     justifyContent: "center",
   },
 
   label: {
     fontWeight: "600",
+
+    textAlign: "center",
   },
 
-  icon: {
-    marginHorizontal: spacing.xs,
+  leftIcon: {
+    marginRight: spacing.sm,
+  },
+
+  rightIcon: {
+    marginLeft: spacing.sm,
+  },
+
+  loadingIndicator: {
+    marginRight: spacing.sm,
   },
 
   pressed: {
-    opacity: 0.85,
+    opacity: 0.84,
   },
 
   disabled: {

@@ -12,6 +12,10 @@ import ProfessionalNavigator from "./ProfessionalNavigator";
 
 import ProfessionalOnboardingScreen from "../../features/professional/screens/ProfessionalOnboardingScreen";
 
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+
+import { colors, spacing } from "../../theme/index";
+
 import { useAuth } from "../../hook/useAuth";
 
 import { AppModeContext } from "../../features/app-mode/context/AppModeContext";
@@ -24,7 +28,15 @@ export default function RootNavigator() {
   const { mode } = useContext(AppModeContext);
 
   if (isLoading) {
-    return null;
+    return (
+      <View style={styles.loadingScreen}>
+        <Text style={styles.brand}>Serv-IA</Text>
+
+        <ActivityIndicator size="small" color={colors.primary} />
+
+        <Text style={styles.loadingText}>Cargando...</Text>
+      </View>
+    );
   }
 
   return (
@@ -62,3 +74,31 @@ export default function RootNavigator() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingScreen: {
+    flex: 1,
+
+    alignItems: "center",
+    justifyContent: "center",
+
+    backgroundColor: colors.background,
+  },
+
+  brand: {
+    color: colors.primary,
+
+    fontSize: 26,
+    fontWeight: "800",
+
+    marginBottom: spacing.xl,
+  },
+
+  loadingText: {
+    color: colors.textSecondary,
+
+    fontSize: 13,
+
+    marginTop: spacing.md,
+  },
+});

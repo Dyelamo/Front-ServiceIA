@@ -33,3 +33,17 @@ export const fetchPublicationById = async (publicationId) => {
 
   return data;
 };
+
+export const createServiceRequest = async ({
+  description,
+  categoryId,
+  urgency,
+}) => {
+  const { data } = await api.post("/publicaciones", {
+    descripcion: description,
+    categoria_id: categoryId,
+    urgencia: urgency,
+  });
+
+  return data;
+};

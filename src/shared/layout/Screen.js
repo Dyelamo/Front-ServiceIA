@@ -1,10 +1,7 @@
 import React from "react";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,16 +23,15 @@ export default function Screen({
             backgroundColor,
           },
           style,
-        ]}
-      >
+        ]}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === "ios" ? "interactive" : "on-drag"
+          }
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            contentContainerStyle,
-          ]}
-        >
+          contentContainerStyle={[styles.scrollContent, contentContainerStyle]}>
           {children}
         </ScrollView>
       </SafeAreaView>
@@ -50,16 +46,8 @@ export default function Screen({
           backgroundColor,
         },
         style,
-      ]}
-    >
-      <View
-        style={[
-          styles.content,
-          contentContainerStyle,
-        ]}
-      >
-        {children}
-      </View>
+      ]}>
+      <View style={[styles.content, contentContainerStyle]}>{children}</View>
     </SafeAreaView>
   );
 }

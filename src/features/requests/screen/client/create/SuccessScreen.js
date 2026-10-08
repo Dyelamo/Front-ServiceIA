@@ -8,15 +8,14 @@ import { colors, radius, spacing } from "../../../../../theme/index";
 
 import { Button } from "../../../../../shared/ui/index";
 
-import { ResponsiveContainer, Screen } from "../../../../../shared/layout/index";
+import {
+  ResponsiveContainer,
+  Screen,
+} from "../../../../../shared/layout/index";
 
 import { useResponsive } from "../../../../../shared/hooks/useResponsive";
 
-import { useRequestDraft } from "../../../context/RequestDraftContext";
-
 export default function SuccessScreen({ navigation, route }) {
-  const { resetDraft } = useRequestDraft();
-
   const { isDesktop } = useResponsive();
 
   const result = route?.params?.result;
@@ -27,16 +26,33 @@ export default function SuccessScreen({ navigation, route }) {
     result?.apiData?.data?.id;
 
   const handleGoHome = () => {
-    resetDraft();
+    navigation.reset({
+      index: 0,
 
-    navigation.popToTop();
+      routes: [
+        {
+          name: "ClientTabs",
+
+          params: {
+            screen: "Home",
+          },
+        },
+      ],
+    });
   };
-
   const handleViewRequest = () => {
-    resetDraft();
+    navigation.reset({
+      index: 0,
 
-    navigation.replace("ClientTabs", {
-      screen: "MyRequests",
+      routes: [
+        {
+          name: "ClientTabs",
+
+          params: {
+            screen: "MyRequests",
+          },
+        },
+      ],
     });
   };
 

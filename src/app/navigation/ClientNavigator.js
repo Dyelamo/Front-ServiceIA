@@ -144,59 +144,52 @@ export default function ClientNavigator() {
   );
 }
 
-const styles =
-  StyleSheet.create({
-    mobileTabBar: {
-      height: 64,
+const styles = StyleSheet.create({
+  mobileTabBar: {
+    minHeight: 64,
 
-      paddingBottom: 8,
+    paddingTop: 6,
 
-      paddingTop: 6,
+    borderTopColor: colors.border,
 
-      borderTopColor:
-        colors.border,
+    backgroundColor: colors.surface,
+  },
 
-      backgroundColor:
-        colors.surface,
-    },
+  mobileLabel: {
+    fontSize: 12,
 
-    mobileLabel: {
-      fontSize: 12,
+    fontWeight: "600",
+  },
 
-      fontWeight: "600",
-    },
+  desktopTabBar: {
+    width: 230,
 
-    desktopTabBar: {
-      width: 230,
+    paddingHorizontal: 12,
 
-      paddingHorizontal: 12,
+    paddingTop: 24,
 
-      paddingTop: 24,
+    paddingBottom: 24,
 
-      paddingBottom: 24,
+    borderTopWidth: 0,
 
-      borderTopWidth: 0,
+    borderRightWidth: 1,
 
-      borderRightWidth: 1,
+    borderRightColor: colors.border,
 
-      borderRightColor:
-        colors.border,
+    backgroundColor: colors.surface,
+  },
 
-      backgroundColor:
-        colors.surface,
-    },
+  desktopTabItem: {
+    minHeight: 50,
 
-    desktopTabItem: {
-      minHeight: 50,
+    borderRadius: 12,
 
-      borderRadius: 12,
+    marginVertical: 3,
+  },
 
-      marginVertical: 3,
-    },
+  desktopLabel: {
+    fontSize: 14,
 
-    desktopLabel: {
-      fontSize: 14,
-
-      fontWeight: "700",
-    },
-  });
+    fontWeight: "700",
+  },
+});

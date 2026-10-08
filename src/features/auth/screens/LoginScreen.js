@@ -54,6 +54,10 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
+    if (loading) {
+      return;
+    }
+
     setError("");
 
     if (!validate()) {
@@ -117,6 +121,7 @@ export default function LoginScreen({ navigation }) {
             value={email}
             onChangeText={(value) => {
               setEmail(value);
+              setError("");
 
               if (fieldErrors.email) {
                 setFieldErrors((prev) => ({
@@ -141,6 +146,7 @@ export default function LoginScreen({ navigation }) {
             value={password}
             onChangeText={(value) => {
               setPassword(value);
+              setError("");
 
               if (fieldErrors.password) {
                 setFieldErrors((prev) => ({
@@ -153,7 +159,9 @@ export default function LoginScreen({ navigation }) {
             secureTextEntry={!showPassword}
             editable={!loading}
             rightIcon={
-              <Pressable onPress={() => setShowPassword((current) => !current)}>
+              <Pressable
+                disabled={loading}
+                onPress={() => setShowPassword((current) => !current)}>
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={21}
@@ -165,6 +173,7 @@ export default function LoginScreen({ navigation }) {
 
           <View style={styles.forgotContainer}>
             <Pressable
+              disabled={loading}
               onPress={() => {
                 // Lo conectaremos cuando exista
                 // recuperación de contraseña real.
@@ -173,7 +182,11 @@ export default function LoginScreen({ navigation }) {
             </Pressable>
           </View>
 
-          <Button onPress={handleLogin} loading={loading} disabled={loading}>
+          <Button
+            onPress={handleLogin}
+            loading={loading}
+            disabled={loading}
+            loadingLabel="Iniciando...">
             Iniciar sesión
           </Button>
 
