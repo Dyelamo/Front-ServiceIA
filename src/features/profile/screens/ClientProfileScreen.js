@@ -14,6 +14,7 @@ import {
   Card,
   ErrorState,
   Skeleton,
+  Divider
 } from "../../../shared/ui/index";
 
 import {
@@ -202,10 +203,6 @@ function InfoRow({ icon, label, value }) {
   );
 }
 
-function Divider() {
-  return <View style={styles.divider} />;
-}
-
 const styles = StyleSheet.create({
   container: {
     paddingVertical: spacing.xxl,
@@ -361,15 +358,7 @@ const styles = StyleSheet.create({
 
     marginTop: 3,
   },
-
-  divider: {
-    height: 1,
-
-    backgroundColor: colors.border,
-
-    marginVertical: spacing.lg,
-  },
-
+  
   buttonGap: {
     height: spacing.md,
   },

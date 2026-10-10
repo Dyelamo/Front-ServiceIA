@@ -1,2 +1,2 @@
 // src/utils/index.js
-export { formatCOP, truncate } from './format';
+export { formatCOP } from "./format";

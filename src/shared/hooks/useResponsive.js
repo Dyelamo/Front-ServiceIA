@@ -1,15 +1,19 @@
 import { useWindowDimensions } from "react-native";
 
+import { layout } from "../../theme";
+
 export function useResponsive() {
   const { width, height } = useWindowDimensions();
 
-  const isMobile = width < 768;
+  const { tablet, desktop, largeDesktop } = layout.breakpoints;
 
-  const isTablet = width >= 768 && width < 1024;
+  const isMobile = width < tablet;
 
-  const isDesktop = width >= 1024;
+  const isTablet = width >= tablet && width < desktop;
 
-  const isLargeDesktop = width >= 1440;
+  const isDesktop = width >= desktop;
+
+  const isLargeDesktop = width >= largeDesktop;
 
   return {
     width,

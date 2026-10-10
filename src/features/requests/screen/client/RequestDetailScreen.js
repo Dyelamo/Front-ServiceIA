@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors, layout, spacing } from "../../../../theme/index";
 
-import { Card, EmptyState } from "../../../../shared/ui/index";
+import { Card, EmptyState, Divider } from "../../../../shared/ui/index";
 
 import {
   AppHeader,
@@ -187,10 +187,6 @@ function InfoRow({ icon, label, value }) {
       </View>
     </View>
   );
-}
-
-function Divider() {
-  return <View style={styles.divider} />;
 }
 
 function formatDate(value) {
@@ -379,14 +375,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
 
     fontWeight: "600",
-  },
-
-  divider: {
-    height: 1,
-
-    backgroundColor: colors.border,
-
-    marginVertical: spacing.lg,
   },
 
   section: {

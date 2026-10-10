@@ -14,6 +14,7 @@ import {
   Card,
   ErrorState,
   Skeleton,
+  Divider
 } from "../../../shared/ui/index";
 
 import {
@@ -373,9 +374,6 @@ function StatusPill({ active }) {
   );
 }
 
-function Divider() {
-  return <View style={styles.divider} />;
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -596,12 +594,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginTop: 3,
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.lg,
   },
 
   buttonGap: {

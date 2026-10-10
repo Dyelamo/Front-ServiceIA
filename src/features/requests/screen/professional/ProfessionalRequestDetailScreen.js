@@ -19,6 +19,7 @@ import {
 import {
   Button,
   Card,
+  Divider
 } from "../../../../shared/ui/index";
 
 import {
@@ -399,14 +400,6 @@ function InfoRow({
   );
 }
 
-function Divider() {
-  return (
-    <View
-      style={styles.divider}
-    />
-  );
-}
-
 function formatDate(value) {
   if (!value) {
     return "";
@@ -617,16 +610,6 @@ const styles =
       fontWeight: "600",
 
       marginTop: 3,
-    },
-
-    divider: {
-      height: 1,
-
-      backgroundColor:
-        colors.border,
-
-      marginVertical:
-        spacing.lg,
     },
 
     notice: {

@@ -24,7 +24,7 @@ export const categories =[
   { id: '9e161b76-b6ea-44a4-99e2-aebdf215d93d', name: 'Impermeabilización de tanques', icon: 'shield-checkmark-outline' },
   { id: '9c2f2df7-72e1-48e2-b0bd-d40b84429ba3', name: 'Automatización del hogar', icon: 'hardware-chip-outline' },
   { id: '8936202d-d9f8-4774-bdae-eca37db04a04', name: 'Piscinas', icon: 'water-outline' },
-  { id: '17d871cf-6507-4149-8206-7f6e8e57be40', nmae: 'Electrodomésticos', icon: 'tv-outline' },
+  { id: '17d871cf-6507-4149-8206-7f6e8e57be40', name: 'Electrodomésticos', icon: 'tv-outline' },
   { id: 'b5e66ffa-abfe-4098-920b-ee9490c26667', name: 'Mecánica automotriz a domicilio', icon: 'car-outline' }
 ];
 

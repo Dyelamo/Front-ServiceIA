@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors, spacing } from "../../../../../theme/index";
 
-import { Card } from "../../../../../shared/ui/index";
+import { Card, Divider } from "../../../../../shared/ui/index";
 
 import { useResponsive } from "../../../../../shared/hooks/useResponsive";
 
@@ -266,10 +266,6 @@ function ReviewRow({ icon, label, value }) {
   );
 }
 
-function Divider() {
-  return <View style={styles.divider} />;
-}
-
 const styles = StyleSheet.create({
   reviewGrid: {
     flexDirection: "row",
@@ -342,14 +338,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
 
     fontWeight: "500",
-  },
-
-  divider: {
-    height: 1,
-
-    backgroundColor: colors.border,
-
-    marginVertical: spacing.lg,
   },
 
   notice: {

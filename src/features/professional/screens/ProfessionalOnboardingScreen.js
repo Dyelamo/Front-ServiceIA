@@ -13,10 +13,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, typography } from "../../../theme";
 import { categories } from "../../requests/data/categories";
-import {
-  getMyProfileApi,
-  registerProfessionalApi,
-} from "../api/professional.api.js";
+import { registerProfessionalApi } from "../api/professional.api";
+
+import { getMyProfileApi } from "../../profile/api/user.api";
 import { useAppMode } from "../../app-mode/hooks/useAppMode";
 
 export default function ProfessionalOnboardingScreen({ navigation }) {
