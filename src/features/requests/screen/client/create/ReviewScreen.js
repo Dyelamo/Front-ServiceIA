@@ -17,7 +17,7 @@ import { useRequestDraft } from "../../../context/RequestDraftContext";
 import RequestWizardLayout from "../../../components/RequestWizardLayout";
 
 export default function ReviewScreen({ navigation }) {
-  const { draft, resetDraft } = useRequestDraft();
+  const { draft } = useRequestDraft();
 
   const { isDesktop } = useResponsive();
 
@@ -58,6 +58,24 @@ export default function ReviewScreen({ navigation }) {
         reference: draft.reference,
 
         photos: draft.photos,
+      });
+
+      navigation.reset({
+        index: 1,
+
+        routes: [
+          {
+            name: "ClientTabs",
+          },
+
+          {
+            name: "CreateRequestSuccess",
+
+            params: {
+              result,
+            },
+          },
+        ],
       });
 
       resetDraft();

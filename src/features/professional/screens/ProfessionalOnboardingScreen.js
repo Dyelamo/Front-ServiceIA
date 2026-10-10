@@ -12,12 +12,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, typography } from "../../../theme";
-import { CATEGORIES } from "../../../data/categories";
+import { categories } from "../../requests/data/categories";
 import {
   getMyProfileApi,
   registerProfessionalApi,
 } from "../api/professional.api.js";
-import { useAppMode } from "../../../hook/useAppMode";
+import { useAppMode } from "../../app-mode/hooks/useAppMode";
 
 export default function ProfessionalOnboardingScreen({ navigation }) {
   const { setMode, setProfessionalProfile } = useAppMode();
@@ -195,7 +195,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
             </View>
           </View>
           <View style={styles.categoriesGrid}>
-            {CATEGORIES.map((category) => {
+            {categories.map((category) => {
               const selected = selectedCategories.includes(category.id);
               return (
                 <Pressable

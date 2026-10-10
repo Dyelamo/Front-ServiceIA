@@ -8,7 +8,7 @@ import { AppModeProvider } from "./src/features/app-mode/context/AppModeContext"
 import { AuthProvider } from "./src/hook/useAuth";
 import RootNavigator from "./src/app/navigation/RootNavigator";
 import { RequestDraftProvider } from "./src/features/requests/context/RequestDraftContext";
-import UIPreview from "./src/screens/UiPreviewScreen";
+
 
 export default function App() {
   return (
@@ -23,9 +23,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-// (
-//   <SafeAreaProvider>
-//       <UIPreview />
-//   </SafeAreaProvider>
-// );

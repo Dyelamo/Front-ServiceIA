@@ -118,14 +118,6 @@ function ProfessionalTabs() {
           title: "Trabajos",
         }}
       />
-
-      {/* <Stack.Screen name="Balance" 
-      component={BalanceScreen} 
-      optiions={{
-        title: "Saldo",
-      }}
-      /> */}
-
       <Tab.Screen
         name="ProfessionalProfile"
         component={ProfessionalProfileScreen}

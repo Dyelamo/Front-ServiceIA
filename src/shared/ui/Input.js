@@ -39,8 +39,7 @@ export default function Input({
         <Text style={[styles.label, isDisabled && styles.labelDisabled]}>
           {label}
         </Text>
-      ) : null}
-
+      ): null}
       <View
         style={[
           styles.inputContainer,

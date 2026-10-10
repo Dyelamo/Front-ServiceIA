@@ -26,6 +26,8 @@ import { StyleSheet } from "react-native";
 
 import { useResponsive } from "../../shared/hooks/useResponsive";
 
+import { RequestDraftProvider } from "../../features/requests/context/RequestDraftContext";
+
 const Tab = createBottomTabNavigator();
 
 const Stack = createNativeStackNavigator();
@@ -116,31 +118,33 @@ function ClientTabs() {
 
 export default function ClientNavigator() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}>
-      <Stack.Screen name="ClientTabs" component={ClientTabs} />
+    <RequestDraftProvider>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}>
+        <Stack.Screen name="ClientTabs" component={ClientTabs} />
 
-      <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
+        <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
 
-      <Stack.Screen
-        name="CreateRequestDescription"
-        component={DescribeScreen}
-      />
+        <Stack.Screen
+          name="CreateRequestDescription"
+          component={DescribeScreen}
+        />
 
-      <Stack.Screen name="CreateRequestCategory" component={CategoryScreen} />
+        <Stack.Screen name="CreateRequestCategory" component={CategoryScreen} />
 
-      <Stack.Screen name="CreateRequestLocation" component={LocationScreen} />
+        <Stack.Screen name="CreateRequestLocation" component={LocationScreen} />
 
-      <Stack.Screen name="CreateRequestUrgency" component={UrgencyScreen} />
+        <Stack.Screen name="CreateRequestUrgency" component={UrgencyScreen} />
 
-      <Stack.Screen name="CreateRequestPhotos" component={PhotosScreen} />
+        <Stack.Screen name="CreateRequestPhotos" component={PhotosScreen} />
 
-      <Stack.Screen name="CreateRequestReview" component={ReviewScreen} />
+        <Stack.Screen name="CreateRequestReview" component={ReviewScreen} />
 
-      <Stack.Screen name="CreateRequestSuccess" component={SuccessScreen} />
-    </Stack.Navigator>
+        <Stack.Screen name="CreateRequestSuccess" component={SuccessScreen} />
+      </Stack.Navigator>
+    </RequestDraftProvider>
   );
 }
 

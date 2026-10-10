@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -15,10 +15,18 @@ import {
 
 import { useResponsive } from "../../../../../shared/hooks/useResponsive";
 
+import { useRequestDraft } from "../../../context/RequestDraftContext";
+
 export default function SuccessScreen({ navigation, route }) {
+  const { resetDraft } = useRequestDraft();
+
   const { isDesktop } = useResponsive();
 
   const result = route?.params?.result;
+
+  useEffect(() => {
+    resetDraft();
+  }, []);
 
   const publicationId =
     result?.apiData?.id ||

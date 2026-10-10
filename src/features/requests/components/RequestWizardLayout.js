@@ -14,7 +14,6 @@ import {
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
-import { usePreventRemove } from "@react-navigation/native";
 
 export default function RequestWizardLayout({
   navigation,
@@ -36,8 +35,6 @@ export default function RequestWizardLayout({
   loadingLabel = "Procesando...",
 }) {
   const { isMobile, isDesktop } = useResponsive();
-
-  usePreventRemove(loading, () => {});
 
   return (
     <Screen scroll backgroundColor={colors.background}>

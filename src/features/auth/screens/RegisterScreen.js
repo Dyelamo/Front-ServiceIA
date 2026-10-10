@@ -131,11 +131,6 @@ export default function RegisterScreen({ navigation }) {
     } catch (err) {
       console.error("Error registrando usuario:", err);
 
-      console.log(
-        "REGISTER RESPONSE:",
-        JSON.stringify(err?.response?.data, null, 2),
-      );
-
       const status = err?.response?.status;
 
       const detail =
