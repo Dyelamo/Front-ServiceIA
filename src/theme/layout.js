@@ -1,8 +1,8 @@
 export const layout = {
   breakpoints: {
-    mobile: 768,
-    tablet: 1024,
-    desktop: 1440,
+    tablet: 768,
+    desktop: 1024,
+    largeDesktop: 1440,
   },
 
   content: {

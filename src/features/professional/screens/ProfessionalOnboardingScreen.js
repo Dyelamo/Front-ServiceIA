@@ -122,7 +122,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
         <Pressable
           style={styles.backButton}
           onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={19} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={19} color={colors.text} />
           <Text style={styles.backText}>Volver a Cliente</Text>
         </Pressable>
 
@@ -214,7 +214,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
                       styles.categoryText,
                       selected && styles.categoryTextSelected,
                     ]}>
-                    {category.label}
+                    {category.name || category.label}
                   </Text>
                   {selected && (
                     <Ionicons
@@ -239,7 +239,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
             <Ionicons
               name="alert-circle-outline"
               size={18}
-              color={colors.danger}
+              color={colors.error}
             />
             <Text style={styles.errorText}>{error}</Text>
           </View>
@@ -280,7 +280,8 @@ const styles = StyleSheet.create({
   },
   backText: {
     ...typography.bodyBold,
-    color: colors.textPrimary,
+    color: colors.text,
+    fontWeight: "700",
     marginLeft: spacing.sm,
   },
   headerCard: {
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  title: { ...typography.h1, color: colors.textPrimary, marginTop: spacing.xs },
+  title: { ...typography.h1, color: colors.text, marginTop: spacing.xs },
   subtitle: {
     ...typography.body,
     color: colors.textSecondary,
@@ -349,10 +350,10 @@ const styles = StyleSheet.create({
   },
   profileSummaryValue: {
     ...typography.h3,
-    color: colors.textPrimary,
+    color: colors.text,
   },
   profileSummaryMeta: {
-    ...typography.small,
+    ...typography.bodySmall,
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
@@ -375,9 +376,9 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   sectionCopy: { flex: 1 },
-  sectionTitle: { ...typography.h2, color: colors.textPrimary },
+  sectionTitle: { ...typography.h2, color: colors.text },
   sectionHint: {
-    ...typography.small,
+    ...typography.bodySmall,
     color: colors.textSecondary,
     marginTop: 2,
   },
@@ -387,12 +388,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
-    color: colors.textPrimary,
+    color: colors.text,
     ...typography.body,
     backgroundColor: colors.background,
   },
   characterCount: {
-    ...typography.small,
+    ...typography.bodySmall,
     color: colors.textMuted,
     textAlign: "right",
     marginTop: spacing.xs,
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.chipBorder,
+    borderColor: colors.borderStrong,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -414,28 +415,28 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     ...typography.caption,
-    color: colors.textPrimary,
+    color: colors.text,
     fontWeight: "600",
     marginHorizontal: spacing.sm,
     flexShrink: 1,
   },
   categoryTextSelected: { color: colors.white },
   selectionCount: {
-    ...typography.small,
+    ...typography.bodySmall,
     color: colors.textSecondary,
     marginTop: spacing.md,
   },
   errorBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.dangerLight,
+    backgroundColor: colors.error,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.lg,
   },
   errorText: {
     ...typography.caption,
-    color: colors.danger,
+    color: colors.error,
     flex: 1,
     marginLeft: spacing.sm,
   },
@@ -452,10 +453,11 @@ const styles = StyleSheet.create({
   submitText: {
     ...typography.bodyBold,
     color: colors.white,
+    fontWeight: "700",
     marginRight: spacing.sm,
   },
   footerText: {
-    ...typography.small,
+    ...typography.bodySmall,
     color: colors.textMuted,
     textAlign: "center",
     marginTop: spacing.md,

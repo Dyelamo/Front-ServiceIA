@@ -13,7 +13,7 @@ import { useResponsive } from "../../../shared/hooks/useResponsive";
 import {
   MOCK_ACTIVE_JOBS,
   MOCK_COMPLETED_JOBS,
-} from "../../../features/mocks/jobs.mock";
+} from "../data/jobs.mock";
 
 import JobCard from "../components/JobCard";
 

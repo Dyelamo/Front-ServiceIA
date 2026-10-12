@@ -17,7 +17,7 @@ import { formatCOP } from "../../../utils";
 import {
   MOCK_BALANCE_SUMMARY,
   MOCK_TRANSACTIONS,
-} from "../../../features/mocks/wallet.mock";
+} from "../data/wallet.mock";
 
 import TransactionItem from "../components/TransactionItem";
 

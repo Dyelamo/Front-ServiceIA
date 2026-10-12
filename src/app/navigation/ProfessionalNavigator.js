@@ -10,9 +10,9 @@ import { colors } from "../../theme/index";
 
 import ProfessionalHomeScreen from "../../features/professional/screens/ProfessionalHomeScreen";
 
-import AvailableRequestsScreen from "../../features/requests/screen/professional/AvailableRequestsScreen";
+import AvailableRequestsScreen from "../../features/requests/screens/professional/AvailableRequestsScreen";
 
-import ProfessionalRequestDetailScreen from "../../features/requests/screen/professional/ProfessionalRequestDetailScreen";
+import ProfessionalRequestDetailScreen from "../../features/requests/screens/professional/ProfessionalRequestDetailScreen";
 
 import CreateOfferScreen from "../../features/offers/screens/CreateOfferScreen";
 

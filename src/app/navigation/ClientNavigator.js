@@ -8,19 +8,19 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "../../theme";
 
-import ClientHomeScreen from "../../features/requests/screen/client/ClientHomeScreen";
-import ClientRequestsScreen from "../../features/requests/screen/client/ClientRequestsScreen";
-import RequestDetailScreen from "../../features/requests/screen/client/RequestDetailScreen";
+import ClientHomeScreen from "../../features/requests/screens/client/ClientHomeScreen";
+import ClientRequestsScreen from "../../features/requests/screens/client/ClientRequestsScreen";
+import RequestDetailScreen from "../../features/requests/screens/client/RequestDetailScreen";
 import ClientProfileScreen from "../../features/profile/screens/ClientProfileScreen";
-import NotificationsScreen from "../../features/notifications/screen/NotificationsScreen";
+import NotificationsScreen from "../../features/notifications/screens/NotificationsScreen";
 
-import DescribeScreen from "../../features/requests/screen/client/create/DescribeScreen";
-import CategoryScreen from "../../features/requests/screen/client/create/CategoryScreen";
-import LocationScreen from "../../features/requests/screen/client/create/LocationScreen";
-import UrgencyScreen from "../../features/requests/screen/client/create/UrgencyScreen";
-import PhotosScreen from "../../features/requests/screen/client/create/PhotosScreen";
-import ReviewScreen from "../../features/requests/screen/client/create/ReviewScreen";
-import SuccessScreen from "../../features/requests/screen/client/create/SuccessScreen";
+import DescribeScreen from "../../features/requests/screens/client/create/DescribeScreen";
+import CategoryScreen from "../../features/requests/screens/client/create/CategoryScreen";
+import LocationScreen from "../../features/requests/screens/client/create/LocationScreen";
+import UrgencyScreen from "../../features/requests/screens/client/create/UrgencyScreen";
+import PhotosScreen from "../../features/requests/screens/client/create/PhotosScreen";
+import ReviewScreen from "../../features/requests/screens/client/create/ReviewScreen";
+import SuccessScreen from "../../features/requests/screens/client/create/SuccessScreen";
 
 import { StyleSheet } from "react-native";
 

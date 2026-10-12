@@ -12,11 +12,11 @@ import { ResponsiveContainer, Screen } from "../../../../shared/layout/index";
 
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
-import { categories } from "../../../requests/data/categories";
+import { categories } from "../../data/categories";
 
-import { useRequestDraft } from "../../../requests/context/RequestDraftContext";
+import { useRequestDraft } from "../../context/RequestDraftContext";
 
-import CategoryCard from "../../../requests/components/CategoryCard";
+import CategoryCard from "../../components/CategoryCard";
 
 export default function ClientHomeScreen({ navigation }) {
   const { updateDraft } = useRequestDraft();
