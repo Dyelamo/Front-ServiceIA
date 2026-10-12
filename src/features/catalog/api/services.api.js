@@ -3,7 +3,7 @@ import { api } from "../../../core/api/client";
 import {
   adaptServiceToBackend,
   adaptServiceToFrontend,
-} from "../../services/services.schema";
+} from "../schema/services.schema";
 
 export const createServiceApi =
   async (serviceData) => {

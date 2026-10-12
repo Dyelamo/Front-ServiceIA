@@ -1,49 +1,54 @@
 import { api } from "../../../core/api/client";
 
-import { mapRequestsFromApi } from "../mappers/request.mapper";
+import { extractList } from "../../../core/api/response";
 
-const getList = (data) => {
-  if (Array.isArray(data)) {
+import {
+  mapRequestsFromApi,
+} from "../mappers/request.mapper";
+
+export const fetchClientPublications =
+  async () => {
+    const { data } = await api.get(
+      "/publicaciones/mis-publicaciones"
+    );
+
+    return mapRequestsFromApi(
+      extractList(data)
+    );
+  };
+
+export const fetchProfessionalPublications =
+  async () => {
+    const { data } = await api.get(
+      "/publicaciones/categorias-prestador"
+    );
+
+    return extractList(data);
+  };
+
+export const fetchPublicationById =
+  async (publicationId) => {
+    const { data } = await api.get(
+      `/publicaciones/${publicationId}`
+    );
+
     return data;
-  }
+  };
 
-  return data?.results || data?.items || data?.data || [];
-};
+export const createServiceRequest =
+  async ({
+    description,
+    categoryId,
+    urgency,
+  }) => {
+    const { data } = await api.post(
+      "/publicaciones",
+      {
+        descripcion: description,
+        categoria_id: categoryId,
+        urgencia: urgency,
+      }
+    );
 
-export const fetchClientPublications = async () => {
-  const { data } = await api.get("/publicaciones/mis-publicaciones");
-
-  const list = getList(data);
-
-  const mapped = mapRequestsFromApi(list);
-
-  return mapped;
-};
-
-export const fetchProfessionalPublications = async () => {
-  const data = await api.get("/publicaciones/categorias-prestador");
-
-  const list = getList(data);
-
-  return list;
-};
-
-export const fetchPublicationById = async (publicationId) => {
-  const { data } = await api.get(`/publicaciones/${publicationId}`);
-
-  return data;
-};
-
-export const createServiceRequest = async ({
-  description,
-  categoryId,
-  urgency,
-}) => {
-  const { data } = await api.post("/publicaciones", {
-    descripcion: description,
-    categoria_id: categoryId,
-    urgencia: urgency,
-  });
-
-  return data;
-};
+    return data;
+  };
