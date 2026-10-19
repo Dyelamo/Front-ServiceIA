@@ -1,0 +1,470 @@
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, radius, spacing, typography } from "../../../theme";
+import { categories } from "../../requests/data/categories";
+import { registerProfessionalApi } from "../api/professional.api";
+
+import { getMyProfileApi } from "../../profile/api/user.api";
+import { useAppMode } from "../../app-mode/hooks/useAppMode";
+import { useAuth } from "../../../hook/useAuth";
+
+export default function ProfessionalOnboardingScreen({ navigation }) {
+  const { setMode, setProfessionalProfile } = useAppMode();
+  const { recordActivity } = useAuth();
+  const [userProfile, setUserProfile] = useState(null);
+  const [about, setAbout] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const data = await getMyProfileApi();
+        setUserProfile(data);
+      } catch (loadError) {
+        if (loadError?.response?.status !== 401) {
+          console.error("No se pudo cargar el perfil de usuario:", loadError);
+        }
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
+
+  const toggleCategory = (category) => {
+    setError("");
+    setSelectedCategories((current) =>
+      current.includes(category.id)
+        ? current.filter((id) => id !== category.id)
+        : [...current, category.id],
+    );
+  };
+
+  const completeRegistration = async () => {
+    if (about.trim().length < 20) {
+      setError("Cuéntanos un poco más: escribe al menos 20 caracteres.");
+      return;
+    }
+
+    if (selectedCategories.length === 0) {
+      setError("Elige al menos una especialidad para continuar.");
+      return;
+    }
+
+    try {
+      setError("");
+      setIsSaving(true);
+
+      const profile = await registerProfessionalApi({
+        descripcion: about.trim(),
+        categoria_ids: selectedCategories,
+      });
+
+      const mergedProfile = {
+        ...userProfile,
+        ...profile,
+        nombre_completo:
+          userProfile?.nombre_completo || profile?.nombre_completo,
+        email: userProfile?.email || profile?.email,
+        telefono: userProfile?.telefono || profile?.telefono,
+        ubicacion: userProfile?.ubicacion || profile?.ubicacion,
+      };
+
+      setProfessionalProfile(mergedProfile);
+      setMode("profesional");
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Professional" }],
+      });
+    } catch (requestError) {
+      const detail = requestError.response?.data?.detail;
+
+      if (Array.isArray(detail)) {
+        setError(
+          detail
+            .map((item) => item.msg)
+            .filter(Boolean)
+            .join(", "),
+        );
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError(
+          "No pudimos guardar tu perfil. Revisa tu conexión e inténtalo de nuevo.",
+        );
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const userName = userProfile?.nombre_completo || "Profesional";
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled">
+        <Pressable
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={19} color={colors.text} />
+          <Text style={styles.backText}>Volver a Cliente</Text>
+        </Pressable>
+
+        <View style={styles.headerCard}>
+          <View style={styles.iconCircle}>
+            <Ionicons name="briefcase-outline" size={28} color={colors.white} />
+          </View>
+          <View style={styles.headerCopy}>
+            <Text style={styles.eyebrow}>Perfil profesional</Text>
+            <Text style={styles.title}>Haz que te encuentren</Text>
+            <Text style={styles.subtitle}>
+              {userName}, completa tus datos para recibir solicitudes de
+              clientes cercanos.
+            </Text>
+          </View>
+        </View>
+
+        {isLoadingProfile ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={styles.loadingText}>Preparando tu perfil...</Text>
+          </View>
+        ) : (
+          <View style={styles.profileSummaryCard}>
+            <Text style={styles.profileSummaryTitle}>Cuenta registrada</Text>
+            <Text style={styles.profileSummaryValue}>
+              {userProfile?.nombre_completo || userName}
+            </Text>
+            <Text style={styles.profileSummaryMeta}>
+              {userProfile?.email || "Correo no disponible"}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeading}>
+            <Text style={styles.sectionNumber}>01</Text>
+            <View style={styles.sectionCopy}>
+              <Text style={styles.sectionTitle}>Sobre mí</Text>
+              <Text style={styles.sectionHint}>
+                Presenta tu experiencia a tus futuros clientes.
+              </Text>
+            </View>
+          </View>
+          <TextInput
+            value={about}
+            onChangeText={(value) => {
+              recordActivity();
+              setAbout(value);
+              setError("");
+            }}
+            multiline
+            maxLength={500}
+            textAlignVertical="top"
+            placeholder="Ej. Soy electricista con 8 años de experiencia en instalaciones y reparaciones residenciales..."
+            placeholderTextColor={colors.textMuted}
+            style={styles.aboutInput}
+          />
+          <Text style={styles.characterCount}>{about.length}/500</Text>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeading}>
+            <Text style={styles.sectionNumber}>02</Text>
+            <View style={styles.sectionCopy}>
+              <Text style={styles.sectionTitle}>Especialidades</Text>
+              <Text style={styles.sectionHint}>
+                Selecciona una o varias áreas de trabajo.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.categoriesGrid}>
+            {categories.map((category) => {
+              const selected = selectedCategories.includes(category.id);
+              return (
+                <Pressable
+                  key={category.id}
+                  onPress={() => toggleCategory(category)}
+                  style={[
+                    styles.category,
+                    selected && styles.categorySelected,
+                  ]}>
+                  <Ionicons
+                    name={category.icon}
+                    size={18}
+                    color={selected ? colors.white : colors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      selected && styles.categoryTextSelected,
+                    ]}>
+                    {category.name || category.label}
+                  </Text>
+                  {selected && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={17}
+                      color={colors.white}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.selectionCount}>
+            {selectedCategories.length === 0
+              ? "Aún no has elegido especialidades"
+              : `${selectedCategories.length} especialidad${selectedCategories.length === 1 ? "" : "es"} seleccionada${selectedCategories.length === 1 ? "" : "s"}`}
+          </Text>
+        </View>
+
+        {error ? (
+          <View style={styles.errorBox}>
+            <Ionicons
+              name="alert-circle-outline"
+              size={18}
+              color={colors.error}
+            />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <Pressable
+          onPress={completeRegistration}
+          disabled={isSaving}
+          style={({ pressed }) => [
+            styles.submitButton,
+            pressed && styles.submitPressed,
+          ]}>
+          {isSaving ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <>
+              <Text style={styles.submitText}>Crear perfil profesional</Text>
+              <Ionicons name="arrow-forward" size={19} color={colors.white} />
+            </>
+          )}
+        </Pressable>
+        <Text style={styles.footerText}>
+          Podrás actualizar estos datos desde tu perfil.
+        </Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    alignSelf: "flex-start",
+  },
+  backText: {
+    ...typography.bodyBold,
+    color: colors.text,
+    fontWeight: "700",
+    marginLeft: spacing.sm,
+  },
+  headerCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  headerCopy: { flex: 1, marginLeft: spacing.md },
+  iconCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  eyebrow: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  title: { ...typography.h1, color: colors.text, marginTop: spacing.xs },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    lineHeight: 22,
+    marginTop: spacing.sm,
+  },
+  loadingBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
+  },
+  profileSummaryCard: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  profileSummaryTitle: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: "700",
+    marginBottom: spacing.xs,
+  },
+  profileSummaryValue: {
+    ...typography.h3,
+    color: colors.text,
+  },
+  profileSummaryMeta: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  section: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  sectionHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  sectionNumber: {
+    ...typography.h2,
+    color: colors.primary,
+    marginRight: spacing.md,
+  },
+  sectionCopy: { flex: 1 },
+  sectionTitle: { ...typography.h2, color: colors.text },
+  sectionHint: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  aboutInput: {
+    minHeight: 125,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    color: colors.text,
+    ...typography.body,
+    backgroundColor: colors.background,
+  },
+  characterCount: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    textAlign: "right",
+    marginTop: spacing.xs,
+  },
+  categoriesGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  category: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    maxWidth: "100%",
+  },
+  categorySelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  categoryText: {
+    ...typography.caption,
+    color: colors.text,
+    fontWeight: "600",
+    marginHorizontal: spacing.sm,
+    flexShrink: 1,
+  },
+  categoryTextSelected: { color: colors.white },
+  selectionCount: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.error,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  errorText: {
+    ...typography.caption,
+    color: colors.error,
+    flex: 1,
+    marginLeft: spacing.sm,
+  },
+  submitButton: {
+    minHeight: 54,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.xl,
+  },
+  submitPressed: { opacity: 0.85 },
+  submitText: {
+    ...typography.bodyBold,
+    color: colors.white,
+    fontWeight: "700",
+    marginRight: spacing.sm,
+  },
+  footerText: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: spacing.md,
+  },
+});
