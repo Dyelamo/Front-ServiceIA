@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { colors, radius, spacing } from "../../theme";
+import { useAuth } from "../../hook/useAuth";
 
 export default function Input({
   label,
@@ -24,6 +25,7 @@ export default function Input({
   ...props
 }) {
   const [focused, setFocused] = useState(false);
+  const { recordActivity } = useAuth();
 
   const isDisabled = disabled || editable === false;
 
@@ -53,6 +55,10 @@ export default function Input({
         {leftIcon ? <View style={styles.leftIcon}>{leftIcon}</View> : null}
         <TextInput
           {...props}
+          onChangeText={(value) => {
+            recordActivity();
+            props.onChangeText?.(value);
+          }}
           editable={!isDisabled}
           accessibilityLabel={accessibilityLabel || label}
           accessibilityState={{
@@ -82,7 +88,7 @@ export default function Input({
             style={styles.rightIcon}>
             {rightIcon}
           </View>
-        ) : null}{" "}
+        ) : null}
       </View>
 
       {error ? (

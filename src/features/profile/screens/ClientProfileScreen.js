@@ -53,7 +53,9 @@ export default function ClientProfileScreen() {
       setProfile(data);
       setError(false);
     } catch (err) {
-      console.error("Error cargando perfil:", err);
+      if (err?.response?.status !== 401) {
+        console.error("Error cargando perfil:", err);
+      }
 
       setError(true);
     } finally {

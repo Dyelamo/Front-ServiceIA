@@ -17,9 +17,11 @@ import { registerProfessionalApi } from "../api/professional.api";
 
 import { getMyProfileApi } from "../../profile/api/user.api";
 import { useAppMode } from "../../app-mode/hooks/useAppMode";
+import { useAuth } from "../../../hook/useAuth";
 
 export default function ProfessionalOnboardingScreen({ navigation }) {
   const { setMode, setProfessionalProfile } = useAppMode();
+  const { recordActivity } = useAuth();
   const [userProfile, setUserProfile] = useState(null);
   const [about, setAbout] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -33,7 +35,9 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
         const data = await getMyProfileApi();
         setUserProfile(data);
       } catch (loadError) {
-        console.error("No se pudo cargar el perfil de usuario:", loadError);
+        if (loadError?.response?.status !== 401) {
+          console.error("No se pudo cargar el perfil de usuario:", loadError);
+        }
       } finally {
         setIsLoadingProfile(false);
       }
@@ -170,6 +174,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
           <TextInput
             value={about}
             onChangeText={(value) => {
+              recordActivity();
               setAbout(value);
               setError("");
             }}
