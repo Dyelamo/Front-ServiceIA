@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,11 +10,13 @@ import {
   View,
 } from "react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, spacing } from "../../../theme/index";
 
-import { Button, TextArea } from "../../../shared/ui/index";
+import { Button, TextArea, Card } from "../../../shared/ui/index";
 
 import { ResponsiveContainer } from "../../../shared/layout/index";
 
@@ -227,7 +230,13 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
   }
 
   if (step === STEPS.INTRO) {
-    return <IntroStep onStart={handleStart} onClose={handleClose} />;
+    return (
+      <IntroStep
+        onStart={handleStart}
+        onClose={handleClose}
+        isDesktop={isDesktop}
+      />
+    );
   }
 
   if (step === STEPS.PROFILE) {
@@ -253,6 +262,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
         onBack={handleBack}
         onSubmit={completeRegistration}
         loading={isSaving}
+        isDesktop={isDesktop}
       />
     );
   }
@@ -261,68 +271,89 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
     <SuccessStep
       onProfessional={handleGoProfessional}
       onHome={handleGoClientHome}
+      isDesktop={isDesktop}
     />
   );
 }
 
-function IntroStep({ onStart, onClose }) {
+function IntroStep({ onStart, onClose, isDesktop }) {
   return (
-    <View style={styles.screen}>
-      <ResponsiveContainer maxWidth={520} style={styles.introContainer}>
-        <Pressable
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel="Ahora no"
-          style={styles.skipButton}>
-          <Text style={styles.skipText}>Ahora no</Text>
-        </Pressable>
+    <SafeAreaView style={styles.introScreen} edges={["top", "bottom"]}>
+      <ScrollView
+        style={styles.introScrollView}
+        contentContainerStyle={styles.introScrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}>
+        <ResponsiveContainer
+          maxWidth={480}
+          noPadding
+          style={styles.introContainer}>
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Saltar introducción"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.skipButton}>
+            <Text style={styles.skipText}>Saltar</Text>
+          </Pressable>
 
-        <View style={styles.introContent}>
-          <View style={styles.heroCircleLarge}>
-            <View style={styles.heroCircle}>
-              <Ionicons
-                name="briefcase-outline"
-                size={42}
-                color={colors.white}
-              />
+          <View style={styles.heroSection}>
+            <View style={styles.heroCircleLarge}>
+              <View style={styles.heroCircleMedium}>
+                <View style={styles.heroSquircle}>
+                  <Ionicons
+                    name="briefcase-outline"
+                    size={42}
+                    color={colors.white}
+                  />
+                </View>
+              </View>
             </View>
+
+            <Text style={styles.introTitle}>
+              Conviértete en{"\n"}profesional de Serv-IA
+            </Text>
+
+            <Text style={styles.introDescription}>
+              Encuentra clientes, envía ofertas y recibe pagos por tu trabajo. Más
+              de 1.000 profesionales confían en nosotros.
+            </Text>
           </View>
 
-          <Text style={styles.introTitle}>
-            Conviértete en profesional de Serv-IA
-          </Text>
-
-          <Text style={styles.introDescription}>
-            Encuentra nuevas oportunidades y ofrece tus servicios a clientes que
-            los necesitan.
-          </Text>
-
-          <View style={styles.benefits}>
+          <View style={styles.benefitsList}>
             <BenefitItem
               icon="search-outline"
               title="Recibe solicitudes"
-              description="Encuentra clientes que necesitan servicios de tus especialidades."
+              description="De clientes cercanos a tu zona"
             />
 
             <BenefitItem
               icon="paper-plane-outline"
               title="Envía ofertas"
-              description="Presenta tu precio, disponibilidad y propuesta."
+              description="Compite con tu mejor precio"
             />
 
             <BenefitItem
-              icon="briefcase-outline"
-              title="Consigue trabajos"
-              description="Gestiona tus oportunidades desde el modo profesional."
+              icon="wallet-outline"
+              title="Recibe pagos"
+              description="Cobra directamente desde la app"
             />
           </View>
-        </View>
 
-        <Button onPress={onStart} size="lg" style={styles.fullButton}>
-          Comenzar
-        </Button>
-      </ResponsiveContainer>
-    </View>
+          <View style={styles.ctaContainer}>
+            <Button
+              onPress={onStart}
+              size="lg"
+              style={styles.startButton}
+              rightIcon={
+                <Ionicons name="arrow-forward" size={20} color={colors.white} />
+              }>
+              Comenzar
+            </Button>
+          </View>
+        </ResponsiveContainer>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -330,7 +361,7 @@ function BenefitItem({ icon, title, description }) {
   return (
     <View style={styles.benefitItem}>
       <View style={styles.benefitIcon}>
-        <Ionicons name={icon} size={21} color={colors.primary} />
+        <Ionicons name={icon} size={22} color={colors.primary} />
       </View>
 
       <View style={styles.benefitContent}>
@@ -349,6 +380,7 @@ function ProfileStep({
   error,
   onBack,
   onContinue,
+  isDesktop,
 }) {
   const initials = getInitials(userProfile?.nombre_completo);
 
@@ -363,41 +395,59 @@ function ProfileStep({
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        <ResponsiveContainer maxWidth={640}>
-          <Text style={styles.stepTitle}>Tu perfil profesional</Text>
+        <ResponsiveContainer maxWidth={1000}>
+          <View
+            style={[
+              styles.profileDesktopLayout,
+              !isDesktop && styles.profileMobileLayout,
+            ]}>
+            <View
+              style={[
+                styles.profileInfoColumn,
+                !isDesktop && styles.profileInfoColumnMobile,
+              ]}>
+              <Text style={styles.stepTitle}>Tu perfil profesional</Text>
 
-          <Text style={styles.stepDescription}>
-            Esta información ayudará a los clientes a conocerte mejor.
-          </Text>
+              <Text style={styles.stepDescription}>
+                Esta información ayudará a los clientes a conocerte mejor.
+              </Text>
 
-          <View style={styles.profilePreview}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
+              <Card variant="outlined" style={styles.profileCard}>
+                <View style={styles.profilePreview}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{initials}</Text>
+                  </View>
+
+                  <Text style={styles.profileName}>
+                    {userProfile?.nombre_completo || "Tu perfil"}
+                  </Text>
+
+                  {userProfile?.email ? (
+                    <Text style={styles.profileEmail}>{userProfile.email}</Text>
+                  ) : null}
+                </View>
+              </Card>
             </View>
 
-            <Text style={styles.profileName}>
-              {userProfile?.nombre_completo || "Tu perfil"}
-            </Text>
+            <View
+              style={[
+                styles.profileFormColumn,
+                !isDesktop && styles.profileFormColumnMobile,
+              ]}>
+              <Card variant="outlined" style={styles.formCard}>
+                <TextArea
+                  label="Descripción profesional"
+                  placeholder="Ej. Soy plomero con experiencia en reparación de fugas, instalaciones sanitarias y mantenimiento residencial."
+                  value={about}
+                  onChangeText={setAbout}
+                  maxLength={500}
+                  error={error || undefined}
+                  accessibilityLabel="Descripción profesional"
+                />
 
-            {userProfile?.email ? (
-              <Text style={styles.profileEmail}>{userProfile.email}</Text>
-            ) : null}
-          </View>
-
-          <View style={styles.formSection}>
-            <TextArea
-              label="Descripción profesional"
-              placeholder="Ej. Soy plomero con experiencia en reparación de fugas, instalaciones sanitarias y mantenimiento residencial."
-              value={about}
-              onChangeText={(value) => {
-                setAbout(value);
-              }}
-              maxLength={500}
-              error={error || undefined}
-              accessibilityLabel="Descripción profesional"
-            />
-
-            <Text style={styles.counter}>{about.length}/500</Text>
+                <Text style={styles.counter}>{about.length}/500</Text>
+              </Card>
+            </View>
           </View>
         </ResponsiveContainer>
       </ScrollView>
@@ -420,6 +470,7 @@ function CategoriesStep({
   onBack,
   onSubmit,
   loading,
+  isDesktop,
 }) {
   return (
     <View style={styles.screen}>
@@ -465,6 +516,8 @@ function CategoriesStep({
                   }}
                   style={({ pressed }) => [
                     styles.categoryItem,
+
+                    isDesktop && styles.categoryItemDesktop,
 
                     selected && styles.categoryItemSelected,
 
@@ -534,41 +587,51 @@ function CategoriesStep({
   );
 }
 
-function SuccessStep({ onProfessional, onHome }) {
+function SuccessStep({ onProfessional, onHome, isDesktop }) {
   return (
     <View style={styles.successScreen}>
-      <ResponsiveContainer maxWidth={520} style={styles.successContainer}>
-        <View style={styles.successContent}>
-          <View style={styles.successIcon}>
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={48}
-              color={colors.primary}
-            />
+      <ScrollView
+        contentContainerStyle={styles.successScrollContent}
+        showsVerticalScrollIndicator={false}>
+      <ResponsiveContainer
+        maxWidth={isDesktop ? 760 : 520}
+        style={styles.successContainer}>
+        <Card
+          variant="outline"
+          style={[styles.successCard, !isDesktop && styles.successCardMobile,]}>
+          <View style={styles.successContent}>
+            <View style={styles.successIcon}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={48}
+                color={colors.primary}
+              />
+            </View>
+
+            <Text style={styles.successTitle}>¡Perfil creado!</Text>
+
+            <Text style={styles.successDescription}>
+              Ya puedes comenzar a recibir solicitudes y enviar ofertas a
+              clientes en Serv-IA.
+            </Text>
+
+            <Button
+              onPress={onProfessional}
+              size="lg"
+              style={styles.successButton}>
+              Ver solicitudes disponibles
+            </Button>
+
+            <Pressable
+              onPress={onHome}
+              accessibilityRole="button"
+              style={styles.homeButton}>
+              <Text style={styles.homeButtonText}>Ir al inicio</Text>
+            </Pressable>
           </View>
-
-          <Text style={styles.successTitle}>¡Perfil creado!</Text>
-
-          <Text style={styles.successDescription}>
-            Ya puedes comenzar a recibir solicitudes y enviar ofertas a clientes
-            en Serv-IA.
-          </Text>
-
-          <Button
-            onPress={onProfessional}
-            size="lg"
-            style={styles.successButton}>
-            Ver solicitudes disponibles
-          </Button>
-
-          <Pressable
-            onPress={onHome}
-            accessibilityRole="button"
-            style={styles.homeButton}>
-            <Text style={styles.homeButtonText}>Ir al inicio</Text>
-          </Pressable>
-        </View>
+        </Card>
       </ResponsiveContainer>
+      </ScrollView>
     </View>
   );
 }
@@ -667,147 +730,160 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  introContainer: {
+  introScreen: {
     flex: 1,
+    backgroundColor: colors.surface,
+  },
 
-    paddingTop: spacing.xl,
+  introScrollView: {
+    flex: 1,
+  },
 
+  introScrollContent: {
+    flexGrow: 1,
+  },
+
+  introContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 22,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
     paddingBottom: spacing.xl,
   },
 
   skipButton: {
     alignSelf: "flex-start",
-
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
   },
 
   skipText: {
-    color: colors.textSecondary,
-
-    fontSize: 14,
+    color: "#8CA0BC",
+    fontSize: 15,
     fontWeight: "600",
   },
 
-  introContent: {
-    flex: 1,
-
-    justifyContent: "center",
-
-    paddingVertical: spacing.xl,
+  heroSection: {
+    alignItems: "center",
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
   },
 
   heroCircleLarge: {
-    width: 132,
-    height: 132,
-
-    borderRadius: 66,
-
+    width: 240,
+    height: 240,
+    borderRadius: 120,
     alignSelf: "center",
-
     alignItems: "center",
     justifyContent: "center",
-
-    backgroundColor: colors.primaryLight,
-
-    marginBottom: spacing.xxl,
+    backgroundColor: "#F0FDF8",
   },
 
-  heroCircle: {
-    width: 72,
-    height: 72,
-
-    borderRadius: 22,
-
-    backgroundColor: colors.primary,
-
+  heroCircleMedium: {
+    width: 166,
+    height: 166,
+    borderRadius: 83,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#E1F8EE",
+  },
+
+  heroSquircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 26,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    elevation: 6,
   },
 
   introTitle: {
     color: colors.text,
-
-    fontSize: 27,
-    lineHeight: 34,
-
-    fontWeight: "900",
-
+    fontSize: 25,
+    lineHeight: 33,
+    fontWeight: "800",
     textAlign: "center",
-
-    maxWidth: 420,
-
+    marginTop: spacing.xl,
+    marginBottom: spacing.xs,
     alignSelf: "center",
   },
 
   introDescription: {
-    color: colors.textSecondary,
-
-    fontSize: 15,
-    lineHeight: 23,
-
+    color: "#7E8B9B",
+    fontSize: 14,
+    lineHeight: 21,
     textAlign: "center",
-
-    marginTop: spacing.md,
-
-    maxWidth: 430,
-
+    maxWidth: 325,
     alignSelf: "center",
   },
 
-  benefits: {
-    marginTop: spacing.xxl,
-
-    gap: spacing.md,
+  benefitsList: {
+    width: "100%",
   },
 
   benefitItem: {
     flexDirection: "row",
-
     alignItems: "center",
-
-    padding: spacing.md,
-
-    borderRadius: 16,
-
-    backgroundColor: colors.surfaceSecondary,
+    minHeight: 74,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 22,
+    backgroundColor: "#F1F5F9",
+    marginBottom: 12,
   },
 
   benefitIcon: {
-    width: 44,
-    height: 44,
-
-    borderRadius: 14,
-
-    backgroundColor: colors.surface,
-
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.white,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
     alignItems: "center",
     justifyContent: "center",
   },
 
   benefitContent: {
     flex: 1,
-
-    marginLeft: spacing.md,
+    marginLeft: 14,
   },
 
   benefitTitle: {
     color: colors.text,
-
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 2,
   },
 
   benefitDescription: {
-    color: colors.textSecondary,
-
-    fontSize: 12,
+    color: "#64748B",
+    fontSize: 13,
     lineHeight: 18,
-
-    marginTop: 2,
   },
 
-  fullButton: {
+  ctaContainer: {
     width: "100%",
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
+  },
+
+  startButton: {
+    width: "100%",
+    borderRadius: 999,
+    minHeight: 56,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   header: {
@@ -1006,7 +1082,7 @@ const styles = StyleSheet.create({
   },
 
   categoryItem: {
-    width: "50%",
+    width: "48%",
 
     minHeight: 72,
 
@@ -1120,9 +1196,13 @@ const styles = StyleSheet.create({
   },
 
   successContainer: {
-    flex: 1,
+    flexGrow: 1,
 
     justifyContent: "center",
+  },
+
+  successScrollContent: {
+    flexGrow: 1,
   },
 
   successContent: {
@@ -1184,5 +1264,55 @@ const styles = StyleSheet.create({
 
     fontSize: 14,
     fontWeight: "700",
+  },
+
+  profileDesktopLayout: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.xl,
+  },
+
+  profileMobileLayout: {
+    flexDirection: "column",
+  },
+
+  profileInfoColumn: {
+    flex: 1,
+  },
+
+  profileInfoColumnMobile: {
+    width: "100%",
+  },
+
+  profileFormColumn: {
+    flex: 1.2,
+  },
+
+  profileFormColumnMobile: {
+    width: "100%",
+    marginTop: spacing.xl,
+  },
+
+  profileCard: {
+    padding: spacing.xl,
+  },
+
+  formCard: {
+    padding: spacing.xl,
+  },
+
+  categoryItemDesktop: {
+    width: "31.5%",
+  },
+
+  successCard: {
+    padding: spacing.xxl,
+    width: "100%",
+  },
+
+  successCardMobile: {
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    padding: 0,
   },
 });
