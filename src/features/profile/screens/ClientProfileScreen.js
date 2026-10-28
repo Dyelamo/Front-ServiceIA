@@ -14,7 +14,7 @@ import {
   Card,
   ErrorState,
   Skeleton,
-  Divider
+  Divider,
 } from "../../../shared/ui/index";
 
 import {
@@ -29,12 +29,14 @@ import { getMyProfileApi } from "../api/user.api";
 
 import { useAuth } from "../../../hook/useAuth";
 
+import { getMyProfessionalProfileApi } from "../../professional/api/professional.api";
+
 import { useAppMode } from "../../app-mode/hooks/useAppMode";
 
-export default function ClientProfileScreen() {
+export default function ClientProfileScreen({ navigation }) {
   const { logout } = useAuth();
 
-  const { setMode } = useAppMode();
+  const { setMode, setProfessionalProfile } = useAppMode();
 
   const { isMobile, isDesktop } = useResponsive();
 
@@ -45,6 +47,8 @@ export default function ClientProfileScreen() {
   const [retrying, setRetrying] = useState(false);
 
   const [error, setError] = useState(false);
+
+  const [checkingProfessional, setCheckingProfessional] = useState(false);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -62,6 +66,34 @@ export default function ClientProfileScreen() {
       setLoading(false);
     }
   }, []);
+
+  const handleProfessionalMode = async () => {
+    if (checkingProfessional) {
+      return;
+    }
+
+    try {
+      setCheckingProfessional(true);
+
+      const professionalProfile = await getMyProfessionalProfileApi();
+
+      setProfessionalProfile?.(professionalProfile);
+
+      setMode("profesional");
+    } catch (err) {
+      const status = err?.response?.status;
+
+      if (status === 404) {
+        navigation.navigate("ProfessionalOnboarding");
+
+        return;
+      }
+
+      console.error("Error verificando perfil profesional:", err);
+    } finally {
+      setCheckingProfessional(false);
+    }
+  };
 
   const handleRetry = async () => {
     setRetrying(true);
@@ -172,7 +204,12 @@ export default function ClientProfileScreen() {
             <Text style={styles.sectionTitle}>Cuenta</Text>
 
             <Card variant="outlined" style={styles.card}>
-              <Button variant="outline" onPress={() => setMode("profesional")}>
+              <Button
+                variant="outline"
+                onPress={handleProfessionalMode}
+                loading={checkingProfessional}
+                loadingLabel={"Verificando"}
+                disabled={checkingProfessional}>
                 Cambiar a modo profesional
               </Button>
 
@@ -360,7 +397,7 @@ const styles = StyleSheet.create({
 
     marginTop: 3,
   },
-  
+
   buttonGap: {
     height: spacing.md,
   },
