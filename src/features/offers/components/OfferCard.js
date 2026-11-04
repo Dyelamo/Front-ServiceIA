@@ -15,9 +15,11 @@ import {
   radius,
   spacing,
 } from "../../../theme/index";
+import { Button } from "../../../shared/ui/index";
 
 export default function OfferCard({
   offer,
+  onMessage,
 }) {
   const publication =
     offer.publication;
@@ -219,6 +221,25 @@ export default function OfferCard({
         </>
       ) : null}
 
+      {(offer.status === "aceptada" || offer.status === "aceptado") ? (
+        <Button
+          variant="secondary"
+          disabled={!offer.conversationId || !publication?.userId}
+          onPress={onMessage}
+          style={styles.messageButton}
+          leftIcon={
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={18}
+              color={colors.primaryDark}
+            />
+          }>
+          {offer.conversationId && publication?.userId
+            ? "Abrir conversación"
+            : "Chat no disponible"}
+        </Button>
+      ) : null}
+
       <View style={styles.footer}>
         <Ionicons
           name="calendar-outline"
@@ -386,6 +407,10 @@ const styles = StyleSheet.create({
 
     padding:
       spacing.lg,
+  },
+
+  messageButton: {
+    marginTop: spacing.md,
   },
 
   publicationSection: {

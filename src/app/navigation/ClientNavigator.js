@@ -13,6 +13,8 @@ import ClientRequestsScreen from "../../features/requests/screens/client/ClientR
 import RequestDetailScreen from "../../features/requests/screens/client/RequestDetailScreen";
 import ClientProfileScreen from "../../features/profile/screens/ClientProfileScreen";
 import NotificationsScreen from "../../features/notifications/screens/NotificationsScreen";
+import MessagesScreen from "../../features/chat/screens/MessagesScreen";
+import ChatScreen from "../../features/chat/screens/ChatScreen";
 
 import DescribeScreen from "../../features/requests/screens/client/create/DescribeScreen";
 import CategoryScreen from "../../features/requests/screens/client/create/CategoryScreen";
@@ -74,6 +76,10 @@ function ClientTabs() {
             iconName = focused ? "notifications" : "notifications-outline";
           }
 
+          if (route.name === "Messages") {
+            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+          }
+
           if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           }
@@ -106,6 +112,14 @@ function ClientTabs() {
       />
 
       <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          title: "Mensajes",
+        }}
+      />
+
+      <Tab.Screen
         name="Profile"
         component={ClientProfileScreen}
         options={{
@@ -126,6 +140,7 @@ export default function ClientNavigator() {
         <Stack.Screen name="ClientTabs" component={ClientTabs} />
 
         <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
 
         <Stack.Screen
           name="CreateRequestDescription"

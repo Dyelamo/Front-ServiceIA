@@ -81,3 +81,25 @@ export const fetchProfessionalOffersWithPublications = async () => {
 
   return enrichedOffers;
 };
+
+export const fetchOffersForPublication = async (publicationId) => {
+  const { data } = await api.get("/postulaciones", {
+    params: {
+      publicacion_id: publicationId,
+      limit: 100,
+      offset: 0,
+      incluir_prestador: true,
+    },
+  });
+
+  return mapOffersFromApi(extractList(data));
+};
+
+export const acceptOffer = async (offerId) => {
+  const { data } = await api.patch(
+    `/postulaciones/${offerId}/estado`,
+    { estado: "aceptada" },
+  );
+
+  return data;
+};

@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { colors, layout, spacing } from "../../../../theme/index";
 
-import { Card, EmptyState, Divider } from "../../../../shared/ui/index";
+import { Button, Card, Divider, EmptyState } from "../../../../shared/ui/index";
 
 import {
   AppHeader,
@@ -17,11 +18,61 @@ import {
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
 import RequestStatusBadge from "../../components/RequestStatusBadge";
+import ReceivedOfferCard from "../../../offers/components/ReceivedOfferCard";
+import {
+  acceptOffer,
+  fetchOffersForPublication,
+} from "../../../offers/api/offers.api";
 
 export default function RequestDetailScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
 
   const request = route?.params?.request;
+  const publicationId = request?.id || request?.publicacion_id;
+  const [offers, setOffers] = useState([]);
+  const [offersLoading, setOffersLoading] = useState(true);
+  const [offersError, setOffersError] = useState(false);
+  const [acceptingOfferId, setAcceptingOfferId] = useState(null);
+  const [offersRetryCount, setOffersRetryCount] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const loadOffers = async () => {
+        if (!publicationId) {
+          setOffers([]);
+          setOffersLoading(false);
+          setOffersError(true);
+          return;
+        }
+
+        setOffersLoading(true);
+        try {
+          const receivedOffers = await fetchOffersForPublication(publicationId);
+          if (active) {
+            setOffers(receivedOffers);
+            setOffersError(false);
+          }
+        } catch (error) {
+          console.error("Error cargando ofertas recibidas:", error);
+          if (active) {
+            setOffersError(true);
+          }
+        } finally {
+          if (active) {
+            setOffersLoading(false);
+          }
+        }
+      };
+
+      loadOffers();
+
+      return () => {
+        active = false;
+      };
+    }, [offersRetryCount, publicationId]),
+  );
 
   if (!request) {
     return (
@@ -62,6 +113,57 @@ export default function RequestDetailScreen({ navigation, route }) {
   const location = request.location || request.ubicacion || "Valledupar, Cesar";
 
   const createdAt = request.createdAt || request.created_at;
+
+  const handleAcceptOffer = async (offer) => {
+    setAcceptingOfferId(offer.id);
+    try {
+      const result = await acceptOffer(offer.id);
+      const conversationId =
+        result?.id_conversacion ||
+        result?.conversacion_id ||
+        result?.conversation_id ||
+        offer.conversationId;
+
+      setOffers((currentOffers) =>
+        currentOffers.map((item) =>
+          item.id === offer.id
+            ? {
+                ...item,
+                status: "aceptada",
+                statusLabel: "Aceptada",
+                conversationId: conversationId || item.conversationId,
+              }
+            : item,
+        ),
+      );
+
+      if (!conversationId) {
+        Alert.alert(
+          "Oferta aceptada",
+          "La postulación fue aceptada, pero el servidor no devolvió el identificador de la conversación.",
+        );
+        return;
+      }
+
+      navigation.navigate("Chat", {
+        conversationId,
+        partnerId: offer.providerId,
+        partnerName:
+          offer.provider?.nombre_completo ||
+          offer.provider?.usuario?.nombre_completo ||
+          "Profesional",
+        publicationTitle: description,
+      });
+    } catch (error) {
+      console.error("Error aceptando oferta:", error);
+      Alert.alert(
+        "No se pudo aceptar la oferta",
+        error?.response?.data?.detail || "Intenta nuevamente.",
+      );
+    } finally {
+      setAcceptingOfferId(null);
+    }
+  };
 
   return (
     <Screen scroll backgroundColor={colors.background}>
@@ -149,14 +251,55 @@ export default function RequestDetailScreen({ navigation, route }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ofertas recibidas</Text>
 
-          <Card variant="outlined" style={styles.offersCard}>
-            <EmptyState
-              compact
-              icon="people-outline"
-              title="Aún no hay ofertas"
-              description="Cuando un profesional envíe una propuesta, aparecerá aquí."
-            />
-          </Card>
+          {offersLoading ? (
+            <Card variant="outlined" style={styles.offersCard}>
+              <Text style={styles.offersMessage}>Cargando ofertas...</Text>
+            </Card>
+          ) : offersError ? (
+            <Card variant="outlined" style={styles.offersCard}>
+              <Text style={styles.offersMessage}>
+                No pudimos cargar las ofertas de esta publicación.
+              </Text>
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => setOffersRetryCount((count) => count + 1)}
+                style={styles.retryButton}>
+                Reintentar
+              </Button>
+            </Card>
+          ) : offers.length === 0 ? (
+            <Card variant="outlined" style={styles.offersCard}>
+              <EmptyState
+                compact
+                icon="people-outline"
+                title="Aún no hay ofertas"
+                description="Cuando un profesional envíe una propuesta, aparecerá aquí."
+              />
+            </Card>
+          ) : (
+            <View>
+              {offers.map((offer) => (
+                <ReceivedOfferCard
+                  key={offer.id}
+                  offer={offer}
+                  accepting={acceptingOfferId === offer.id}
+                  onAccept={() => handleAcceptOffer(offer)}
+                  onMessage={() =>
+                    navigation.navigate("Chat", {
+                      conversationId: offer.conversationId,
+                      partnerId: offer.providerId,
+                      partnerName:
+                        offer.provider?.nombre_completo ||
+                        offer.provider?.usuario?.nombre_completo ||
+                        "Profesional",
+                      publicationTitle: description,
+                    })
+                  }
+                />
+              ))}
+            </View>
+          )}
         </View>
       </ResponsiveContainer>
     </Screen>
@@ -393,5 +536,15 @@ const styles = StyleSheet.create({
 
   offersCard: {
     padding: spacing.xl,
+  },
+
+  offersMessage: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  retryButton: {
+    marginTop: spacing.md,
   },
 });

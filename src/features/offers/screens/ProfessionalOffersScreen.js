@@ -203,7 +203,17 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
 
                       isDesktop && styles.wrapperDesktop,
                     ]}>
-                    <OfferCard offer={offer} />
+                    <OfferCard
+                      offer={offer}
+                      onMessage={() =>
+                        navigation.navigate("Chat", {
+                          conversationId: offer.conversationId,
+                          partnerId: offer.publication?.userId,
+                          partnerName: "Cliente",
+                          publicationTitle: offer.publication?.description,
+                        })
+                      }
+                    />
                   </View>
                 ))}
               </View>

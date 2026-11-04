@@ -2,6 +2,7 @@ const STATUS_LABELS = {
   pendiente: "Pendiente",
   aceptada: "Aceptada",
   aceptado: "Aceptada",
+  en_espera: "En espera",
   rechazada: "Rechazada",
   rechazado: "Rechazada",
   cancelada: "Cancelada",
@@ -21,6 +22,19 @@ export const mapOfferFromApi = (offer) => {
 
     providerId:
       offer.prestador_id,
+
+    conversationId:
+      offer.id_conversacion ||
+      offer.conversacion_id ||
+      offer.conversacion?.id_conversacion ||
+      offer.conversation_id ||
+      null,
+
+    provider:
+      offer.prestador ||
+      offer.profesional ||
+      offer.provider ||
+      null,
 
     price:
       Number(
