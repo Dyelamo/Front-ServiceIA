@@ -54,7 +54,7 @@ export default function ReviewScreen({ navigation }) {
         location: draft.location,
 
         address: draft.address,
-
+        barrio: draft.barrio || "Valledupar",
         reference: draft.reference,
 
         photos: draft.photos,

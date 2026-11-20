@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { StyleSheet, Text, View } from "react-native";
 
@@ -17,6 +18,8 @@ import { categories } from "../../data/categories";
 import { useRequestDraft } from "../../context/RequestDraftContext";
 
 import CategoryCard from "../../components/CategoryCard";
+import { fetchPendingReview } from "../../../reviews/api/reviews.api";
+import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
 
 export default function ClientHomeScreen({ navigation }) {
   const { updateDraft } = useRequestDraft();
@@ -24,6 +27,27 @@ export default function ClientHomeScreen({ navigation }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   const [search, setSearch] = useState("");
+  const [pendingReview, setPendingReview] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      const checkPendingReview = async () => {
+        try {
+          const pending = await fetchPendingReview();
+          if (active && pending) {
+            setPendingReview(pending);
+          }
+        } catch (e) {
+          console.error("Error verificando reseña pendiente:", e);
+        }
+      };
+      checkPendingReview();
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   const handleStartRequest = () => {
     if (search.trim()) {
@@ -249,6 +273,18 @@ export default function ClientHomeScreen({ navigation }) {
           </View>
         </View>
       </ResponsiveContainer>
+
+      {/* BLOQUEO POR RESEÑA OBLIGATORIA PENDIENTE */}
+      {pendingReview ? (
+        <MandatoryReviewModal
+          visible={Boolean(pendingReview)}
+          publicationId={pendingReview.publicacion_id}
+          providerId={pendingReview.prestador_id}
+          providerName={pendingReview.prestador_nombre}
+          publicationTitle={pendingReview.titulo || pendingReview.descripcion}
+          onSuccess={() => setPendingReview(null)}
+        />
+      ) : null}
     </Screen>
   );
 }

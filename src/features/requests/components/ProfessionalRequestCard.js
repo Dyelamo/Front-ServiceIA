@@ -127,8 +127,9 @@ export default function ProfessionalRequestCard({
                 style={
                   styles.location
                 }
+                numberOfLines={1}
               >
-                Valledupar
+                {request.barrio ? `${request.barrio}, Valledupar` : (request.direccion || "Valledupar")}
               </Text>
             </View>
           </View>

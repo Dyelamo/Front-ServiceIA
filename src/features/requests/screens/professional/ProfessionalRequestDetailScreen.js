@@ -123,6 +123,10 @@ export default function ProfessionalRequestDetailScreen({
     request.urgencia ||
     "No especificada";
 
+  const locationText = request.barrio 
+    ? `${request.barrio} - ${request.direccion || "Valledupar"}${request.referencia ? ` (${request.referencia})` : ""}`
+    : (request.direccion || "Valledupar, Cesar");
+
   return (
     <Screen
       scroll
@@ -262,7 +266,7 @@ export default function ProfessionalRequestDetailScreen({
               <InfoRow
                 icon="location-outline"
                 label="Ubicación"
-                value="Valledupar, Cesar"
+                value={locationText}
               />
 
               <Divider />
