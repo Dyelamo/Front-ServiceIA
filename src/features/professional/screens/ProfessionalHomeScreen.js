@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 
 import {
   Pressable,
@@ -10,6 +10,8 @@ import {
 import {
   Ionicons,
 } from "@expo/vector-icons";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 import {
   colors,
@@ -32,6 +34,10 @@ import {
   useResponsive,
 } from "../../../shared/hooks/useResponsive";
 
+import { fetchProfessionalPublications } from "../../requests/api/requests.api";
+import { fetchProfessionalOffersWithPublications } from "../../offers/api/offers.api";
+import { fetchProviderJobs } from "../../jobs/api/jobs.api";
+
 export default function ProfessionalHomeScreen({
   navigation,
 }) {
@@ -39,6 +45,45 @@ export default function ProfessionalHomeScreen({
     isMobile,
     isDesktop,
   } = useResponsive();
+
+  const [stats, setStats] = useState({
+    requests: "—",
+    offers: "—",
+    jobs: "—",
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  const loadStats = useCallback(async () => {
+    try {
+      const [availableRequests, myOffers, activeJobs, completedJobs] =
+        await Promise.all([
+          fetchProfessionalPublications().catch(() => []),
+          fetchProfessionalOffersWithPublications().catch(() => []),
+          fetchProviderJobs("activos").catch(() => []),
+          fetchProviderJobs("completados").catch(() => []),
+        ]);
+
+      setStats({
+        requests: Array.isArray(availableRequests)
+          ? availableRequests.length
+          : 0,
+        offers: Array.isArray(myOffers) ? myOffers.length : 0,
+        jobs:
+          (Array.isArray(activeJobs) ? activeJobs.length : 0) +
+          (Array.isArray(completedJobs) ? completedJobs.length : 0),
+      });
+    } catch (error) {
+      console.error("Error al cargar estadísticas del profesional:", error);
+    } finally {
+      setLoadingStats(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadStats();
+    }, [loadStats])
+  );
 
   const handleBalance = () => {
     navigation
@@ -57,6 +102,18 @@ export default function ProfessionalHomeScreen({
         title="Inicio profesional"
         maxWidth={
           layout.content.wide
+        }
+        action={
+          <Pressable
+            onPress={() => navigation.navigate("Notifications")}
+            style={styles.notificationIconButton}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={22}
+              color={colors.primary}
+            />
+          </Pressable>
         }
       />
 
@@ -201,8 +258,13 @@ export default function ProfessionalHomeScreen({
           >
             <Stat
               icon="search-outline"
-              value="—"
+              value={loadingStats ? "..." : String(stats.requests)}
               label="Solicitudes"
+              onPress={() =>
+                navigation.navigate(
+                  "AvailableRequests"
+                )
+              }
             />
           </View>
 
@@ -216,8 +278,13 @@ export default function ProfessionalHomeScreen({
           >
             <Stat
               icon="paper-plane-outline"
-              value="—"
+              value={loadingStats ? "..." : String(stats.offers)}
               label="Ofertas"
+              onPress={() =>
+                navigation.navigate(
+                  "ProfessionalOffers"
+                )
+              }
             />
           </View>
 
@@ -231,8 +298,13 @@ export default function ProfessionalHomeScreen({
           >
             <Stat
               icon="briefcase-outline"
-              value="—"
+              value={loadingStats ? "..." : String(stats.jobs)}
               label="Trabajos"
+              onPress={() =>
+                navigation.navigate(
+                  "Jobs"
+                )
+              }
             />
           </View>
         </View>
@@ -303,34 +375,42 @@ function Stat({
   icon,
   value,
   label,
+  onPress,
 }) {
   return (
-    <Card
-      variant="outlined"
-      style={styles.stat}
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        pressed && styles.pressed,
+      ]}
     >
-      <View
-        style={styles.statIcon}
+      <Card
+        variant="outlined"
+        style={styles.stat}
       >
-        <Ionicons
-          name={icon}
-          size={20}
-          color={colors.primary}
-        />
-      </View>
+        <View
+          style={styles.statIcon}
+        >
+          <Ionicons
+            name={icon}
+            size={20}
+            color={colors.primary}
+          />
+        </View>
 
-      <Text
-        style={styles.statValue}
-      >
-        {value}
-      </Text>
+        <Text
+          style={styles.statValue}
+        >
+          {value}
+        </Text>
 
-      <Text
-        style={styles.statLabel}
-      >
-        {label}
-      </Text>
-    </Card>
+        <Text
+          style={styles.statLabel}
+        >
+          {label}
+        </Text>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -404,6 +484,10 @@ function QuickAction({
 }
 
 const styles = StyleSheet.create({
+  notificationIconButton: {
+    padding: spacing.xs,
+    borderRadius: radius.pill,
+  },
   container: {
     paddingVertical:
       spacing.xl,
