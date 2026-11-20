@@ -71,6 +71,15 @@ export const mapRequestFromApi = (
     ha_sido_calificada: Boolean(request.ha_sido_calificada),
     createdAt: request.created_at,
     updatedAt: request.updated_at,
+    // Compatibilidad tanto con camelCase como snake_case
+    categoria_id: request.categoria_id,
+    categoria: request.categoria,
+    descripcion: request.descripcion || "",
+    urgencia: request.urgencia,
+    estado: request.estado,
+    created_at: request.created_at,
+    updated_at: request.updated_at,
+    usuario_id: request.usuario_id,
   };
 };
 

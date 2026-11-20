@@ -45,12 +45,22 @@ export default function CreateOfferScreen({ navigation, route }) {
 
   const [error, setError] = useState("");
 
-  const category = categories.find((item) => item.id === request?.categoria_id);
+  const categoryId = request?.categoria_id || request?.categoryId;
+  const category = categories.find((item) => item.id === categoryId);
 
-  const categoryName = category?.label || category?.name || "Servicio";
+  const categoryName =
+    request?.categoryName ||
+    category?.label ||
+    category?.name ||
+    request?.categoria?.nombre ||
+    "Servicio";
 
   const urgency =
-    URGENCY_LABELS[request?.urgencia] || request?.urgencia || "No especificada";
+    request?.urgencyLabel ||
+    URGENCY_LABELS[request?.urgencia || request?.urgency] ||
+    request?.urgencia ||
+    request?.urgency ||
+    "No especificada";
 
   const isValid = Number(price) > 0 && availability.trim() && message.trim();
 

@@ -17,6 +17,7 @@ import ProfessionalRequestDetailScreen from "../../features/requests/screens/pro
 import CreateOfferScreen from "../../features/offers/screens/CreateOfferScreen";
 
 import ProfessionalProfileScreen from "../../features/professional/screens/ProfessionalProfileScreen";
+import WorkerProfileScreen from "../../features/professional/screens/WorkerProfileScreen";
 import ProfessionalOffersScreen from "../../features/offers/screens/ProfessionalOffersScreen";
 import BalanceScreen from "../../features/wallet/screens/BalanceScreen";
 import JobsScreen from "../../features/jobs/screens/JobsScreen";
@@ -160,6 +161,8 @@ export default function ProfessionalNavigator() {
       <Stack.Screen name="CreateOffer" component={CreateOfferScreen} />
 
       <Stack.Screen name="Balance" component={BalanceScreen} />
+
+      <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
 
       <Stack.Screen name="Chat" component={ChatScreen} />
     </Stack.Navigator>

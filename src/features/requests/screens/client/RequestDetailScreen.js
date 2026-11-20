@@ -388,6 +388,16 @@ export default function RequestDetailScreen({ navigation, route }) {
                   offer={offer}
                   accepting={acceptingOfferId === offer.id}
                   onAccept={() => handleAcceptOffer(offer)}
+                  onViewProfile={() =>
+                    navigation.navigate("WorkerProfile", {
+                      workerId: offer.providerId || offer.provider?.id,
+                      workerName:
+                        offer.provider?.nombre_completo ||
+                        offer.provider?.usuario?.nombre_completo ||
+                        "Profesional",
+                      provider: offer.provider,
+                    })
+                  }
                   onMessage={() =>
                     navigation.navigate("Chat", {
                       conversationId: offer.conversationId,

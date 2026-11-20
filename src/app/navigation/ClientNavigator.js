@@ -11,6 +11,7 @@ import { colors } from "../../theme";
 import ClientHomeScreen from "../../features/requests/screens/client/ClientHomeScreen";
 import ClientRequestsScreen from "../../features/requests/screens/client/ClientRequestsScreen";
 import RequestDetailScreen from "../../features/requests/screens/client/RequestDetailScreen";
+import WorkerProfileScreen from "../../features/professional/screens/WorkerProfileScreen";
 import ClientProfileScreen from "../../features/profile/screens/ClientProfileScreen";
 import NotificationsScreen from "../../features/notifications/screens/NotificationsScreen";
 import MessagesScreen from "../../features/chat/screens/MessagesScreen";
@@ -140,6 +141,7 @@ export default function ClientNavigator() {
         <Stack.Screen name="ClientTabs" component={ClientTabs} />
 
         <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
+        <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
 
         <Stack.Screen
