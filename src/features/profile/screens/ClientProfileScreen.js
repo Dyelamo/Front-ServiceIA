@@ -8,20 +8,9 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import { colors, layout, spacing } from "../../../theme/index";
 
-import {
-  Avatar,
-  Button,
-  Card,
-  ErrorState,
-  Skeleton,
-  Divider,
-} from "../../../shared/ui/index";
+import { Avatar, Button, Card, ErrorState, Skeleton, Divider } from "../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
@@ -114,9 +103,7 @@ export default function ClientProfileScreen({ navigation }) {
       <Screen>
         <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <Skeleton height={190} />
         </ResponsiveContainer>
       </Screen>
@@ -128,9 +115,7 @@ export default function ClientProfileScreen({ navigation }) {
       <Screen>
         <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <ErrorState
             title="No pudimos cargar tu perfil"
             description="Intenta nuevamente."
@@ -142,11 +127,7 @@ export default function ClientProfileScreen({ navigation }) {
     );
   }
 
-  const fullName =
-    profile?.nombre_completo ||
-    profile?.nombre ||
-    profile?.nombres ||
-    "Usuario";
+  const fullName = profile?.nombre_completo || profile?.nombre || profile?.nombres || "Usuario";
 
   const email = profile?.email || profile?.correo || "No registrado";
 
@@ -156,18 +137,13 @@ export default function ClientProfileScreen({ navigation }) {
     <Screen scroll backgroundColor={colors.background}>
       <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-      <ResponsiveContainer
-        maxWidth={layout.content.wide}
-        style={styles.container}>
+      <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         {error && profile ? (
           <View style={styles.updateWarning}>
-            <Text style={styles.updateWarningTitle}>
-              No pudimos actualizar tu perfil
-            </Text>
+            <Text style={styles.updateWarningTitle}>No pudimos actualizar tu perfil</Text>
 
             <Text style={styles.updateWarningText}>
-              Estamos mostrando la última información que cargamos
-              correctamente.
+              Estamos mostrando la última información que cargamos correctamente.
             </Text>
           </View>
         ) : null}

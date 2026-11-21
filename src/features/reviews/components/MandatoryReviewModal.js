@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, radius, spacing } from "../../../theme/index";
@@ -41,7 +32,7 @@ export default function MandatoryReviewModal({
     if (!isFormValid) {
       Alert.alert(
         "Calificación requerida",
-        "Debes seleccionar entre 1 y 5 estrellas y escribir una opinión de al menos 3 caracteres."
+        "Debes seleccionar entre 1 y 5 estrellas y escribir una opinión de al menos 3 caracteres.",
       );
       return;
     }
@@ -57,7 +48,7 @@ export default function MandatoryReviewModal({
 
       Alert.alert(
         "¡Gracias por tu reseña!",
-        "Tu opinión ha sido registrada y ayuda a toda la comunidad de Valledupar a elegir los mejores prestadores."
+        "Tu opinión ha sido registrada y ayuda a toda la comunidad de Valledupar a elegir los mejores prestadores.",
       );
 
       if (onSuccess) {
@@ -83,7 +74,7 @@ export default function MandatoryReviewModal({
       onRequestClose={() => {
         Alert.alert(
           "Reseña Obligatoria",
-          "Para mantener la calidad y seguridad de la comunidad en Valledupar, no puedes omitir la calificación de este servicio finalizado."
+          "Para mantener la calidad y seguridad de la comunidad en Valledupar, no puedes omitir la calificación de este servicio finalizado.",
         );
       }}>
       <View style={styles.overlay}>
@@ -105,17 +96,15 @@ export default function MandatoryReviewModal({
           <View style={styles.noticeBox}>
             <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
             <Text style={styles.noticeText}>
-              En ServIA las reseñas son 100% verificadas y obligatorias para garantizar la calidad de los técnicos en Valledupar.
+              En ServIA las reseñas son 100% verificadas y obligatorias para garantizar la calidad
+              de los técnicos en Valledupar.
             </Text>
           </View>
 
           {/* Selector de Estrellas interactivo */}
           <View style={styles.starsContainer}>
             {[1, 2, 3, 4, 5].map((star) => (
-              <Pressable
-                key={star}
-                onPress={() => setRating(star)}
-                style={styles.starTouch}>
+              <Pressable key={star} onPress={() => setRating(star)} style={styles.starTouch}>
                 <Ionicons
                   name={star <= rating ? "star" : "star-outline"}
                   size={36}

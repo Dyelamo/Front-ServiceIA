@@ -22,7 +22,7 @@ import { fetchPendingReview } from "../../../reviews/api/reviews.api";
 import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
 
 export default function ClientHomeScreen({ navigation }) {
-  const { updateDraft } = useRequestDraft();
+  const { draft, hasDraft, resetDraft, updateDraft } = useRequestDraft();
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
@@ -46,7 +46,7 @@ export default function ClientHomeScreen({ navigation }) {
       return () => {
         active = false;
       };
-    }, [])
+    }, []),
   );
 
   const handleStartRequest = () => {
@@ -71,9 +71,7 @@ export default function ClientHomeScreen({ navigation }) {
 
   return (
     <Screen scroll backgroundColor={colors.background}>
-      <ResponsiveContainer
-        maxWidth={layout.content.wide}
-        style={styles.container}>
+      <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         {/* HEADER */}
 
         <View style={styles.header}>
@@ -81,11 +79,7 @@ export default function ClientHomeScreen({ navigation }) {
             <Text style={styles.welcomeText}>Serv-IA</Text>
 
             <View style={styles.locationRow}>
-              <Ionicons
-                name="location-outline"
-                size={17}
-                color={colors.primary}
-              />
+              <Ionicons name="location-outline" size={17} color={colors.primary} />
 
               <Text style={styles.location}>Valledupar</Text>
             </View>
@@ -96,25 +90,52 @@ export default function ClientHomeScreen({ navigation }) {
           </View>
         </View>
 
+        {hasDraft ? (
+          <Card variant="outlined" style={styles.draftBanner}>
+            <View style={styles.draftIcon}>
+              <Ionicons name="document-text-outline" size={22} color={colors.primary} />
+            </View>
+
+            <View style={styles.draftContent}>
+              <Text style={styles.draftTitle}>Tienes una solicitud sin terminar</Text>
+              <Text style={styles.draftDescription} numberOfLines={2}>
+                {draft.description || "Continúa completando los datos de tu solicitud."}
+              </Text>
+            </View>
+
+            <View style={styles.draftActions}>
+              <Button
+                fullWidth={false}
+                size="sm"
+                onPress={() => navigation.navigate("CreateRequestDescription")}>
+                Continuar
+              </Button>
+              <Button
+                fullWidth={false}
+                size="sm"
+                variant="ghost"
+                onPress={() => {
+                  resetDraft();
+                  setSearch("");
+                }}>
+                Descartar
+              </Button>
+            </View>
+          </Card>
+        ) : null}
+
         {/* HERO */}
 
         <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
           <View style={styles.heroContent}>
             <Text style={styles.eyebrow}>ENCUENTRA AYUDA CERCA DE TI</Text>
 
-            <Text
-              style={[styles.heroTitle, isDesktop && styles.heroTitleDesktop]}>
+            <Text style={[styles.heroTitle, isDesktop && styles.heroTitleDesktop]}>
               ¿Qué necesitas solucionar hoy?
             </Text>
 
-            <Text
-              style={[
-                styles.heroDescription,
-
-                isDesktop && styles.heroDescriptionDesktop,
-              ]}>
-              Cuéntanos qué necesitas y encuentra profesionales que puedan
-              ayudarte.
+            <Text style={[styles.heroDescription, isDesktop && styles.heroDescriptionDesktop]}>
+              Cuéntanos qué necesitas y encuentra profesionales que puedan ayudarte.
             </Text>
 
             <View style={styles.searchArea}>
@@ -122,17 +143,10 @@ export default function ClientHomeScreen({ navigation }) {
                 placeholder="Describe lo que necesitas..."
                 value={search}
                 onChangeText={setSearch}
-                leftIcon={
-                  <Ionicons
-                    name="search-outline"
-                    size={20}
-                    color={colors.textMuted}
-                  />
-                }
+                leftIcon={<Ionicons name="search-outline" size={20} color={colors.textMuted} />}
               />
 
-              <View
-                style={[styles.heroButton, !isMobile && styles.heroButtonWide]}>
+              <View style={[styles.heroButton, !isMobile && styles.heroButtonWide]}>
                 <Button onPress={handleStartRequest}>Publicar solicitud</Button>
               </View>
             </View>
@@ -141,38 +155,23 @@ export default function ClientHomeScreen({ navigation }) {
           {isDesktop ? (
             <View style={styles.heroVisual}>
               <View style={styles.heroVisualIcon}>
-                <Ionicons
-                  name="construct-outline"
-                  size={46}
-                  color={colors.primary}
-                />
+                <Ionicons name="construct-outline" size={46} color={colors.primary} />
               </View>
 
-              <Text style={styles.heroVisualTitle}>
-                Encuentra al profesional indicado
-              </Text>
+              <Text style={styles.heroVisualTitle}>Encuentra al profesional indicado</Text>
 
               <Text style={styles.heroVisualText}>
-                Publica lo que necesitas y recibe propuestas de profesionales
-                disponibles.
+                Publica lo que necesitas y recibe propuestas de profesionales disponibles.
               </Text>
 
               <View style={styles.heroFeature}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={18}
-                  color={colors.primary}
-                />
+                <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
 
                 <Text style={styles.heroFeatureText}>Fácil y rápido</Text>
               </View>
 
               <View style={styles.heroFeature}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={18}
-                  color={colors.primary}
-                />
+                <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
 
                 <Text style={styles.heroFeatureText}>Compara ofertas</Text>
               </View>
@@ -206,10 +205,7 @@ export default function ClientHomeScreen({ navigation }) {
                       ? styles.categoryTablet
                       : styles.categoryDesktop,
                 ]}>
-                <CategoryCard
-                  category={category}
-                  onPress={() => handleCategory(category)}
-                />
+                <CategoryCard category={category} onPress={() => handleCategory(category)} />
               </View>
             ))}
           </View>
@@ -222,19 +218,12 @@ export default function ClientHomeScreen({ navigation }) {
             <View>
               <Text style={styles.sectionTitle}>¿Cómo funciona?</Text>
 
-              <Text style={styles.sectionSubtitle}>
-                Encuentra ayuda en tres pasos sencillos.
-              </Text>
+              <Text style={styles.sectionSubtitle}>Encuentra ayuda en tres pasos sencillos.</Text>
             </View>
           </View>
 
           <View style={styles.howGrid}>
-            <View
-              style={[
-                styles.howWrapper,
-
-                isDesktop && styles.howWrapperDesktop,
-              ]}>
+            <View style={[styles.howWrapper, isDesktop && styles.howWrapperDesktop]}>
               <HowItWorks
                 icon="create-outline"
                 number="1"
@@ -243,12 +232,7 @@ export default function ClientHomeScreen({ navigation }) {
               />
             </View>
 
-            <View
-              style={[
-                styles.howWrapper,
-
-                isDesktop && styles.howWrapperDesktop,
-              ]}>
+            <View style={[styles.howWrapper, isDesktop && styles.howWrapperDesktop]}>
               <HowItWorks
                 icon="people-outline"
                 number="2"
@@ -257,12 +241,7 @@ export default function ClientHomeScreen({ navigation }) {
               />
             </View>
 
-            <View
-              style={[
-                styles.howWrapper,
-
-                isDesktop && styles.howWrapperDesktop,
-              ]}>
+            <View style={[styles.howWrapper, isDesktop && styles.howWrapperDesktop]}>
               <HowItWorks
                 icon="checkmark-circle-outline"
                 number="3"
@@ -354,6 +333,47 @@ const styles = StyleSheet.create({
 
     borderWidth: 1,
     borderColor: colors.border,
+  },
+
+  draftBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.xl,
+    padding: spacing.md,
+    borderColor: colors.primary,
+    backgroundColor: colors.surface,
+  },
+
+  draftIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryLight,
+  },
+
+  draftContent: {
+    flex: 1,
+  },
+
+  draftTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  draftDescription: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 2,
+  },
+
+  draftActions: {
+    alignItems: "flex-end",
+    gap: spacing.xs,
   },
 
   /* HERO */

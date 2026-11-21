@@ -6,14 +6,9 @@ import { colors, layout, radius, spacing } from "../../../theme/index";
 
 import { Button, Stepper } from "../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
-
 
 export default function RequestWizardLayout({
   navigation,
@@ -44,9 +39,7 @@ export default function RequestWizardLayout({
         maxWidth={layout.content.medium}
       />
 
-      <ResponsiveContainer
-        maxWidth={layout.content.medium}
-        style={styles.container}>
+      <ResponsiveContainer maxWidth={layout.content.medium} style={styles.container}>
         <View style={[styles.wizard, isDesktop && styles.wizardDesktop]}>
           {/* PROGRESO */}
 
@@ -56,17 +49,10 @@ export default function RequestWizardLayout({
             {/* ENCABEZADO */}
 
             <View style={[styles.heading, isDesktop && styles.headingDesktop]}>
-              <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
-                {title}
-              </Text>
+              <Text style={[styles.title, isDesktop && styles.titleDesktop]}>{title}</Text>
 
               {description ? (
-                <Text
-                  style={[
-                    styles.description,
-
-                    isDesktop && styles.descriptionDesktop,
-                  ]}>
+                <Text style={[styles.description, isDesktop && styles.descriptionDesktop]}>
                   {description}
                 </Text>
               ) : null}
@@ -74,20 +60,13 @@ export default function RequestWizardLayout({
 
             {/* CONTENIDO */}
 
-            <View style={[styles.content, isDesktop && styles.contentDesktop]}>
-              {children}
-            </View>
+            <View style={[styles.content, isDesktop && styles.contentDesktop]}>{children}</View>
 
             {/* FOOTER */}
 
             {onContinue ? (
               <View style={[styles.footer, isDesktop && styles.footerDesktop]}>
-                <View
-                  style={[
-                    styles.footerButton,
-
-                    !isMobile && styles.footerButtonWide,
-                  ]}>
+                <View style={[styles.footerButton, !isMobile && styles.footerButtonWide]}>
                   <Button
                     onPress={onContinue}
                     disabled={continueDisabled || loading}

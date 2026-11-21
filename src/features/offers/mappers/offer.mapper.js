@@ -14,11 +14,7 @@ export const mapOfferFromApi = (offer) => {
     return null;
   }
 
-  const rawProvider =
-    offer.prestador ||
-    offer.profesional ||
-    offer.provider ||
-    null;
+  const rawProvider = offer.prestador || offer.profesional || offer.provider || null;
 
   const providerUser = rawProvider?.usuario || null;
   const providerName =
@@ -30,11 +26,9 @@ export const mapOfferFromApi = (offer) => {
   return {
     id: offer.id,
 
-    publicationId:
-      offer.publicacion_id,
+    publicationId: offer.publicacion_id,
 
-    providerId:
-      offer.prestador_id,
+    providerId: offer.prestador_id,
 
     conversationId:
       offer.id_conversacion ||
@@ -52,34 +46,19 @@ export const mapOfferFromApi = (offer) => {
         }
       : null,
 
-    price:
-      Number(
-        offer.precio_ofertado || 0
-      ),
+    price: Number(offer.precio_ofertado || 0),
 
-    availability:
-      offer.disponibilidad ||
-      "No especificada",
+    availability: offer.disponibilidad || "No especificada",
 
-    message:
-      offer.mensaje || "",
+    message: offer.mensaje || "",
 
-    status:
-      offer.estado ||
-      "pendiente",
+    status: offer.estado || "pendiente",
 
-    statusLabel:
-      STATUS_LABELS[
-        offer.estado
-      ] ||
-      offer.estado ||
-      "Pendiente",
+    statusLabel: STATUS_LABELS[offer.estado] || offer.estado || "Pendiente",
 
-    createdAt:
-      offer.created_at,
+    createdAt: offer.created_at,
 
-    updatedAt:
-      offer.updated_at,
+    updatedAt: offer.updated_at,
 
     publicacion_id: offer.publicacion_id,
     prestador_id: offer.prestador_id,
@@ -92,14 +71,10 @@ export const mapOfferFromApi = (offer) => {
   };
 };
 
-export const mapOffersFromApi = (
-  offers = []
-) => {
+export const mapOffersFromApi = (offers = []) => {
   if (!Array.isArray(offers)) {
     return [];
   }
 
-  return offers
-    .map(mapOfferFromApi)
-    .filter(Boolean);
+  return offers.map(mapOfferFromApi).filter(Boolean);
 };

@@ -1,63 +1,32 @@
 import React from "react";
 
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import {
-  Ionicons,
-} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-  radius,
-  spacing,
-} from "../../../theme/index";
+import { colors, radius, spacing } from "../../../theme/index";
 
-import {
-  categories,
-} from "../data/categories";
+import { categories } from "../data/categories";
 
-function getCategory(
-  categoryId
-) {
-  return categories.find(
-    (category) =>
-      category.id === categoryId
-  );
+function getCategory(categoryId) {
+  return categories.find((category) => category.id === categoryId);
 }
 
-function getUrgencyLabel(
-  urgency
-) {
+function getUrgencyLabel(urgency) {
   const labels = {
-    ahora:
-      "Lo antes posible",
+    ahora: "Lo antes posible",
 
-    hoy:
-      "Hoy",
+    hoy: "Hoy",
 
-    "esta semana":
-      "Esta semana",
+    "esta semana": "Esta semana",
 
-    "no tengo prisa":
-      "No tengo prisa",
+    "no tengo prisa": "No tengo prisa",
   };
 
-  return (
-    labels[urgency] ||
-    urgency ||
-    "No especificada"
-  );
+  return labels[urgency] || urgency || "No especificada";
 }
 
-export default function ProfessionalRequestCard({
-  request,
-  onPress,
-}) {
+export default function ProfessionalRequestCard({ request, onPress }) {
   const categoryId = request.categoria_id || request.categoryId;
   const category = getCategory(categoryId);
   const categoryTitle =
@@ -67,132 +36,53 @@ export default function ProfessionalRequestCard({
     request.categoria?.nombre ||
     "Servicio";
   const iconName =
-    request.categoryIcon ||
-    category?.icon ||
-    request.categoria?.icono ||
-    "construct-outline";
-  const urgencyText =
-    request.urgencyLabel ||
-    getUrgencyLabel(request.urgencia || request.urgency);
-  const descriptionText =
-    request.description ||
-    request.descripcion ||
-    "Sin descripción";
+    request.categoryIcon || category?.icon || request.categoria?.icono || "construct-outline";
+  const urgencyText = request.urgencyLabel || getUrgencyLabel(request.urgencia || request.urgency);
+  const descriptionText = request.description || request.descripcion || "Sin descripción";
   const locationText =
     request.location ||
-    (request.barrio ? `${request.barrio}, Valledupar` : (request.direccion || "Valledupar"));
+    (request.barrio ? `${request.barrio}, Valledupar` : request.direccion || "Valledupar");
   const dateValue = request.createdAt || request.created_at;
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-
-        pressed &&
-          styles.pressed,
-      ]}
-    >
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.header}>
-        <View
-          style={
-            styles.categoryRow
-          }
-        >
-          <View
-            style={
-              styles.iconContainer
-            }
-          >
-            <Ionicons
-              name={iconName}
-              size={22}
-              color={colors.primary}
-            />
+        <View style={styles.categoryRow}>
+          <View style={styles.iconContainer}>
+            <Ionicons name={iconName} size={22} color={colors.primary} />
           </View>
 
-          <View
-            style={
-              styles.categoryContent
-            }
-          >
-            <Text
-              numberOfLines={1}
-              style={
-                styles.category
-              }
-            >
+          <View style={styles.categoryContent}>
+            <Text numberOfLines={1} style={styles.category}>
               {categoryTitle}
             </Text>
 
-            <View
-              style={
-                styles.locationRow
-              }
-            >
-              <Ionicons
-                name="location-outline"
-                size={13}
-                color={
-                  colors.textMuted
-                }
-              />
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={13} color={colors.textMuted} />
 
-              <Text
-                style={
-                  styles.location
-                }
-                numberOfLines={1}
-              >
+              <Text style={styles.location} numberOfLines={1}>
                 {locationText}
               </Text>
             </View>
           </View>
         </View>
 
-        <View
-          style={
-            styles.urgencyBadge
-          }
-        >
-          <Text
-            style={
-              styles.urgencyText
-            }
-          >
-            {urgencyText}
-          </Text>
+        <View style={styles.urgencyBadge}>
+          <Text style={styles.urgencyText}>{urgencyText}</Text>
         </View>
       </View>
 
-      <Text
-        numberOfLines={3}
-        style={
-          styles.description
-        }
-      >
+      <Text numberOfLines={3} style={styles.description}>
         {descriptionText}
       </Text>
 
       <View style={styles.footer}>
-        <Text style={styles.date}>
-          {formatDate(dateValue)}
-        </Text>
+        <Text style={styles.date}>{formatDate(dateValue)}</Text>
 
-        <View
-          style={styles.viewRow}
-        >
-          <Text
-            style={styles.viewText}
-          >
-            Ver solicitud
-          </Text>
+        <View style={styles.viewRow}>
+          <Text style={styles.viewText}>Ver solicitud</Text>
 
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={colors.primary}
-          />
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
         </View>
       </View>
     </Pressable>
@@ -204,187 +94,158 @@ function formatDate(value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return date.toLocaleDateString(
-    "es-CO",
-    {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }
-  );
+  return date.toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-const styles =
-  StyleSheet.create({
-    card: {
-      width: "100%",
-      height: "100%",
+const styles = StyleSheet.create({
+  card: {
+    width: "100%",
+    height: "100%",
 
-      backgroundColor:
-        colors.surface,
+    backgroundColor: colors.surface,
 
-      borderWidth: 1,
-      borderColor:
-        colors.border,
+    borderWidth: 1,
+    borderColor: colors.border,
 
-      borderRadius:
-        radius.lg,
+    borderRadius: radius.lg,
 
-      padding:
-        spacing.lg,
-    },
+    padding: spacing.lg,
+  },
 
-    pressed: {
-      opacity: 0.85,
-    },
+  pressed: {
+    opacity: 0.85,
+  },
 
-    header: {
-      flexDirection: "row",
+  header: {
+    flexDirection: "row",
 
-      justifyContent:
-        "space-between",
+    justifyContent: "space-between",
 
-      alignItems:
-        "flex-start",
-    },
+    alignItems: "flex-start",
+  },
 
-    categoryRow: {
-      flex: 1,
+  categoryRow: {
+    flex: 1,
 
-      flexDirection: "row",
-      alignItems: "center",
+    flexDirection: "row",
+    alignItems: "center",
 
-      marginRight:
-        spacing.md,
-    },
+    marginRight: spacing.md,
+  },
 
-    categoryContent: {
-      flex: 1,
-    },
+  categoryContent: {
+    flex: 1,
+  },
 
-    iconContainer: {
-      width: 44,
-      height: 44,
+  iconContainer: {
+    width: 44,
+    height: 44,
 
-      borderRadius: 12,
+    borderRadius: 12,
 
-      backgroundColor:
-        colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
-      alignItems: "center",
-      justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
 
-      marginRight:
-        spacing.md,
-    },
+    marginRight: spacing.md,
+  },
 
-    category: {
-      color: colors.text,
+  category: {
+    color: colors.text,
 
-      fontWeight: "700",
+    fontWeight: "700",
 
-      fontSize: 15,
-    },
+    fontSize: 15,
+  },
 
-    locationRow: {
-      flexDirection: "row",
-      alignItems: "center",
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
 
-      marginTop: 4,
-    },
+    marginTop: 4,
+  },
 
-    location: {
-      color:
-        colors.textSecondary,
+  location: {
+    color: colors.textSecondary,
 
-      fontSize: 12,
+    fontSize: 12,
 
-      marginLeft: 3,
-    },
+    marginLeft: 3,
+  },
 
-    urgencyBadge: {
-      paddingHorizontal:
-        spacing.md,
+  urgencyBadge: {
+    paddingHorizontal: spacing.md,
 
-      paddingVertical:
-        spacing.xs,
+    paddingVertical: spacing.xs,
 
-      borderRadius:
-        radius.pill,
+    borderRadius: radius.pill,
 
-      backgroundColor:
-        "#FEF3C7",
-    },
+    backgroundColor: "#FEF3C7",
+  },
 
-    urgencyText: {
-      color: "#B45309",
+  urgencyText: {
+    color: "#B45309",
 
-      fontSize: 11,
-      fontWeight: "700",
-    },
+    fontSize: 11,
+    fontWeight: "700",
+  },
 
-    description: {
-      marginTop:
-        spacing.lg,
+  description: {
+    marginTop: spacing.lg,
 
-      color: colors.text,
+    color: colors.text,
 
-      fontSize: 15,
-      lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 22,
 
-      minHeight: 66,
-    },
+    minHeight: 66,
+  },
 
-    footer: {
-      marginTop:
-        spacing.lg,
+  footer: {
+    marginTop: spacing.lg,
 
-      paddingTop:
-        spacing.md,
+    paddingTop: spacing.md,
 
-      borderTopWidth: 1,
+    borderTopWidth: 1,
 
-      borderTopColor:
-        colors.border,
+    borderTopColor: colors.border,
 
-      flexDirection: "row",
+    flexDirection: "row",
 
-      justifyContent:
-        "space-between",
+    justifyContent: "space-between",
 
-      alignItems: "center",
-    },
+    alignItems: "center",
+  },
 
-    date: {
-      color:
-        colors.textMuted,
+  date: {
+    color: colors.textMuted,
 
-      fontSize: 12,
-    },
+    fontSize: 12,
+  },
 
-    viewRow: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
+  viewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 
-    viewText: {
-      color: colors.primary,
+  viewText: {
+    color: colors.primary,
 
-      fontWeight: "700",
+    fontWeight: "700",
 
-      fontSize: 12,
+    fontSize: 12,
 
-      marginRight: 3,
-    },
-  });
+    marginRight: 3,
+  },
+});

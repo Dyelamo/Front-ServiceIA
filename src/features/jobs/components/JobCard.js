@@ -33,30 +33,18 @@ export default function JobCard({
 
       <View style={styles.metaRow}>
         <View style={styles.metaItem}>
-          <Ionicons
-            name="location-outline"
-            size={16}
-            color={colors.primary}
-          />
+          <Ionicons name="location-outline" size={16} color={colors.primary} />
           <Text style={styles.metaText}>{job.location || job.direccion || "Valledupar"}</Text>
         </View>
 
         <View style={styles.metaItem}>
-          <Ionicons
-            name="calendar-outline"
-            size={16}
-            color={colors.textSecondary}
-          />
+          <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
           <Text style={styles.metaText}>{job.schedule || "Disponibilidad acordada"}</Text>
         </View>
 
         {job.cliente?.telefono ? (
           <View style={styles.metaItem}>
-            <Ionicons
-              name="call-outline"
-              size={16}
-              color={colors.textSecondary}
-            />
+            <Ionicons name="call-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.metaText}>{job.cliente.telefono}</Text>
           </View>
         ) : null}
@@ -74,11 +62,9 @@ export default function JobCard({
                 color="#F59E0B"
               />
             ))}
-            <Text style={styles.reviewScore}>
-              {job.resena.calificacion}.0 / 5.0
-            </Text>
+            <Text style={styles.reviewScore}>{job.resena.calificacion}.0 / 5.0</Text>
           </View>
-          <Text style={styles.reviewComment}>"{job.resena.comentario}"</Text>
+          <Text style={styles.reviewComment}>{`"${job.resena.comentario}"`}</Text>
         </View>
       ) : isCompleted ? (
         <View style={styles.reviewPendingBox}>

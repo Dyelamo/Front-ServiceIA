@@ -1,12 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useContext, useCallback, useEffect, useRef, useState } from "react";
 import { AppState, View } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { loginApi } from "../features/auth/api/auth.api";
 
@@ -17,13 +11,14 @@ import {
   saveLastActivityAt,
   clearAuthData,
 } from "../core/storage/auth.storage";
-import { api } from "../core/api/client";
+import { setUnauthorizedHandler } from "../core/api/client";
 
 const AuthContext = createContext(null);
 const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000;
 const ACTIVITY_STORAGE_INTERVAL_MS = 30 * 1000;
 
 export const AuthProvider = ({ children }) => {
+  const queryClient = useQueryClient();
   const [userToken, setUserToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const lastActivityAt = useRef(0);
@@ -37,31 +32,34 @@ export const AuthProvider = ({ children }) => {
     }
 
     await clearAuthData();
+    queryClient.clear();
     lastActivityAt.current = 0;
     lastPersistedActivityAt.current = 0;
     setUserToken(null);
-  }, []);
+  }, [queryClient]);
 
   const scheduleInactivityLogout = useCallback(() => {
     if (inactivityTimer.current) {
       clearTimeout(inactivityTimer.current);
     }
 
-    const remaining =
-      INACTIVITY_TIMEOUT_MS - (Date.now() - lastActivityAt.current);
+    const remaining = INACTIVITY_TIMEOUT_MS - (Date.now() - lastActivityAt.current);
 
-    inactivityTimer.current = setTimeout(() => {
-      const inactiveFor = Date.now() - lastActivityAt.current;
+    inactivityTimer.current = setTimeout(
+      () => {
+        const inactiveFor = Date.now() - lastActivityAt.current;
 
-      if (inactiveFor >= INACTIVITY_TIMEOUT_MS) {
-        logout().catch((error) => {
-          console.error("Error cerrando sesión inactiva:", error);
-        });
-        return;
-      }
+        if (inactiveFor >= INACTIVITY_TIMEOUT_MS) {
+          logout().catch((error) => {
+            console.error("Error cerrando sesión inactiva:", error);
+          });
+          return;
+        }
 
-      scheduleInactivityLogout();
-    }, Math.max(remaining, 0));
+        scheduleInactivityLogout();
+      },
+      Math.max(remaining, 0),
+    );
   }, [logout]);
 
   const recordActivity = useCallback(() => {
@@ -73,10 +71,7 @@ export const AuthProvider = ({ children }) => {
     lastActivityAt.current = timestamp;
     scheduleInactivityLogout();
 
-    if (
-      timestamp - lastPersistedActivityAt.current >=
-      ACTIVITY_STORAGE_INTERVAL_MS
-    ) {
+    if (timestamp - lastPersistedActivityAt.current >= ACTIVITY_STORAGE_INTERVAL_MS) {
       lastPersistedActivityAt.current = timestamp;
       saveLastActivityAt(timestamp).catch((error) => {
         console.error("Error guardando actividad de sesión:", error);
@@ -139,33 +134,11 @@ export const AuthProvider = ({ children }) => {
   }, [scheduleInactivityLogout, userToken]);
 
   useEffect(() => {
-    const interceptorId = api.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const headers = error?.config?.headers;
-        const hasAuthorization =
-          headers?.Authorization ||
-          headers?.authorization ||
-          headers?.get?.("Authorization");
-
-        if (
-          error?.response?.status === 401 &&
-          hasAuthorization
-        ) {
-          try {
-            await logout();
-          } catch (logoutError) {
-            console.error("Error cerrando sesión no autorizada:", logoutError);
-          }
-        }
-
-        return Promise.reject(error);
-      },
+    return setUnauthorizedHandler(() =>
+      logout().catch((logoutError) => {
+        console.error("Error cerrando sesión no autorizada:", logoutError);
+      }),
     );
-
-    return () => {
-      api.interceptors.response.eject(interceptorId);
-    };
   }, [logout]);
 
   useEffect(() => {

@@ -1,24 +1,16 @@
 import React, { useCallback, useContext, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { AppModeContext } from "../../app-mode/context/AppModeContext";
 import { fetchClientPublications } from "../../requests/api/requests.api";
-import { fetchOffersForPublication, fetchProfessionalOffersWithPublications } from "../../offers/api/offers.api";
-import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui";
 import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout";
+  fetchOffersForPublication,
+  fetchProfessionalOffersWithPublications,
+} from "../../offers/api/offers.api";
+import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout";
 import { colors, layout, radius, spacing } from "../../../theme";
 
 export default function MessagesScreen({ navigation }) {
@@ -37,14 +29,10 @@ export default function MessagesScreen({ navigation }) {
       } else {
         const publications = await fetchClientPublications();
         const offersByPublication = await Promise.all(
-          publications.map((publication) =>
-            fetchOffersForPublication(publication.id),
-          ),
+          publications.map((publication) => fetchOffersForPublication(publication.id)),
         );
         acceptedOffers = offersByPublication.flat().map((offer) => {
-          const publication = publications.find(
-            (item) => item.id === offer.publicationId,
-          );
+          const publication = publications.find((item) => item.id === offer.publicationId);
           return { ...offer, publication };
         });
       }
@@ -52,8 +40,7 @@ export default function MessagesScreen({ navigation }) {
       setConversations(
         acceptedOffers.filter(
           (offer) =>
-            (offer.status === "aceptada" || offer.status === "aceptado") &&
-            offer.conversationId,
+            (offer.status === "aceptada" || offer.status === "aceptado") && offer.conversationId,
         ),
       );
       setError(false);
@@ -80,9 +67,7 @@ export default function MessagesScreen({ navigation }) {
 
   const openConversation = (offer) => {
     const isProfessional = mode === "profesional";
-    const partnerId = isProfessional
-      ? offer.publication?.userId
-      : offer.providerId;
+    const partnerId = isProfessional ? offer.publication?.userId : offer.providerId;
 
     if (!partnerId || !offer.conversationId) {
       return;
@@ -162,9 +147,7 @@ export default function MessagesScreen({ navigation }) {
           ) : (
             conversations.map((offer) => {
               const isProfessional = mode === "profesional";
-              const partnerId = isProfessional
-                ? offer.publication?.userId
-                : offer.providerId;
+              const partnerId = isProfessional ? offer.publication?.userId : offer.providerId;
               const partnerName = isProfessional
                 ? "Cliente"
                 : offer.provider?.nombre_completo ||
@@ -181,11 +164,7 @@ export default function MessagesScreen({ navigation }) {
                     !partnerId && styles.disabled,
                   ]}>
                   <View style={styles.avatar}>
-                    <Ionicons
-                      name="person-outline"
-                      size={20}
-                      color={colors.primary}
-                    />
+                    <Ionicons name="person-outline" size={20} color={colors.primary} />
                   </View>
                   <View style={styles.conversationContent}>
                     <Text style={styles.partnerName}>{partnerName}</Text>
@@ -196,11 +175,7 @@ export default function MessagesScreen({ navigation }) {
                       Oferta aceptada · {formatCurrency(offer.price)}
                     </Text>
                   </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={colors.textMuted}
-                  />
+                  <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
                 </Pressable>
               );
             })

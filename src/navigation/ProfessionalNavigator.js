@@ -6,28 +6,28 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { colors } from "../../theme/index";
+import { colors } from "../theme/index";
 
-import ProfessionalHomeScreen from "../../features/professional/screens/ProfessionalHomeScreen";
+import ProfessionalHomeScreen from "../features/professional/screens/ProfessionalHomeScreen";
 
-import AvailableRequestsScreen from "../../features/requests/screens/professional/AvailableRequestsScreen";
+import AvailableRequestsScreen from "../features/requests/screens/professional/AvailableRequestsScreen";
 
-import ProfessionalRequestDetailScreen from "../../features/requests/screens/professional/ProfessionalRequestDetailScreen";
+import ProfessionalRequestDetailScreen from "../features/requests/screens/professional/ProfessionalRequestDetailScreen";
 
-import CreateOfferScreen from "../../features/offers/screens/CreateOfferScreen";
+import CreateOfferScreen from "../features/offers/screens/CreateOfferScreen";
 
-import ProfessionalProfileScreen from "../../features/professional/screens/ProfessionalProfileScreen";
-import WorkerProfileScreen from "../../features/professional/screens/WorkerProfileScreen";
-import NotificationsScreen from "../../features/notifications/screens/NotificationsScreen";
-import ProfessionalOffersScreen from "../../features/offers/screens/ProfessionalOffersScreen";
-import BalanceScreen from "../../features/wallet/screens/BalanceScreen";
-import JobsScreen from "../../features/jobs/screens/JobsScreen";
-import MessagesScreen from "../../features/chat/screens/MessagesScreen";
-import ChatScreen from "../../features/chat/screens/ChatScreen";
+import ProfessionalProfileScreen from "../features/professional/screens/ProfessionalProfileScreen";
+import WorkerProfileScreen from "../features/professional/screens/WorkerProfileScreen";
+import NotificationsScreen from "../features/notifications/screens/NotificationsScreen";
+import ProfessionalOffersScreen from "../features/offers/screens/ProfessionalOffersScreen";
+import BalanceScreen from "../features/wallet/screens/BalanceScreen";
+import JobsScreen from "../features/jobs/screens/JobsScreen";
+import MessagesScreen from "../features/chat/screens/MessagesScreen";
+import ChatScreen from "../features/chat/screens/ChatScreen";
 
 import { StyleSheet } from "react-native";
 
-import { useResponsive } from "../../shared/hooks/useResponsive";
+import { useResponsive } from "../shared/hooks/useResponsive";
 
 const Tab = createBottomTabNavigator();
 
@@ -48,9 +48,7 @@ function ProfessionalTabs() {
 
         tabBarInactiveTintColor: colors.textMuted,
 
-        tabBarActiveBackgroundColor: isDesktop
-          ? colors.primaryLight
-          : undefined,
+        tabBarActiveBackgroundColor: isDesktop ? colors.primaryLight : undefined,
 
         tabBarHideOnKeyboard: true,
 
@@ -154,10 +152,7 @@ export default function ProfessionalNavigator() {
       }}>
       <Stack.Screen name="ProfessionalTabs" component={ProfessionalTabs} />
 
-      <Stack.Screen
-        name="ProfessionalRequestDetail"
-        component={ProfessionalRequestDetailScreen}
-      />
+      <Stack.Screen name="ProfessionalRequestDetail" component={ProfessionalRequestDetailScreen} />
 
       <Stack.Screen name="CreateOffer" component={CreateOfferScreen} />
 

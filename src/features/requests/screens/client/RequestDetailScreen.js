@@ -5,30 +5,25 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import { colors, layout, radius, spacing } from "../../../../theme/index";
 import { Button, Card, Divider, EmptyState } from "../../../../shared/ui/index";
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../../shared/layout/index";
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
 import RequestStatusBadge from "../../components/RequestStatusBadge";
 import ReceivedOfferCard from "../../../offers/components/ReceivedOfferCard";
-import {
-  acceptOffer,
-  fetchOffersForPublication,
-} from "../../../offers/api/offers.api";
+import { acceptOffer, fetchOffersForPublication } from "../../../offers/api/offers.api";
 import { completeServiceRequest } from "../../api/requests.api";
 import { fetchPublicationReview } from "../../../reviews/api/reviews.api";
 import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
+import { useRequestDraft } from "../../context/RequestDraftContext";
 
 export default function RequestDetailScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
+  const { updateDraft } = useRequestDraft();
 
   const request = route?.params?.request;
   const publicationId = request?.id || request?.publicacion_id;
   const [currentStatus, setCurrentStatus] = useState(
-    request?.status || request?.estado || "publicada"
+    request?.status || request?.estado || "publicada",
   );
   const [offers, setOffers] = useState([]);
   const [offersLoading, setOffersLoading] = useState(true);
@@ -39,7 +34,7 @@ export default function RequestDetailScreen({ navigation, route }) {
   // Estados del módulo de Reseñas Obligatorias
   const [review, setReview] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(
-    Boolean(request?.ha_sido_calificada || request?.haSidoCalificada)
+    Boolean(request?.ha_sido_calificada || request?.haSidoCalificada),
   );
   const [completingService, setCompletingService] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -48,7 +43,7 @@ export default function RequestDetailScreen({ navigation, route }) {
     useCallback(() => {
       let active = true;
 
-      const loadData = async () => {
+      const loadData = async (_retryKey) => {
         if (!publicationId) {
           setOffers([]);
           setOffersLoading(false);
@@ -86,12 +81,12 @@ export default function RequestDetailScreen({ navigation, route }) {
         }
       };
 
-      loadData();
+      loadData(offersRetryCount);
 
       return () => {
         active = false;
       };
-    }, [offersRetryCount, publicationId])
+    }, [offersRetryCount, publicationId]),
   );
 
   if (!request) {
@@ -103,17 +98,14 @@ export default function RequestDetailScreen({ navigation, route }) {
           maxWidth={layout.content.wide}
         />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.medium}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.medium} style={styles.container}>
           <Text style={styles.notFound}>No encontramos la publicación.</Text>
         </ResponsiveContainer>
       </Screen>
     );
   }
 
-  const description =
-    request.description || request.descripcion || "Sin descripción";
+  const description = request.description || request.descripcion || "Sin descripción";
 
   const category =
     request.categoryName ||
@@ -122,11 +114,7 @@ export default function RequestDetailScreen({ navigation, route }) {
     request.category ||
     "Servicio";
 
-  const urgency =
-    request.urgencyLabel ||
-    request.urgencia ||
-    request.urgency ||
-    "No especificada";
+  const urgency = request.urgencyLabel || request.urgencia || request.urgency || "No especificada";
 
   const location =
     request.location ||
@@ -135,14 +123,11 @@ export default function RequestDetailScreen({ navigation, route }) {
 
   const createdAt = request.createdAt || request.created_at;
 
-  const acceptedOffer = offers.find(
-    (o) => o.status === "aceptada" || o.status === "aceptado"
-  );
+  const acceptedOffer = offers.find((o) => o.status === "aceptada" || o.status === "aceptado");
 
   const isCompleted = currentStatus === "terminado" || currentStatus === "completada";
   const canCompleteService =
-    (currentStatus === "acuerdo" || currentStatus === "en_progreso") &&
-    Boolean(acceptedOffer);
+    (currentStatus === "acuerdo" || currentStatus === "en_progreso") && Boolean(acceptedOffer);
 
   const handleAcceptOffer = async (offer) => {
     setAcceptingOfferId(offer.id);
@@ -164,14 +149,14 @@ export default function RequestDetailScreen({ navigation, route }) {
                 statusLabel: "Aceptada",
                 conversationId: conversationId || item.conversationId,
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       if (!conversationId) {
         Alert.alert(
           "Oferta aceptada",
-          "La postulación fue aceptada y el servicio pasó a 'Acuerdo'."
+          "La postulación fue aceptada y el servicio pasó a 'Acuerdo'.",
         );
         return;
       }
@@ -189,7 +174,7 @@ export default function RequestDetailScreen({ navigation, route }) {
       console.error("Error aceptando oferta:", error);
       Alert.alert(
         "No se pudo aceptar la oferta",
-        error?.response?.data?.detail || "Intenta nuevamente."
+        error?.response?.data?.detail || "Intenta nuevamente.",
       );
     } finally {
       setAcceptingOfferId(null);
@@ -217,12 +202,41 @@ export default function RequestDetailScreen({ navigation, route }) {
     "el profesional";
   const providerId = acceptedOffer?.providerId || acceptedOffer?.prestador_id || "";
 
+  const handleDuplicateRequest = () => {
+    updateDraft({
+      description,
+      categoryId: request?.categoryId || request?.categoria_id,
+      categoryName: category,
+      urgency: request?.urgency || request?.urgencia || "",
+      urgencyLabel: urgency,
+      location,
+      city: request?.ciudad || "Valledupar",
+      barrio: request?.barrio || "Centro",
+      address: request?.direccion || "",
+      reference: request?.referencia || "",
+      latitud: request?.latitud || null,
+      longitud: request?.longitud || null,
+      photos: [],
+    });
+    navigation.navigate("CreateRequestDescription");
+  };
+
   return (
     <Screen scroll backgroundColor={colors.background}>
       <AppHeader
         title="Detalle de publicación"
         onBack={() => navigation.goBack()}
         maxWidth={layout.content.wide}
+        action={
+          <Button
+            fullWidth={false}
+            size="sm"
+            variant="outline"
+            onPress={handleDuplicateRequest}
+            leftIcon={<Ionicons name="copy-outline" size={16} color={colors.text} />}>
+            Repetir
+          </Button>
+        }
       />
 
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
@@ -230,9 +244,7 @@ export default function RequestDetailScreen({ navigation, route }) {
         <View style={[styles.header, !isDesktop && styles.headerMobile]}>
           <View style={styles.headerText}>
             <Text style={styles.category}>{category}</Text>
-            <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
-              {description}
-            </Text>
+            <Text style={[styles.title, isDesktop && styles.titleDesktop]}>{description}</Text>
           </View>
 
           <View style={[styles.status, !isDesktop && styles.statusMobile]}>
@@ -281,12 +293,10 @@ export default function RequestDetailScreen({ navigation, route }) {
                     color="#F59E0B"
                   />
                 ))}
-                <Text style={styles.reviewScoreBadge}>
-                  {review.calificacion}.0 / 5.0
-                </Text>
+                <Text style={styles.reviewScoreBadge}>{review.calificacion}.0 / 5.0</Text>
               </View>
             </View>
-            <Text style={styles.reviewCompletedComment}>"{review.comentario}"</Text>
+            <Text style={styles.reviewCompletedComment}>{`"${review.comentario}"`}</Text>
           </Card>
         ) : null}
 
@@ -321,20 +331,13 @@ export default function RequestDetailScreen({ navigation, route }) {
               !isDesktop && styles.sideMobile,
             ]}>
             <Card variant="outlined" style={styles.card}>
-              <SectionHeader
-                icon="information-circle-outline"
-                title="Información y Ubicación"
-              />
+              <SectionHeader icon="information-circle-outline" title="Información y Ubicación" />
 
               <InfoRow icon="grid-outline" label="Categoría" value={category} />
               <Divider />
               <InfoRow icon="time-outline" label="Urgencia" value={urgency} />
               <Divider />
-              <InfoRow
-                icon="location-outline"
-                label="Ubicación en Valledupar"
-                value={location}
-              />
+              <InfoRow icon="location-outline" label="Ubicación en Valledupar" value={location} />
 
               {createdAt ? (
                 <>

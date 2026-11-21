@@ -1,24 +1,17 @@
-import React, { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import React, { useCallback, useContext, useState } from "react";
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { colors, layout, radius, spacing } from "../../../theme/index";
-import { Button, Card, EmptyState, Skeleton } from "../../../shared/ui/index";
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { ErrorState, Skeleton } from "../../../shared/ui/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 import { useResponsive } from "../../../shared/hooks/useResponsive";
+import { queryKeys } from "../../../core/query/query-keys";
+import { AppModeContext } from "../../app-mode/context/AppModeContext";
+import { fetchPublicationById } from "../../requests/api/requests.api";
+import { mapRequestFromApi } from "../../requests/mappers/request.mapper";
 import {
   fetchNotifications,
   markAllNotificationsAsRead,
@@ -27,72 +20,97 @@ import {
 
 export default function NotificationsScreen({ navigation }) {
   const { isDesktop } = useResponsive();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [markingAll, setMarkingAll] = useState(false);
+  const { mode } = useContext(AppModeContext);
+  const [openingId, setOpeningId] = useState(null);
+  const queryClient = useQueryClient();
+  const { data, isError, isFetching, isLoading, refetch } = useQuery({
+    queryKey: queryKeys.notifications,
+    queryFn: fetchNotifications,
+  });
 
-  const loadNotifications = useCallback(async () => {
-    try {
-      const data = await fetchNotifications();
-      if (data) {
-        setNotifications(data.notificaciones || []);
-        setUnreadCount(data.no_leidas || 0);
-      }
-    } catch (error) {
-      console.error("Error al cargar notificaciones:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const notifications = data?.notificaciones || [];
+  const unreadCount = data?.no_leidas || 0;
 
   useFocusEffect(
     useCallback(() => {
-      loadNotifications();
-    }, [loadNotifications])
+      refetch();
+    }, [refetch]),
   );
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    loadNotifications();
-  };
+  const updateNotifications = useCallback(
+    (updater) => {
+      queryClient.setQueryData(queryKeys.notifications, (current) => {
+        const safeCurrent = current || { notificaciones: [], no_leidas: 0 };
+        return updater(safeCurrent);
+      });
+    },
+    [queryClient],
+  );
+
+  const markAsReadMutation = useMutation({
+    mutationFn: markNotificationAsRead,
+    onSuccess: (_result, notificationId) => {
+      updateNotifications((current) => ({
+        ...current,
+        notificaciones: current.notificaciones.map((item) =>
+          item.id === notificationId ? { ...item, leida: true } : item,
+        ),
+        no_leidas: Math.max(0, (current.no_leidas || 0) - 1),
+      }));
+    },
+  });
+
+  const markAllMutation = useMutation({
+    mutationFn: markAllNotificationsAsRead,
+    onSuccess: () => {
+      updateNotifications((current) => ({
+        ...current,
+        notificaciones: current.notificaciones.map((item) => ({ ...item, leida: true })),
+        no_leidas: 0,
+      }));
+    },
+  });
 
   const handleMarkAsRead = async (item) => {
     if (!item.leida) {
       try {
-        await markNotificationAsRead(item.id);
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === item.id ? { ...n, leida: true } : n))
-        );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        await markAsReadMutation.mutateAsync(item.id);
       } catch (err) {
         console.error("Error marcando notificación como leída:", err);
+        return;
       }
     }
 
     // Navegación contextual si tiene referencia a una solicitud/publicación
     if (item.referencia_id) {
-      navigation.navigate("RequestDetail", {
-        request: { id: item.referencia_id },
-      });
+      try {
+        setOpeningId(item.id);
+        const publication = await fetchPublicationById(item.referencia_id);
+        const request = mapRequestFromApi(publication);
+        if (mode === "profesional") {
+          navigation.navigate("ProfessionalRequestDetail", { request });
+        } else {
+          navigation.getParent()?.navigate("RequestDetail", { request });
+        }
+      } catch (err) {
+        console.error("Error abriendo la notificación:", err);
+        Alert.alert(
+          "No pudimos abrir el detalle",
+          "La publicación puede haber cambiado o ya no estar disponible.",
+        );
+      } finally {
+        setOpeningId(null);
+      }
     }
   };
 
-  const handleMarkAllAsRead = async () => {
-    if (markingAll || unreadCount === 0) return;
-    try {
-      setMarkingAll(true);
-      await markAllNotificationsAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, leida: true })));
-      setUnreadCount(0);
-    } catch (err) {
-      console.error("Error marcando todas como leídas:", err);
-    } finally {
-      setMarkingAll(false);
+  const handleMarkAllAsRead = () => {
+    if (!markAllMutation.isPending && unreadCount > 0) {
+      markAllMutation.mutate();
     }
   };
+
+  const refreshing = isFetching && !isLoading;
 
   return (
     <Screen backgroundColor={colors.background}>
@@ -103,13 +121,9 @@ export default function NotificationsScreen({ navigation }) {
           unreadCount > 0 ? (
             <Pressable
               onPress={handleMarkAllAsRead}
-              disabled={markingAll}
+              disabled={markAllMutation.isPending}
               style={styles.markAllButton}>
-              <Ionicons
-                name="checkmark-done-outline"
-                size={18}
-                color={colors.primary}
-              />
+              <Ionicons name="checkmark-done-outline" size={18} color={colors.primary} />
               <Text style={styles.markAllText}>Marcar leídas</Text>
             </Pressable>
           ) : null
@@ -117,31 +131,33 @@ export default function NotificationsScreen({ navigation }) {
       />
 
       <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}
         contentContainerStyle={styles.scrollContent}>
         <ResponsiveContainer maxWidth={layout.content.medium} style={styles.container}>
-          {loading ? (
+          {isLoading ? (
             <View style={styles.skeletonContainer}>
               {[1, 2, 3, 4].map((i) => (
                 <Skeleton key={i} height={85} style={styles.skeletonItem} />
               ))}
             </View>
+          ) : isError && notifications.length === 0 ? (
+            <ErrorState
+              title="No pudimos cargar tus notificaciones"
+              description="Verifica tu conexión e intenta nuevamente."
+              onRetry={refetch}
+              retrying={isFetching}
+            />
           ) : notifications.length === 0 ? (
             <View style={[styles.empty, isDesktop && styles.emptyDesktop]}>
               <View style={styles.iconContainer}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={38}
-                  color={colors.primary}
-                />
+                <Ionicons name="notifications-outline" size={38} color={colors.primary} />
               </View>
 
               <Text style={styles.title}>No tienes notificaciones</Text>
 
               <Text style={styles.description}>
-                Te avisaremos en tiempo real cuando recibas propuestas, tu servicio sea aceptado o calificado.
+                Te avisaremos en tiempo real cuando recibas propuestas, tu servicio sea aceptado o
+                calificado.
               </Text>
             </View>
           ) : (
@@ -150,7 +166,8 @@ export default function NotificationsScreen({ navigation }) {
                 <View style={styles.unreadBanner}>
                   <Ionicons name="sparkles" size={16} color={colors.primaryDark} />
                   <Text style={styles.unreadBannerText}>
-                    Tienes {unreadCount} {unreadCount === 1 ? "novedad sin leer" : "novedades sin leer"}
+                    Tienes {unreadCount}{" "}
+                    {unreadCount === 1 ? "novedad sin leer" : "novedades sin leer"}
                   </Text>
                 </View>
               ) : null}
@@ -161,27 +178,21 @@ export default function NotificationsScreen({ navigation }) {
                   return (
                     <Pressable
                       key={item.id}
+                      disabled={openingId === item.id}
                       onPress={() => handleMarkAsRead(item)}
                       style={({ pressed }) => [
                         styles.notificationCard,
                         !item.leida && styles.notificationCardUnread,
                         pressed && styles.notificationCardPressed,
+                        openingId === item.id && styles.notificationCardOpening,
                       ]}>
-                      <View
-                        style={[
-                          styles.typeIconContainer,
-                          { backgroundColor: meta.bgColor },
-                        ]}>
+                      <View style={[styles.typeIconContainer, { backgroundColor: meta.bgColor }]}>
                         <Ionicons name={meta.icon} size={22} color={meta.color} />
                       </View>
 
                       <View style={styles.cardContent}>
                         <View style={styles.cardHeader}>
-                          <Text
-                            style={[
-                              styles.cardTitle,
-                              !item.leida && styles.cardTitleUnread,
-                            ]}>
+                          <Text style={[styles.cardTitle, !item.leida && styles.cardTitleUnread]}>
                             {item.titulo}
                           </Text>
                           {!item.leida ? <View style={styles.unreadDot} /> : null}
@@ -192,14 +203,8 @@ export default function NotificationsScreen({ navigation }) {
                         </Text>
 
                         <View style={styles.cardFooter}>
-                          <Ionicons
-                            name="time-outline"
-                            size={12}
-                            color={colors.textMuted}
-                          />
-                          <Text style={styles.cardTime}>
-                            {formatTimeAgo(item.created_at)}
-                          </Text>
+                          <Ionicons name="time-outline" size={12} color={colors.textMuted} />
+                          <Text style={styles.cardTime}>{formatTimeAgo(item.created_at)}</Text>
                           {item.referencia_id ? (
                             <Text style={styles.cardActionHint}>• Ver detalle</Text>
                           ) : null}
@@ -263,8 +268,7 @@ function formatTimeAgo(dateString) {
 
   if (diffMin < 1) return "Hace un momento";
   if (diffMin < 60) return `Hace ${diffMin} min`;
-  if (diffHours < 24)
-    return `Hace ${diffHours} ${diffHours === 1 ? "hora" : "horas"}`;
+  if (diffHours < 24) return `Hace ${diffHours} ${diffHours === 1 ? "hora" : "horas"}`;
   if (diffDays === 1) return "Ayer";
   if (diffDays < 7) return `Hace ${diffDays} días`;
   return new Intl.DateTimeFormat("es-CO", {
@@ -331,6 +335,9 @@ const styles = StyleSheet.create({
   },
   notificationCardPressed: {
     opacity: 0.7,
+  },
+  notificationCardOpening: {
+    opacity: 0.6,
   },
   typeIconContainer: {
     width: 44,

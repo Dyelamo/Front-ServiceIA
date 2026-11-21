@@ -9,11 +9,12 @@ La aplicación organiza la contratación de servicios alrededor de una publicaci
 ## Módulos principales
 
 - **Autenticación:** las pantallas de inicio de sesión y registro permiten acceder a la aplicación. `useAuth` mantiene la sesión en contexto, restaura el token al iniciar y guarda o elimina los datos de autenticación mediante AsyncStorage.
-- **Navegación y modos:** `RootNavigator` separa el acceso público de las rutas autenticadas. La navegación del cliente usa un stack; la del profesional usa pestañas. `AppModeContext` mantiene el modo y los datos del perfil profesional durante la ejecución.
-- **Experiencia del cliente:** inicio con categorías, creación guiada de solicitud, publicaciones propias y perfil. El formulario se comparte entre pasos mediante `RequestFormContext`.
+- **Navegación y modos:** `RootNavigator` separa el acceso público de las rutas autenticadas. Tanto cliente como profesional combinan pestañas y un stack para sus flujos secundarios. `AppModeContext` mantiene el modo y los datos del perfil profesional durante la ejecución.
+- **Experiencia del cliente:** inicio con categorías, creación guiada de solicitud, publicaciones propias, ofertas recibidas, chat y perfil. El borrador se comparte entre pasos mediante `RequestDraftContext`.
 - **Experiencia del profesional:** inicio, solicitudes y ofertas enviadas, trabajos, saldo y perfil. Desde solicitudes se puede preparar y enviar una oferta a una publicación.
 - **Perfil profesional:** el onboarding consulta el perfil de usuario, solicita una descripción y especialidades y envía esos datos al servicio de registro profesional.
-- **Servicios ofrecidos:** `ManageServicesScreen` y sus componentes permiten crear y editar servicios; las operaciones API de crear, actualizar, publicar y eliminar están separadas en `features/services`.
+- **Comunicación y reputación:** chat, notificaciones y reseñas verificadas acompañan el ciclo de contratación.
+- **Catálogo:** las operaciones para crear, actualizar, publicar y eliminar servicios están separadas en `features/catalog`.
 - **Interfaz compartida:** componentes reutilizables para botones, encabezados, categorías, tarjetas, formularios, indicadores y filas informativas. `theme` centraliza colores y espaciado; `data` contiene categorías y datos de demostración.
 
 ## Funcionamiento del cliente
@@ -21,8 +22,8 @@ La aplicación organiza la contratación de servicios alrededor de una publicaci
 1. En Inicio, el cliente escribe qué necesita o elige una categoría.
 2. En el asistente completa descripción y categoría, confirma la ubicación, selecciona la urgencia, puede agregar fotos y revisa el resumen.
 3. Al publicar, `createServiceRequest` envía descripción, categoría y urgencia a `POST /publicaciones`.
-4. La pantalla siguiente presenta una estructuración del problema y preguntas orientativas. Al confirmar, vuelve a Inicio y limpia el formulario.
-5. En **Mis publicaciones** consulta sus publicaciones y puede revisar el estado de sus solicitudes.
+4. La pantalla de éxito permite volver al inicio o consultar la publicación creada y limpia el borrador.
+5. En **Mis publicaciones** consulta sus solicitudes, revisa ofertas, acepta una propuesta y sigue el estado del servicio.
 
 ## Funcionamiento del profesional
 
@@ -30,20 +31,17 @@ La aplicación organiza la contratación de servicios alrededor de una publicaci
 2. En **Solicitudes**, la app consulta publicaciones disponibles para las categorías del profesional y las postulaciones existentes.
 3. El profesional indica precio, disponibilidad y mensaje. La app envía la oferta a `POST /postulaciones` asociando el identificador de la publicación y del profesional.
 4. La pestaña **Ofertas enviadas** permite revisar las postulaciones obtenidas del servicio.
-5. **Trabajos** y **Saldo** muestran actualmente información de demostración; no representan todavía un ciclo transaccional completo.
+5. **Trabajos** consulta asignaciones reales y permite iniciar o completar el servicio. **Saldo** sigue siendo una vista demostrativa, sin operaciones financieras reales.
 
 ## Estructura del proyecto
 
 ```text
 src/
-	api/          Cliente HTTP y operaciones de publicaciones/ofertas
-	components/   Componentes reutilizables de interfaz
-	data/         Categorías y contenido de demostración
-	features/     Servicios de autenticación, usuario y catálogo de servicios
-	hook/         Estado compartido de autenticación, modo y formulario
-	lib/          Contextos de modo de app y solicitud
-	navigation/   Rutas raíz, cliente y profesional
-	screens/      Pantallas de acceso, cliente, profesional y servicios
+	core/         Cliente HTTP, normalización de respuestas y almacenamiento
+	features/     Módulos de producto, pantallas, API y componentes por dominio
+	hook/         Contexto compartido de autenticación
+	navigation/   Rutas raíz, cliente, profesional y autenticación
+	shared/       Componentes, layouts y hooks reutilizables
 	theme/        Tokens visuales
 	utils/        Formato y utilidades comunes
 ```
@@ -52,15 +50,17 @@ src/
 
 ## Integración con backend
 
-El cliente HTTP utiliza `EXPO_PUBLIC_API_URL` como URL base y, si no se define, usa `/api`. La instancia Axios de `features/services/api.js` adjunta el token de acceso como `Authorization: Bearer ...` cuando existe. Entre las rutas utilizadas se encuentran:
+El cliente HTTP de `src/core/api/client.js` utiliza `EXPO_PUBLIC_API_URL` como URL base y, si no se define, usa `/api`. La instancia Axios adjunta el token de acceso como `Authorization: Bearer ...` cuando existe. Entre las rutas utilizadas se encuentran:
 
 - `POST /auth/login`, `POST /auth/register` y `POST /auth/refresh`.
 - `GET /usuarios/me`, `PUT /usuarios/me` y `DELETE /usuarios/me`.
 - `POST /publicaciones`, además de consultas de publicaciones propias y disponibles para profesionales.
-- `POST /postulaciones` y consulta de postulaciones.
+- `POST /postulaciones`, consulta de postulaciones y aceptación de ofertas.
+- Consulta e inicio/finalización de trabajos.
+- Conversaciones, mensajes, notificaciones y reseñas.
 - Operaciones de catálogo de servicios para crear, actualizar, publicar y eliminar.
 
-Las rutas exactas y los formatos de respuesta deben coincidir con el backend desplegado. En particular, `requestsService` usa `src/api/client.js`, mientras que los servicios de autenticación/usuario usan la instancia de `features/services/api.js`; ambas dependen de que la URL base y la configuración del servidor sean compatibles.
+Las rutas exactas y los formatos de respuesta deben coincidir con el backend desplegado. Todas las funcionalidades consumen la instancia compartida ubicada en `src/core/api/client.js`.
 
 ## Estado actual y alcance
 
@@ -69,15 +69,15 @@ La aplicación es una base funcional/prototipo con integraciones parciales. Ante
 - El análisis presentado como asistente/IA se construye en la interfaz con categorías y preguntas de ejemplo; no se observa una llamada a un modelo de IA.
 - La ubicación inicia en Valledupar y el mapa es un marcador visual; no se seleccionan coordenadas ni una dirección precisa. La pantalla profesional también indica que la ubicación no está especificada en las publicaciones actuales.
 - Agregar fotos solo crea elementos visuales de muestra; no abre cámara o galería ni carga archivos.
-- Trabajos y saldo usan constantes de `mockData`; la acción de retiro no está conectada.
-- `ManageServicesScreen` carga un servicio de ejemplo y no aparece dentro de las pestañas actuales de `ProfessionalNavigator`.
-- La confirmación del asistente limpia el formulario y regresa al Inicio. El comentario en pantalla señala que la búsqueda real de profesionales aún se implementaría.
+- La billetera usa datos simulados y la acción de retiro no está conectada. Su integración funcional está fuera del alcance actual del frontend.
+- El chat usa la API disponible, pero todavía no dispone de transporte en tiempo real.
+- El refresh token existe en la capa API, pero la renovación automática de sesión aún está pendiente.
 
-Por lo tanto, las pantallas y algunos endpoints ya permiten probar partes del flujo, pero la app todavía no cubre por completo pagos, aceptación de ofertas, asignación de trabajos, geolocalización, carga de imágenes ni análisis automatizado.
+Por lo tanto, el flujo principal ya permite publicar, ofertar, aceptar, ejecutar y reseñar servicios. La app todavía no cubre pagos, geolocalización precisa, carga real de imágenes ni análisis automatizado.
 
 ## Tecnologías
 
-- Expo SDK 57 y React Native 0.86.
+- Expo SDK 57.0.33 y React Native 0.86.3.
 - React 19, React Navigation 7 y Expo Vector Icons.
 - Axios para comunicación HTTP.
 - AsyncStorage para persistencia local de autenticación.
@@ -92,3 +92,16 @@ npm start
 ```
 
 También están disponibles `npm run android`, `npm run ios`, `npm run web` y `npm run build:web`.
+
+## Calidad de código
+
+Antes de entregar cambios ejecuta:
+
+```bash
+npm run lint
+npm run typecheck
+npm run format:check
+npm run build:web
+```
+
+`npm run format` aplica Prettier a los archivos fuente y de configuración. Los archivos `.env*.local` son locales y no deben versionarse.

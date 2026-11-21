@@ -1,9 +1,6 @@
 import { api } from "../../../core/api/client";
 import { extractList } from "../../../core/api/response";
-import {
-  mapRequestFromApi,
-  mapRequestsFromApi,
-} from "../mappers/request.mapper";
+import { mapRequestFromApi, mapRequestsFromApi } from "../mappers/request.mapper";
 
 export const fetchClientPublications = async () => {
   const { data } = await api.get("/publicaciones/mis-publicaciones");

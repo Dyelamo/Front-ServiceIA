@@ -3,12 +3,7 @@ import { api } from "../../../core/api/client";
 /**
  * Crea una reseña obligatoria para una publicación finalizada.
  */
-export const createReview = async ({
-  publicacionId,
-  prestadorId,
-  calificacion,
-  comentario,
-}) => {
+export const createReview = async ({ publicacionId, prestadorId, calificacion, comentario }) => {
   const { data } = await api.post("/resenas", {
     publicacion_id: publicacionId,
     prestador_id: prestadorId,
@@ -46,7 +41,7 @@ export const fetchPublicationReview = async (publicacionId) => {
   try {
     const { data } = await api.get(`/resenas/publicacion/${publicacionId}`);
     return data;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };

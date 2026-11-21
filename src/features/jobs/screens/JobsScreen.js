@@ -1,11 +1,14 @@
 import React, { useCallback, useState } from "react";
 import { Alert, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { colors, layout, radius, spacing } from "../../../theme/index";
-import { EmptyState, Skeleton } from "../../../shared/ui/index";
+import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui/index";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 import { useResponsive } from "../../../shared/hooks/useResponsive";
+import { queryKeys } from "../../../core/query/query-keys";
+import { getApiErrorMessage } from "../../../core/errors/error-message";
 import { completeJob, fetchProviderJobs, startJob } from "../api/jobs.api";
 import JobCard from "../components/JobCard";
 
@@ -16,83 +19,103 @@ const TABS = [
 
 export default function JobsScreen() {
   const [tab, setTab] = useState("activos");
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [actionLoadingId, setActionLoadingId] = useState(null);
-
+  const queryClient = useQueryClient();
   const { isDesktop } = useResponsive();
 
-  const loadJobs = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-
-    try {
+  const {
+    data: jobs = [],
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.providerJobs(tab),
+    queryFn: async () => {
       const data = await fetchProviderJobs(tab);
-      setJobs(data);
-    } catch (error) {
-      console.error("Error al cargar trabajos del prestador:", error);
-      Alert.alert(
-        "Aviso",
-        "No se pudieron cargar los trabajos. Verifica tu conexión o intenta nuevamente."
-      );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [tab]);
+      return Array.isArray(data) ? data : [];
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
-      loadJobs();
-    }, [loadJobs])
+      refetch();
+    }, [refetch]),
   );
 
-  const handleStartJob = async (job) => {
-    setActionLoadingId(job.id);
-    try {
-      await startJob(job.publicacion_id || job.id);
-      Alert.alert("Trabajo iniciado", "El estado del servicio cambió a 'En progreso'.");
-      await loadJobs();
-    } catch (error) {
-      console.error("Error al iniciar trabajo:", error);
-      Alert.alert("Error", "No se pudo actualizar el estado del trabajo.");
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
+  const refreshJobs = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["jobs", "provider"] });
+  }, [queryClient]);
 
-  const handleCompleteJob = async (job) => {
-    setActionLoadingId(job.id);
-    try {
-      await completeJob(job.publicacion_id || job.id);
+  const startMutation = useMutation({
+    mutationFn: startJob,
+    onSuccess: () => {
+      Alert.alert("Trabajo iniciado", "El estado del servicio cambió a 'En progreso'.");
+      refreshJobs();
+    },
+    onError: (error) => {
+      Alert.alert(
+        "No pudimos iniciar el trabajo",
+        getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
+      );
+    },
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: completeJob,
+    onSuccess: () => {
       Alert.alert(
         "¡Trabajo finalizado con éxito!",
-        "El servicio ha sido completado. El cliente recibirá una solicitud obligatoria de reseña para calificar tu atención."
+        "El servicio ha sido completado. El cliente recibirá una solicitud obligatoria de reseña para calificar tu atención.",
       );
-      await loadJobs();
-    } catch (error) {
-      console.error("Error al completar trabajo:", error);
-      Alert.alert("Error", "No se pudo marcar el trabajo como finalizado.");
-    } finally {
-      setActionLoadingId(null);
-    }
+      refreshJobs();
+    },
+    onError: (error) => {
+      Alert.alert(
+        "No pudimos finalizar el trabajo",
+        getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
+      );
+    },
+  });
+
+  const handleStartJob = (job) => {
+    if (startMutation.isPending || completeMutation.isPending) return;
+    const jobId = job.publicacion_id || job.id;
+    Alert.alert("Iniciar trabajo", "¿Confirmas que ya vas a iniciar este servicio?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Iniciar", onPress: () => startMutation.mutate(jobId) },
+    ]);
   };
+
+  const handleCompleteJob = (job) => {
+    if (startMutation.isPending || completeMutation.isPending) return;
+    const jobId = job.publicacion_id || job.id;
+    Alert.alert(
+      "Finalizar trabajo",
+      "Confirma que el servicio fue completado. Esta acción notificará al cliente.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Finalizar", onPress: () => completeMutation.mutate(jobId) },
+      ],
+    );
+  };
+
+  const refreshing = isFetching && !isLoading;
+  const startingId = startMutation.isPending ? startMutation.variables : null;
+  const completingId = completeMutation.isPending ? completeMutation.variables : null;
 
   return (
     <Screen
       scroll
       backgroundColor={colors.background}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={() => loadJobs(true)} />
-      }>
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}>
       <AppHeader title="Mis trabajos" maxWidth={layout.content.wide} />
 
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         <View style={styles.heading}>
           <Text style={styles.title}>Historial y Trabajos</Text>
           <Text style={styles.subtitle}>
-            Gestiona los servicios contratados por clientes en Valledupar y consulta tu historial completado.
+            Gestiona los servicios contratados por clientes en Valledupar y consulta tu historial
+            completado.
           </Text>
         </View>
 
@@ -105,16 +128,14 @@ export default function JobsScreen() {
                   key={item.id}
                   onPress={() => setTab(item.id)}
                   style={[styles.tab, active && styles.activeTab]}>
-                  <Text style={[styles.tabText, active && styles.activeTabText]}>
-                    {item.label}
-                  </Text>
+                  <Text style={[styles.tabText, active && styles.activeTabText]}>{item.label}</Text>
                 </Pressable>
               );
             })}
           </View>
         </View>
 
-        {loading && !refreshing ? (
+        {isLoading ? (
           <View style={styles.grid}>
             {[1, 2].map((i) => (
               <View key={i} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
@@ -122,6 +143,13 @@ export default function JobsScreen() {
               </View>
             ))}
           </View>
+        ) : isError && jobs.length === 0 ? (
+          <ErrorState
+            title="No pudimos cargar tus trabajos"
+            description="Verifica tu conexión e intenta nuevamente."
+            onRetry={refetch}
+            retrying={isFetching}
+          />
         ) : jobs.length === 0 ? (
           <EmptyState
             icon="briefcase-outline"
@@ -139,15 +167,13 @@ export default function JobsScreen() {
         ) : (
           <View style={styles.grid}>
             {jobs.map((job) => (
-              <View
-                key={job.id}
-                style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+              <View key={job.id} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
                 <JobCard
                   job={job}
                   onStart={handleStartJob}
                   onComplete={handleCompleteJob}
-                  starting={actionLoadingId === job.id}
-                  completing={actionLoadingId === job.id}
+                  starting={startingId === (job.publicacion_id || job.id)}
+                  completing={completingId === (job.publicacion_id || job.id)}
                 />
               </View>
             ))}

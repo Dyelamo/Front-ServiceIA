@@ -1,156 +1,59 @@
 import React from "react";
 
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import {
-  Ionicons,
-} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-  radius,
-  spacing,
-} from "../../../theme/index";
+import { colors, radius, spacing } from "../../../theme/index";
 
-import RequestStatusBadge
-  from "./RequestStatusBadge";
+import RequestStatusBadge from "./RequestStatusBadge";
 
-export default function RequestCard({
-  request,
-  onPress,
-}) {
+export default function RequestCard({ request, onPress }) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-
-        pressed &&
-          styles.pressed,
-      ]}
-    >
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.header}>
-        <View
-          style={
-            styles.categoryRow
-          }
-        >
-          <View
-            style={
-              styles.iconContainer
-            }
-          >
+        <View style={styles.categoryRow}>
+          <View style={styles.iconContainer}>
             <Ionicons
-              name={
-                request.categoryIcon ||
-                "construct-outline"
-              }
+              name={request.categoryIcon || "construct-outline"}
               size={20}
               color={colors.primary}
             />
           </View>
 
-          <Text
-            numberOfLines={1}
-            style={
-              styles.category
-            }
-          >
-            {request.categoryName ||
-              "Servicio"}
+          <Text numberOfLines={1} style={styles.category}>
+            {request.categoryName || "Servicio"}
           </Text>
         </View>
 
-        <RequestStatusBadge
-          status={request.status}
-        />
+        <RequestStatusBadge status={request.status} />
       </View>
 
-      <Text
-        numberOfLines={3}
-        style={styles.description}
-      >
-        {request.description ||
-          "Sin descripción"}
+      <Text numberOfLines={3} style={styles.description}>
+        {request.description || "Sin descripción"}
       </Text>
 
       <View style={styles.meta}>
-        <View
-          style={
-            styles.metaItem
-          }
-        >
-          <Ionicons
-            name="location-outline"
-            size={16}
-            color={
-              colors.textMuted
-            }
-          />
+        <View style={styles.metaItem}>
+          <Ionicons name="location-outline" size={16} color={colors.textMuted} />
 
-          <Text
-            style={
-              styles.metaText
-            }
-          >
-            Valledupar
-          </Text>
+          <Text style={styles.metaText}>Valledupar</Text>
         </View>
 
-        <View
-          style={
-            styles.metaItem
-          }
-        >
-          <Ionicons
-            name="time-outline"
-            size={16}
-            color={
-              colors.textMuted
-            }
-          />
+        <View style={styles.metaItem}>
+          <Ionicons name="time-outline" size={16} color={colors.textMuted} />
 
-          <Text
-            style={
-              styles.metaText
-            }
-          >
-            {request.urgencyLabel ||
-              "No especificada"}
-          </Text>
+          <Text style={styles.metaText}>{request.urgencyLabel || "No especificada"}</Text>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.date}>
-          {formatDate(
-            request.createdAt
-          )}
-        </Text>
+        <Text style={styles.date}>{formatDate(request.createdAt)}</Text>
 
-        <View
-          style={
-            styles.viewAction
-          }
-        >
-          <Text
-            style={
-              styles.viewText
-            }
-          >
-            Ver detalle
-          </Text>
+        <View style={styles.viewAction}>
+          <Text style={styles.viewText}>Ver detalle</Text>
 
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={colors.primary}
-          />
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
         </View>
       </View>
     </Pressable>
@@ -162,25 +65,17 @@ function formatDate(value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return date.toLocaleDateString(
-    "es-CO",
-    {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }
-  );
+  return date.toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 const styles = StyleSheet.create({
@@ -188,18 +83,14 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
 
-    backgroundColor:
-      colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor:
-      colors.border,
+    borderColor: colors.border,
 
-    borderRadius:
-      radius.lg,
+    borderRadius: radius.lg,
 
-    padding:
-      spacing.lg,
+    padding: spacing.lg,
   },
 
   pressed: {
@@ -209,11 +100,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
 
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
 
-    alignItems:
-      "flex-start",
+    alignItems: "flex-start",
   },
 
   categoryRow: {
@@ -222,8 +111,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
 
-    marginRight:
-      spacing.md,
+    marginRight: spacing.md,
   },
 
   iconContainer: {
@@ -232,14 +120,12 @@ const styles = StyleSheet.create({
 
     borderRadius: 11,
 
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
     alignItems: "center",
     justifyContent: "center",
 
-    marginRight:
-      spacing.sm,
+    marginRight: spacing.sm,
   },
 
   category: {
@@ -252,8 +138,7 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    marginTop:
-      spacing.lg,
+    marginTop: spacing.lg,
 
     color: colors.text,
 
@@ -264,14 +149,12 @@ const styles = StyleSheet.create({
   },
 
   meta: {
-    marginTop:
-      spacing.lg,
+    marginTop: spacing.lg,
 
     flexDirection: "row",
     flexWrap: "wrap",
 
-    gap:
-      spacing.lg,
+    gap: spacing.lg,
   },
 
   metaItem: {
@@ -282,8 +165,7 @@ const styles = StyleSheet.create({
   metaText: {
     marginLeft: 5,
 
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: 13,
   },
@@ -291,26 +173,21 @@ const styles = StyleSheet.create({
   footer: {
     borderTopWidth: 1,
 
-    borderTopColor:
-      colors.border,
+    borderTopColor: colors.border,
 
-    marginTop:
-      spacing.lg,
+    marginTop: spacing.lg,
 
-    paddingTop:
-      spacing.md,
+    paddingTop: spacing.md,
 
     flexDirection: "row",
 
     alignItems: "center",
 
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
   },
 
   date: {
-    color:
-      colors.textMuted,
+    color: colors.textMuted,
 
     fontSize: 12,
   },

@@ -3,9 +3,7 @@ import { View } from "react-native";
 
 import { colors } from "../../theme";
 
-export default function Divider({
-  marginVertical = 16,
-}) {
+export default function Divider({ marginVertical = 16 }) {
   return (
     <View
       style={{

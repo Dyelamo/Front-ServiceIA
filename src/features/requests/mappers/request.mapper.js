@@ -1,6 +1,4 @@
-import {
-  categories,
-} from "../data/categories";
+import { categories } from "../data/categories";
 
 const URGENCY_LABELS = {
   ahora: "Lo antes posible",
@@ -22,33 +20,20 @@ const STATUS_LABELS = {
   cancelada: "Cancelada",
 };
 
-const findCategory = (
-  categoryId
-) => {
-  return categories.find(
-    (category) =>
-      category.id === categoryId
-  );
+const findCategory = (categoryId) => {
+  return categories.find((category) => category.id === categoryId);
 };
 
-export const mapRequestFromApi = (
-  request
-) => {
+export const mapRequestFromApi = (request) => {
   if (!request) {
     return null;
   }
 
-  const category =
-    request.categoria ||
-    findCategory(
-      request.categoria_id
-    );
+  const category = request.categoria || findCategory(request.categoria_id);
 
   const direccion = request.direccion || "Valledupar, Cesar";
   const barrio = request.barrio || "Valledupar";
-  const formattedLocation = barrio !== "Valledupar" 
-    ? `${barrio}, ${direccion}` 
-    : direccion;
+  const formattedLocation = barrio !== "Valledupar" ? `${barrio}, ${direccion}` : direccion;
 
   return {
     id: request.id,
@@ -66,6 +51,8 @@ export const mapRequestFromApi = (
     barrio: barrio,
     referencia: request.referencia || "",
     ciudad: request.ciudad || "Valledupar",
+    latitud: request.latitud ?? null,
+    longitud: request.longitud ?? null,
     location: formattedLocation,
     haSidoCalificada: Boolean(request.ha_sido_calificada),
     ha_sido_calificada: Boolean(request.ha_sido_calificada),
@@ -83,14 +70,10 @@ export const mapRequestFromApi = (
   };
 };
 
-export const mapRequestsFromApi = (
-  requests = []
-) => {
+export const mapRequestsFromApi = (requests = []) => {
   if (!Array.isArray(requests)) {
     return [];
   }
 
-  return requests
-    .map(mapRequestFromApi)
-    .filter(Boolean);
+  return requests.map(mapRequestFromApi).filter(Boolean);
 };

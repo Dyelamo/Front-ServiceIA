@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Animated, Platform, StyleSheet, View } from "react-native";
 
@@ -15,7 +15,7 @@ export default function Skeleton({
 
   style,
 }) {
-  const opacity = useRef(new Animated.Value(animated ? 0.4 : 1)).current;
+  const [opacity] = useState(() => new Animated.Value(animated ? 0.4 : 1));
 
   useEffect(() => {
     if (!animated) {

@@ -1,25 +1,10 @@
 import React from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import {
-  colors,
-  radius,
-  spacing,
-} from "../../theme";
+import { colors, radius, spacing } from "../../theme";
 
-export default function Stepper({
-  current = 1,
-  total = 5,
-  showLabel = true,
-}) {
-  const progress = Math.min(
-    Math.max(current / total, 0),
-    1
-  );
+export default function Stepper({ current = 1, total = 5, showLabel = true }) {
+  const progress = Math.min(Math.max(current / total, 0), 1);
 
   return (
     <View style={styles.container}>

@@ -1,93 +1,81 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useFocusEffect } from "@react-navigation/native";
+import { useQuery } from "@tanstack/react-query";
 
 import { colors, layout, spacing } from "../../../../theme/index";
 
-import { EmptyState, ErrorState, Skeleton } from "../../../../shared/ui/index";
+import { EmptyState, ErrorState, Input, Skeleton } from "../../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../../shared/layout/index";
 
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
 import { fetchProfessionalPublications } from "../../api/requests.api";
+import { queryKeys } from "../../../../core/query/query-keys";
 
 import ProfessionalRequestCard from "../../components/ProfessionalRequestCard";
 
 export default function AvailableRequestsScreen({ navigation }) {
   const { isDesktop } = useResponsive();
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("Todas");
 
-  const [requests, setRequests] = useState([]);
-
-  const [retrying, setRetrying] = useState(false);
-
-  const [loading, setLoading] = useState(true);
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [error, setError] = useState(false);
-
-  const loadRequests = useCallback(async () => {
-    try {
+  const {
+    data: requests = [],
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.professionalRequests,
+    queryFn: async () => {
       const data = await fetchProfessionalPublications();
-
-      setRequests(Array.isArray(data) ? data : []);
-      setError(false);
-    } catch (err) {
-      console.error("Error cargando solicitudes profesionales:", err);
-
-      setError(true);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      return Array.isArray(data) ? data : [];
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
-      loadRequests();
-    }, [loadRequests]),
+      refetch();
+    }, [refetch]),
   );
 
-  const handleRefresh = () => {
-    setRefreshing(true);
+  const refreshing = isFetching && !isLoading;
+  const categoryOptions = useMemo(
+    () => ["Todas", ...new Set(requests.map((request) => request.categoryName).filter(Boolean))],
+    [requests],
+  );
+  const filteredRequests = useMemo(() => {
+    const normalizedSearch = search.trim().toLocaleLowerCase("es-CO");
+    return requests.filter((request) => {
+      const matchesCategory = category === "Todas" || request.categoryName === category;
+      const searchableText = [
+        request.description,
+        request.descripcion,
+        request.categoryName,
+        request.location,
+        request.barrio,
+        request.direccion,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase("es-CO");
+      return matchesCategory && (!normalizedSearch || searchableText.includes(normalizedSearch));
+    });
+  }, [category, requests, search]);
 
-    loadRequests();
-  };
-
-  const handleRetry = async () => {
-    setRetrying(true);
-
-    await loadRequests();
-
-    setRetrying(false);
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Screen>
         <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <View style={styles.grid}>
             {[1, 2, 3, 4].map((item) => (
-              <View
-                key={item}
-                style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+              <View key={item} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
                 <Skeleton height={190} />
               </View>
             ))}
@@ -97,19 +85,17 @@ export default function AvailableRequestsScreen({ navigation }) {
     );
   }
 
-  if (error && requests.length === 0) {
+  if (isError && requests.length === 0) {
     return (
       <Screen>
         <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <ErrorState
             title="No pudimos cargar las solicitudes"
             description="Intenta nuevamente."
-            onRetry={handleRetry}
-            retrying={retrying}
+            onRetry={refetch}
+            retrying={isFetching}
           />
         </ResponsiveContainer>
       </Screen>
@@ -121,28 +107,54 @@ export default function AvailableRequestsScreen({ navigation }) {
       <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
 
       <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}
         contentContainerStyle={styles.scrollContent}>
         <ResponsiveContainer maxWidth={layout.content.wide}>
           <View style={styles.heading}>
             <Text style={styles.title}>Solicitudes disponibles</Text>
 
             <Text style={styles.description}>
-              Encuentra solicitudes compatibles con tus especialidades y envía
-              una propuesta.
+              Encuentra solicitudes compatibles con tus especialidades y envía una propuesta.
             </Text>
           </View>
-          {error && requests.length > 0 ? (
+          {requests.length > 0 ? (
+            <View style={styles.filters}>
+              <Input
+                label="Buscar solicitudes"
+                placeholder="Servicio, barrio o descripción"
+                value={search}
+                onChangeText={setSearch}
+                autoCorrect={false}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryFilters}>
+                {categoryOptions.map((option) => {
+                  const active = option === category;
+                  return (
+                    <Pressable
+                      key={option}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      onPress={() => setCategory(option)}
+                      style={[styles.filterChip, active && styles.filterChipActive]}>
+                      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
+                        {option}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          ) : null}
+          {isError && requests.length > 0 ? (
             <View style={styles.updateWarning}>
-              <Text style={styles.updateWarningTitle}>
-                No pudimos actualizar
-              </Text>
+              <Text style={styles.updateWarningTitle}>No pudimos actualizar</Text>
 
               <Text style={styles.updateWarningText}>
-                Estas son las últimas solicitudes que pudimos cargar. Desliza
-                hacia abajo para reintentar.
+                Estas son las últimas solicitudes que pudimos cargar. Desliza hacia abajo para
+                reintentar.
               </Text>
             </View>
           ) : null}
@@ -153,20 +165,22 @@ export default function AvailableRequestsScreen({ navigation }) {
               title="No hay solicitudes disponibles"
               description="Cuando aparezcan solicitudes compatibles con tus especialidades las verás aquí."
             />
+          ) : filteredRequests.length === 0 ? (
+            <EmptyState
+              icon="options-outline"
+              title="No encontramos coincidencias"
+              description="Prueba con otro término o selecciona una categoría diferente."
+            />
           ) : (
             <View style={styles.grid}>
-              {requests.map((request) => (
-                <View
-                  key={request.id}
-                  style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+              {filteredRequests.map((request) => (
+                <View key={request.id} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
                   <ProfessionalRequestCard
                     request={request}
                     onPress={() =>
-                      navigation
-                        .getParent()
-                        ?.navigate("ProfessionalRequestDetail", {
-                          request,
-                        })
+                      navigation.getParent()?.navigate("ProfessionalRequestDetail", {
+                        request,
+                      })
                     }
                   />
                 </View>
@@ -208,6 +222,35 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
 
     maxWidth: 620,
+  },
+  filters: {
+    marginBottom: spacing.xl,
+    maxWidth: 680,
+  },
+  categoryFilters: {
+    gap: spacing.sm,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+  },
+  filterChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 999,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  filterChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+  },
+  filterChipText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  filterChipTextActive: {
+    color: colors.primaryDark,
   },
 
   grid: {

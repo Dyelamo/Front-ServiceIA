@@ -37,8 +37,7 @@ export default function ReceivedOfferCard({
     offer.provider?.usuario?.nombre_completo ||
     offer.provider?.nombre ||
     "Profesional";
-  const isAccepted =
-    offer.status === "aceptada" || offer.status === "aceptado";
+  const isAccepted = offer.status === "aceptada" || offer.status === "aceptado";
   const isPending = offer.status === "pendiente";
 
   const ratingAvg = reviewsSummary?.promedio ?? 0;
@@ -48,10 +47,7 @@ export default function ReceivedOfferCard({
     <Card variant="outlined" style={styles.card}>
       <Pressable
         onPress={onViewProfile}
-        style={({ pressed }) => [
-          styles.header,
-          pressed && onViewProfile && styles.headerPressed,
-        ]}>
+        style={({ pressed }) => [styles.header, pressed && onViewProfile && styles.headerPressed]}>
         <View style={styles.providerIcon}>
           <Ionicons name="person-outline" size={20} color={colors.primary} />
         </View>
@@ -78,11 +74,7 @@ export default function ReceivedOfferCard({
         <Text style={styles.price}>{formatCurrency(offer.price)}</Text>
       </Pressable>
 
-      <InfoRow
-        icon="time-outline"
-        label="Disponibilidad"
-        value={offer.availability}
-      />
+      <InfoRow icon="time-outline" label="Disponibilidad" value={offer.availability} />
       {offer.message ? (
         <InfoRow icon="chatbubble-outline" label="Propuesta" value={offer.message} />
       ) : null}
@@ -117,15 +109,9 @@ export default function ReceivedOfferCard({
           variant="secondary"
           style={styles.action}
           leftIcon={
-            <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={18}
-              color={colors.primaryDark}
-            />
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primaryDark} />
           }>
-          {offer.conversationId && offer.providerId
-            ? "Enviar mensaje"
-            : "Chat no disponible"}
+          {offer.conversationId && offer.providerId ? "Enviar mensaje" : "Chat no disponible"}
         </Button>
       ) : null}
     </Card>

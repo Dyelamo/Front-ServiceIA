@@ -10,12 +10,7 @@ import { mapRequestFromApi } from "../../requests/mappers/request.mapper";
 
 import { fetchPublicationById } from "../../requests/api/requests.api";
 
-export const createProfessionalOffer = async ({
-  publicationId,
-  price,
-  availability,
-  message,
-}) => {
+export const createProfessionalOffer = async ({ publicationId, price, availability, message }) => {
   const prestadorId = await getUserId();
 
   if (!prestadorId) {
@@ -55,9 +50,7 @@ export const fetchProfessionalOffersWithPublications = async () => {
         let publication = publicationCache.get(offer.publicationId);
 
         if (!publication) {
-          const rawPublication = await fetchPublicationById(
-            offer.publicationId,
-          );
+          const rawPublication = await fetchPublicationById(offer.publicationId);
 
           publication = mapRequestFromApi(rawPublication);
 
@@ -96,10 +89,7 @@ export const fetchOffersForPublication = async (publicationId) => {
 };
 
 export const acceptOffer = async (offerId) => {
-  const { data } = await api.patch(
-    `/postulaciones/${offerId}/estado`,
-    { estado: "aceptada" },
-  );
+  const { data } = await api.patch(`/postulaciones/${offerId}/estado`, { estado: "aceptada" });
 
   return data;
 };

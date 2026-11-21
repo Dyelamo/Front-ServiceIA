@@ -32,9 +32,7 @@ export default function EmptyState({
 
       <Text style={styles.title}>{title}</Text>
 
-      {description ? (
-        <Text style={styles.description}>{description}</Text>
-      ) : null}
+      {description ? <Text style={styles.description}>{description}</Text> : null}
 
       {actionLabel && onAction ? (
         <View style={styles.action}>

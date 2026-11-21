@@ -1,29 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, layout, radius, spacing } from "../../../theme";
-import {
-  Avatar,
-  Button,
-  Card,
-  Divider,
-  EmptyState,
-  ErrorState,
-  Skeleton,
-} from "../../../shared/ui";
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout";
+import { Avatar, Button, Card, Divider, ErrorState, Skeleton } from "../../../shared/ui";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout";
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 import { getProfessionalByIdApi } from "../api/professional.api";
 import { fetchProviderReviews } from "../../reviews/api/reviews.api";
@@ -32,9 +13,7 @@ import { categories as serviceCategories } from "../../requests/data/categories"
 export default function WorkerProfileScreen({ navigation, route }) {
   const { isDesktop, isMobile } = useResponsive();
   const workerId =
-    route?.params?.workerId ||
-    route?.params?.provider?.id ||
-    route?.params?.providerId;
+    route?.params?.workerId || route?.params?.provider?.id || route?.params?.providerId;
   const initialProvider = route?.params?.provider;
   const initialName =
     route?.params?.workerName ||
@@ -87,25 +66,16 @@ export default function WorkerProfileScreen({ navigation, route }) {
     loadData();
   }, [loadData]);
 
-  const fullName =
-    profile?.nombre_completo ||
-    profile?.usuario?.nombre_completo ||
-    initialName;
-  const location =
-    profile?.ubicacion ||
-    profile?.usuario?.ubicacion ||
-    "Valledupar, Cesar";
-  const description =
-    profile?.descripcion ||
-    profile?.sobre_mi ||
-    "";
+  const fullName = profile?.nombre_completo || profile?.usuario?.nombre_completo || initialName;
+  const location = profile?.ubicacion || profile?.usuario?.ubicacion || "Valledupar, Cesar";
+  const description = profile?.descripcion || profile?.sobre_mi || "";
   const isAvailable = profile?.disponible ?? true;
   const isVerified = profile?.verificado ?? false;
   const specialties = Array.isArray(profile?.categorias)
     ? profile.categorias
     : Array.isArray(profile?.especialidades)
-    ? profile.especialidades
-    : [];
+      ? profile.especialidades
+      : [];
 
   const promedio = reviewsData?.promedio ?? 0;
   const totalResenas = reviewsData?.total_resenas ?? 0;
@@ -176,18 +146,14 @@ export default function WorkerProfileScreen({ navigation, route }) {
                   style={[
                     styles.statusPill,
                     {
-                      backgroundColor: isAvailable
-                        ? colors.successLight
-                        : colors.surfaceHover,
+                      backgroundColor: isAvailable ? colors.successLight : colors.surfaceHover,
                     },
                   ]}>
                   <View
                     style={[
                       styles.statusDot,
                       {
-                        backgroundColor: isAvailable
-                          ? colors.success
-                          : colors.textMuted,
+                        backgroundColor: isAvailable ? colors.success : colors.textMuted,
                       },
                     ]}
                   />
@@ -195,9 +161,7 @@ export default function WorkerProfileScreen({ navigation, route }) {
                     style={[
                       styles.statusText,
                       {
-                        color: isAvailable
-                          ? colors.successDark
-                          : colors.textMuted,
+                        color: isAvailable ? colors.successDark : colors.textMuted,
                       },
                     ]}>
                     {isAvailable ? "Disponible" : "No disponible"}
@@ -232,8 +196,8 @@ export default function WorkerProfileScreen({ navigation, route }) {
                       star <= Math.round(promedio)
                         ? "star"
                         : star - 0.5 <= promedio
-                        ? "star-half"
-                        : "star-outline"
+                          ? "star-half"
+                          : "star-outline"
                     }
                     size={22}
                     color="#F59E0B"
@@ -260,8 +224,7 @@ export default function WorkerProfileScreen({ navigation, route }) {
             {/* SOBRE MÍ */}
             <SectionCard title="Sobre el profesional" icon="person-outline">
               <Text style={description ? styles.description : styles.emptyText}>
-                {description ||
-                  "Este profesional aún no ha añadido una descripción a su perfil."}
+                {description || "Este profesional aún no ha añadido una descripción a su perfil."}
               </Text>
             </SectionCard>
 
@@ -284,16 +247,12 @@ export default function WorkerProfileScreen({ navigation, route }) {
                   })}
                 </View>
               ) : (
-                <Text style={styles.emptyText}>
-                  No tiene especialidades registradas.
-                </Text>
+                <Text style={styles.emptyText}>No tiene especialidades registradas.</Text>
               )}
             </SectionCard>
 
             {/* LISTA DE OPINIONES DE CLIENTES */}
-            <SectionCard
-              title={`Reseñas de Clientes (${totalResenas})`}
-              icon="chatbubbles-outline">
+            <SectionCard title={`Reseñas de Clientes (${totalResenas})`} icon="chatbubbles-outline">
               {resenas.length > 0 ? (
                 <View style={styles.reviewsList}>
                   {resenas.map((r) => (
@@ -309,9 +268,7 @@ export default function WorkerProfileScreen({ navigation, route }) {
                             <Text style={styles.reviewerName}>
                               {r.cliente_nombre || "Cliente ServIA"}
                             </Text>
-                            <Text style={styles.reviewDate}>
-                              {formatDate(r.created_at)}
-                            </Text>
+                            <Text style={styles.reviewDate}>{formatDate(r.created_at)}</Text>
                           </View>
                         </View>
 
@@ -344,7 +301,8 @@ export default function WorkerProfileScreen({ navigation, route }) {
                   <Ionicons name="star-outline" size={32} color={colors.textMuted} />
                   <Text style={styles.emptyReviewsTitle}>Sin opiniones todavía</Text>
                   <Text style={styles.emptyReviewsSubtitle}>
-                    Cuando este profesional termine trabajos contratados, sus clientes dejarán aquí una reseña obligatoria con su puntuación.
+                    Cuando este profesional termine trabajos contratados, sus clientes dejarán aquí
+                    una reseña obligatoria con su puntuación.
                   </Text>
                 </View>
               )}
@@ -424,13 +382,7 @@ function getSpecialtyName(specialty) {
   }
   const id = specialty?.id || specialty?.categoria_id;
   const category = serviceCategories.find((item) => item.id === id);
-  return (
-    specialty?.nombre ||
-    specialty?.name ||
-    specialty?.label ||
-    category?.label ||
-    "Servicio"
-  );
+  return specialty?.nombre || specialty?.name || specialty?.label || category?.label || "Servicio";
 }
 
 function formatDate(value) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -56,11 +56,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    loadUserProfile();
-  }, []);
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     try {
       setLoadingProfile(true);
 
@@ -72,7 +68,11 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
     } finally {
       setLoadingProfile(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadUserProfile();
+  }, [loadUserProfile]);
 
   const handleClose = () => {
     if (isSaving) {
@@ -91,9 +91,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
     const description = about.trim();
 
     if (description.length < 20) {
-      setError(
-        "Cuéntanos un poco más sobre tu experiencia. Escribe al menos 20 caracteres.",
-      );
+      setError("Cuéntanos un poco más sobre tu experiencia. Escribe al menos 20 caracteres.");
 
       return;
     }
@@ -162,8 +160,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
         ...userProfile,
         ...profile,
 
-        nombre_completo:
-          userProfile?.nombre_completo || profile?.nombre_completo,
+        nombre_completo: userProfile?.nombre_completo || profile?.nombre_completo,
 
         email: userProfile?.email || profile?.email,
 
@@ -230,13 +227,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
   }
 
   if (step === STEPS.INTRO) {
-    return (
-      <IntroStep
-        onStart={handleStart}
-        onClose={handleClose}
-        isDesktop={isDesktop}
-      />
-    );
+    return <IntroStep onStart={handleStart} onClose={handleClose} isDesktop={isDesktop} />;
   }
 
   if (step === STEPS.PROFILE) {
@@ -284,10 +275,7 @@ function IntroStep({ onStart, onClose, isDesktop }) {
         contentContainerStyle={styles.introScrollContent}
         showsVerticalScrollIndicator={false}
         bounces={false}>
-        <ResponsiveContainer
-          maxWidth={480}
-          noPadding
-          style={styles.introContainer}>
+        <ResponsiveContainer maxWidth={480} noPadding style={styles.introContainer}>
           <Pressable
             onPress={onClose}
             accessibilityRole="button"
@@ -301,22 +289,16 @@ function IntroStep({ onStart, onClose, isDesktop }) {
             <View style={styles.heroCircleLarge}>
               <View style={styles.heroCircleMedium}>
                 <View style={styles.heroSquircle}>
-                  <Ionicons
-                    name="briefcase-outline"
-                    size={42}
-                    color={colors.white}
-                  />
+                  <Ionicons name="briefcase-outline" size={42} color={colors.white} />
                 </View>
               </View>
             </View>
 
-            <Text style={styles.introTitle}>
-              Conviértete en{"\n"}profesional de Serv-IA
-            </Text>
+            <Text style={styles.introTitle}>Conviértete en{"\n"}profesional de Serv-IA</Text>
 
             <Text style={styles.introDescription}>
-              Encuentra clientes, envía ofertas y recibe pagos por tu trabajo. Más
-              de 1.000 profesionales confían en nosotros.
+              Encuentra clientes, envía ofertas y recibe pagos por tu trabajo. Más de 1.000
+              profesionales confían en nosotros.
             </Text>
           </View>
 
@@ -345,9 +327,7 @@ function IntroStep({ onStart, onClose, isDesktop }) {
               onPress={onStart}
               size="lg"
               style={styles.startButton}
-              rightIcon={
-                <Ionicons name="arrow-forward" size={20} color={colors.white} />
-              }>
+              rightIcon={<Ionicons name="arrow-forward" size={20} color={colors.white} />}>
               Comenzar
             </Button>
           </View>
@@ -373,15 +353,7 @@ function BenefitItem({ icon, title, description }) {
   );
 }
 
-function ProfileStep({
-  userProfile,
-  about,
-  setAbout,
-  error,
-  onBack,
-  onContinue,
-  isDesktop,
-}) {
+function ProfileStep({ userProfile, about, setAbout, error, onBack, onContinue, isDesktop }) {
   const initials = getInitials(userProfile?.nombre_completo);
 
   return (
@@ -396,16 +368,8 @@ function ProfileStep({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <ResponsiveContainer maxWidth={1000}>
-          <View
-            style={[
-              styles.profileDesktopLayout,
-              !isDesktop && styles.profileMobileLayout,
-            ]}>
-            <View
-              style={[
-                styles.profileInfoColumn,
-                !isDesktop && styles.profileInfoColumnMobile,
-              ]}>
+          <View style={[styles.profileDesktopLayout, !isDesktop && styles.profileMobileLayout]}>
+            <View style={[styles.profileInfoColumn, !isDesktop && styles.profileInfoColumnMobile]}>
               <Text style={styles.stepTitle}>Tu perfil profesional</Text>
 
               <Text style={styles.stepDescription}>
@@ -429,11 +393,7 @@ function ProfileStep({
               </Card>
             </View>
 
-            <View
-              style={[
-                styles.profileFormColumn,
-                !isDesktop && styles.profileFormColumnMobile,
-              ]}>
+            <View style={[styles.profileFormColumn, !isDesktop && styles.profileFormColumnMobile]}>
               <Card variant="outlined" style={styles.formCard}>
                 <TextArea
                   label="Descripción profesional"
@@ -491,11 +451,7 @@ function CategoriesStep({
 
           {error ? (
             <View style={styles.errorBox}>
-              <Ionicons
-                name="alert-circle-outline"
-                size={20}
-                color={colors.error}
-              />
+              <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
 
               <Text style={styles.errorText}>{error}</Text>
             </View>
@@ -525,12 +481,7 @@ function CategoriesStep({
 
                     loading && styles.categoryItemDisabled,
                   ]}>
-                  <View
-                    style={[
-                      styles.categoryIcon,
-
-                      selected && styles.categoryIconSelected,
-                    ]}>
+                  <View style={[styles.categoryIcon, selected && styles.categoryIconSelected]}>
                     <Ionicons
                       name={category.icon || "construct-outline"}
                       size={20}
@@ -540,21 +491,13 @@ function CategoriesStep({
 
                   <Text
                     numberOfLines={2}
-                    style={[
-                      styles.categoryName,
-
-                      selected && styles.categoryNameSelected,
-                    ]}>
+                    style={[styles.categoryName, selected && styles.categoryNameSelected]}>
                     {category.name}
                   </Text>
 
                   {selected ? (
                     <View style={styles.checkBadge}>
-                      <Ionicons
-                        name="checkmark"
-                        size={13}
-                        color={colors.white}
-                      />
+                      <Ionicons name="checkmark" size={13} color={colors.white} />
                     </View>
                   ) : null}
                 </Pressable>
@@ -593,44 +536,31 @@ function SuccessStep({ onProfessional, onHome, isDesktop }) {
       <ScrollView
         contentContainerStyle={styles.successScrollContent}
         showsVerticalScrollIndicator={false}>
-      <ResponsiveContainer
-        maxWidth={isDesktop ? 760 : 520}
-        style={styles.successContainer}>
-        <Card
-          variant="outline"
-          style={[styles.successCard, !isDesktop && styles.successCardMobile,]}>
-          <View style={styles.successContent}>
-            <View style={styles.successIcon}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={48}
-                color={colors.primary}
-              />
+        <ResponsiveContainer maxWidth={isDesktop ? 760 : 520} style={styles.successContainer}>
+          <Card
+            variant="outline"
+            style={[styles.successCard, !isDesktop && styles.successCardMobile]}>
+            <View style={styles.successContent}>
+              <View style={styles.successIcon}>
+                <Ionicons name="checkmark-circle-outline" size={48} color={colors.primary} />
+              </View>
+
+              <Text style={styles.successTitle}>¡Perfil creado!</Text>
+
+              <Text style={styles.successDescription}>
+                Ya puedes comenzar a recibir solicitudes y enviar ofertas a clientes en Serv-IA.
+              </Text>
+
+              <Button onPress={onProfessional} size="lg" style={styles.successButton}>
+                Ver solicitudes disponibles
+              </Button>
+
+              <Pressable onPress={onHome} accessibilityRole="button" style={styles.homeButton}>
+                <Text style={styles.homeButtonText}>Ir al inicio</Text>
+              </Pressable>
             </View>
-
-            <Text style={styles.successTitle}>¡Perfil creado!</Text>
-
-            <Text style={styles.successDescription}>
-              Ya puedes comenzar a recibir solicitudes y enviar ofertas a
-              clientes en Serv-IA.
-            </Text>
-
-            <Button
-              onPress={onProfessional}
-              size="lg"
-              style={styles.successButton}>
-              Ver solicitudes disponibles
-            </Button>
-
-            <Pressable
-              onPress={onHome}
-              accessibilityRole="button"
-              style={styles.homeButton}>
-              <Text style={styles.homeButtonText}>Ir al inicio</Text>
-            </Pressable>
-          </View>
-        </Card>
-      </ResponsiveContainer>
+          </Card>
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );
@@ -655,10 +585,7 @@ function OnboardingHeader({ step, total, onBack, disabled = false }) {
               color={disabled ? colors.textMuted : colors.textSecondary}
             />
 
-            <Text
-              style={[styles.backText, disabled && styles.backTextDisabled]}>
-              Atrás
-            </Text>
+            <Text style={[styles.backText, disabled && styles.backTextDisabled]}>Atrás</Text>
           </Pressable>
 
           <Text style={styles.stepCounter}>

@@ -10,24 +10,24 @@ import ClientNavigator from "./ClientNavigator";
 
 import ProfessionalNavigator from "./ProfessionalNavigator";
 
-import ProfessionalOnboardingScreen from "../../features/professional/screens/ProfessionalOnboardingScreen";
+import ProfessionalOnboardingScreen from "../features/professional/screens/ProfessionalOnboardingScreen";
 
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-import { colors, spacing } from "../../theme/index";
+import { colors, spacing } from "../theme/index";
 
-import { useAuth } from "../../hook/useAuth";
+import { useAuth } from "../hook/useAuth";
 
-import { AppModeContext } from "../../features/app-mode/context/AppModeContext";
+import { AppModeContext } from "../features/app-mode/context/AppModeContext";
 
 const RootStack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  const { mode } = useContext(AppModeContext);
+  const { mode, isModeLoading } = useContext(AppModeContext);
 
-  if (isLoading) {
+  if (isLoading || (isAuthenticated && isModeLoading)) {
     return (
       <View style={styles.loadingScreen}>
         <Text style={styles.brand}>Serv-IA</Text>
@@ -50,10 +50,7 @@ export default function RootNavigator() {
           <RootStack.Screen name="Auth" component={AuthNavigator} />
         ) : mode === "profesional" ? (
           <RootStack.Group navigationKey="profesional">
-            <RootStack.Screen
-              name="Professional"
-              component={ProfessionalNavigator}
-            />
+            <RootStack.Screen name="Professional" component={ProfessionalNavigator} />
 
             <RootStack.Screen
               name="ProfessionalOnboarding"

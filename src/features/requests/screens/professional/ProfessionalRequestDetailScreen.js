@@ -1,102 +1,49 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import {
-  Ionicons,
-} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-  layout,
-  spacing,
-} from "../../../../theme/index";
+import { colors, layout, spacing } from "../../../../theme/index";
 
-import {
-  Button,
-  Card,
-  Divider
-} from "../../../../shared/ui/index";
+import { Button, Card, Divider } from "../../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../../shared/layout/index";
 
-import {
-  useResponsive,
-} from "../../../../shared/hooks/useResponsive";
+import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
-import {
-  categories,
-} from "../../data/categories";
+import { categories } from "../../data/categories";
 
-function getCategory(
-  categoryId
-) {
-  return categories.find(
-    (item) =>
-      item.id === categoryId
-  );
+function getCategory(categoryId) {
+  return categories.find((item) => item.id === categoryId);
 }
 
 const urgencyLabels = {
-  ahora:
-    "Lo antes posible",
+  ahora: "Lo antes posible",
 
-  hoy:
-    "Hoy",
+  hoy: "Hoy",
 
-  "esta semana":
-    "Esta semana",
+  "esta semana": "Esta semana",
 
-  "no tengo prisa":
-    "No tengo prisa",
+  "no tengo prisa": "No tengo prisa",
 };
 
-export default function ProfessionalRequestDetailScreen({
-  navigation,
-  route,
-}) {
-  const {
-    isDesktop,
-  } = useResponsive();
+export default function ProfessionalRequestDetailScreen({ navigation, route }) {
+  const { isDesktop } = useResponsive();
 
-  const request =
-    route?.params?.request;
+  const request = route?.params?.request;
 
   if (!request) {
     return (
       <Screen>
         <AppHeader
           title="Solicitud"
-          onBack={() =>
-            navigation.goBack()
-          }
-          maxWidth={
-            layout.content.wide
-          }
+          onBack={() => navigation.goBack()}
+          maxWidth={layout.content.wide}
         />
 
-        <ResponsiveContainer
-          maxWidth={
-            layout.content.medium
-          }
-          style={styles.container}
-        >
-          <Text
-            style={
-              styles.notFound
-            }
-          >
-            No encontramos la
-            solicitud.
-          </Text>
+        <ResponsiveContainer maxWidth={layout.content.medium} style={styles.container}>
+          <Text style={styles.notFound}>No encontramos la solicitud.</Text>
         </ResponsiveContainer>
       </Screen>
     );
@@ -113,15 +60,9 @@ export default function ProfessionalRequestDetailScreen({
     "Servicio";
 
   const categoryIcon =
-    request.categoryIcon ||
-    category?.icon ||
-    request.categoria?.icono ||
-    "construct-outline";
+    request.categoryIcon || category?.icon || request.categoria?.icono || "construct-outline";
 
-  const description =
-    request.description ||
-    request.descripcion ||
-    "Sin descripción";
+  const description = request.description || request.descripcion || "Sin descripción";
 
   const urgency =
     request.urgencyLabel ||
@@ -130,112 +71,45 @@ export default function ProfessionalRequestDetailScreen({
     request.urgency ||
     "No especificada";
 
-  const locationText = request.location || (request.barrio 
-    ? `${request.barrio} - ${request.direccion || "Valledupar"}${request.referencia ? ` (${request.referencia})` : ""}`
-    : (request.direccion || "Valledupar, Cesar"));
+  const locationText =
+    request.location ||
+    (request.barrio
+      ? `${request.barrio} - ${request.direccion || "Valledupar"}${request.referencia ? ` (${request.referencia})` : ""}`
+      : request.direccion || "Valledupar, Cesar");
 
   return (
-    <Screen
-      scroll
-      backgroundColor={
-        colors.background
-      }
-    >
+    <Screen scroll backgroundColor={colors.background}>
       <AppHeader
         title="Detalle de solicitud"
-        onBack={() =>
-          navigation.goBack()
-        }
-        maxWidth={
-          layout.content.wide
-        }
+        onBack={() => navigation.goBack()}
+        maxWidth={layout.content.wide}
       />
 
-      <ResponsiveContainer
-        maxWidth={
-          layout.content.wide
-        }
-        style={styles.container}
-      >
+      <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         {/* ENCABEZADO */}
 
         <View style={styles.heading}>
-          <View
-            style={
-              styles.categoryIcon
-            }
-          >
-            <Ionicons
-              name={
-                categoryIcon
-              }
-              size={26}
-              color={colors.primary}
-            />
+          <View style={styles.categoryIcon}>
+            <Ionicons name={categoryIcon} size={26} color={colors.primary} />
           </View>
 
-          <View
-            style={
-              styles.headingContent
-            }
-          >
-            <Text
-              style={
-                styles.category
-              }
-            >
-              {categoryName}
-            </Text>
+          <View style={styles.headingContent}>
+            <Text style={styles.category}>{categoryName}</Text>
 
-            <Text
-              style={[
-                styles.title,
-
-                isDesktop &&
-                  styles.titleDesktop,
-              ]}
-            >
-              {description}
-            </Text>
+            <Text style={[styles.title, isDesktop && styles.titleDesktop]}>{description}</Text>
           </View>
         </View>
 
         {/* COLUMNAS */}
 
-        <View
-          style={[
-            styles.columns,
-
-            !isDesktop &&
-              styles.columnsMobile,
-          ]}
-        >
+        <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>
           {/* DESCRIPCIÓN */}
 
-          <View
-            style={[
-              styles.mainColumn,
+          <View style={[styles.mainColumn, !isDesktop && styles.fullColumn]}>
+            <Card variant="outlined" style={styles.card}>
+              <SectionHeader icon="document-text-outline" title="Descripción" />
 
-              !isDesktop &&
-                styles.fullColumn,
-            ]}
-          >
-            <Card
-              variant="outlined"
-              style={styles.card}
-            >
-              <SectionHeader
-                icon="document-text-outline"
-                title="Descripción"
-              />
-
-              <Text
-                style={
-                  styles.description
-                }
-              >
-                {description}
-              </Text>
+              <Text style={styles.description}>{description}</Text>
             </Card>
           </View>
 
@@ -245,90 +119,48 @@ export default function ProfessionalRequestDetailScreen({
             style={[
               styles.sideColumn,
 
-              !isDesktop &&
-                styles.fullColumn,
+              !isDesktop && styles.fullColumn,
 
-              !isDesktop &&
-                styles.sideMobile,
-            ]}
-          >
-            <Card
-              variant="outlined"
-              style={styles.card}
-            >
-              <SectionHeader
-                icon="information-circle-outline"
-                title="Información"
-              />
+              !isDesktop && styles.sideMobile,
+            ]}>
+            <Card variant="outlined" style={styles.card}>
+              <SectionHeader icon="information-circle-outline" title="Información" />
 
-              <InfoRow
-                icon="grid-outline"
-                label="Categoría"
-                value={categoryName}
-              />
+              <InfoRow icon="grid-outline" label="Categoría" value={categoryName} />
 
               <Divider />
 
-              <InfoRow
-                icon="location-outline"
-                label="Ubicación"
-                value={locationText}
-              />
+              <InfoRow icon="location-outline" label="Ubicación" value={locationText} />
 
               <Divider />
 
-              <InfoRow
-                icon="time-outline"
-                label="Urgencia"
-                value={urgency}
-              />
+              <InfoRow icon="time-outline" label="Urgencia" value={urgency} />
 
               <Divider />
 
               <InfoRow
                 icon="calendar-outline"
                 label="Publicado"
-                value={formatDate(
-                  request.created_at
-                )}
+                value={formatDate(request.created_at)}
               />
             </Card>
 
-            <View
-              style={styles.notice}
-            >
-              <Ionicons
-                name="information-circle-outline"
-                size={20}
-                color={colors.primary}
-              />
+            <View style={styles.notice}>
+              <Ionicons name="information-circle-outline" size={20} color={colors.primary} />
 
-              <Text
-                style={
-                  styles.noticeText
-                }
-              >
-                Revisa los detalles
-                antes de enviar una
-                oferta. Podrás indicar
-                precio, disponibilidad
-                y un mensaje.
+              <Text style={styles.noticeText}>
+                Revisa los detalles antes de enviar una oferta. Podrás indicar precio,
+                disponibilidad y un mensaje.
               </Text>
             </View>
 
-            <View
-              style={styles.action}
-            >
+            <View style={styles.action}>
               <Button
                 onPress={() =>
-                  navigation.navigate(
-                    "CreateOffer",
-                    {
-                      request,
-                    }
-                  )
-                }
-              >
+                  navigation.navigate("CreateOffer", {
+                    request,
+                  })
+                }>
                 Enviar oferta
               </Button>
             </View>
@@ -339,72 +171,27 @@ export default function ProfessionalRequestDetailScreen({
   );
 }
 
-function SectionHeader({
-  icon,
-  title,
-}) {
+function SectionHeader({ icon, title }) {
   return (
-    <View
-      style={
-        styles.sectionHeader
-      }
-    >
-      <View
-        style={
-          styles.sectionIcon
-        }
-      >
-        <Ionicons
-          name={icon}
-          size={19}
-          color={colors.primary}
-        />
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionIcon}>
+        <Ionicons name={icon} size={19} color={colors.primary} />
       </View>
 
-      <Text
-        style={styles.cardTitle}
-      >
-        {title}
-      </Text>
+      <Text style={styles.cardTitle}>{title}</Text>
     </View>
   );
 }
 
-function InfoRow({
-  icon,
-  label,
-  value,
-}) {
+function InfoRow({ icon, label, value }) {
   return (
-    <View
-      style={styles.infoRow}
-    >
-      <Ionicons
-        name={icon}
-        size={18}
-        color={colors.primary}
-      />
+    <View style={styles.infoRow}>
+      <Ionicons name={icon} size={18} color={colors.primary} />
 
-      <View
-        style={
-          styles.infoContent
-        }
-      >
-        <Text
-          style={
-            styles.infoLabel
-          }
-        >
-          {label}
-        </Text>
+      <View style={styles.infoContent}>
+        <Text style={styles.infoLabel}>{label}</Text>
 
-        <Text
-          style={
-            styles.infoValue
-          }
-        >
-          {value}
-        </Text>
+        <Text style={styles.infoValue}>{value}</Text>
       </View>
     </View>
   );
@@ -415,246 +202,213 @@ function formatDate(value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return date.toLocaleDateString(
-    "es-CO",
-    {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }
-  );
+  return date.toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      paddingVertical:
-        spacing.xxl,
-    },
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: spacing.xxl,
+  },
 
-    notFound: {
-      color:
-        colors.textSecondary,
+  notFound: {
+    color: colors.textSecondary,
 
-      fontSize: 15,
-    },
+    fontSize: 15,
+  },
 
-    heading: {
-      flexDirection: "row",
+  heading: {
+    flexDirection: "row",
 
-      alignItems:
-        "flex-start",
+    alignItems: "flex-start",
 
-      marginBottom:
-        spacing.xxl,
-    },
+    marginBottom: spacing.xxl,
+  },
 
-    categoryIcon: {
-      width: 54,
-      height: 54,
+  categoryIcon: {
+    width: 54,
+    height: 54,
 
-      borderRadius: 15,
+    borderRadius: 15,
 
-      backgroundColor:
-        colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
-      alignItems: "center",
-      justifyContent: "center",
-    },
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-    headingContent: {
-      flex: 1,
+  headingContent: {
+    flex: 1,
 
-      marginLeft:
-        spacing.lg,
-    },
+    marginLeft: spacing.lg,
+  },
 
-    category: {
-      color: colors.primary,
+  category: {
+    color: colors.primary,
 
-      fontSize: 14,
-      fontWeight: "700",
-    },
+    fontSize: 14,
+    fontWeight: "700",
+  },
 
-    title: {
-      color: colors.text,
+  title: {
+    color: colors.text,
 
-      fontSize: 22,
-      lineHeight: 30,
+    fontSize: 22,
+    lineHeight: 30,
 
-      fontWeight: "800",
+    fontWeight: "800",
 
-      marginTop: 3,
-    },
+    marginTop: 3,
+  },
 
-    titleDesktop: {
-      fontSize: 29,
-      lineHeight: 38,
+  titleDesktop: {
+    fontSize: 29,
+    lineHeight: 38,
 
-      maxWidth: 800,
-    },
+    maxWidth: 800,
+  },
 
-    columns: {
-      flexDirection: "row",
+  columns: {
+    flexDirection: "row",
 
-      alignItems:
-        "flex-start",
+    alignItems: "flex-start",
 
-      gap:
-        spacing.xl,
-    },
+    gap: spacing.xl,
+  },
 
-    columnsMobile: {
-      flexDirection: "column",
+  columnsMobile: {
+    flexDirection: "column",
 
-      gap: 0,
-    },
+    gap: 0,
+  },
 
-    mainColumn: {
-      flex: 2,
-    },
+  mainColumn: {
+    flex: 2,
+  },
 
-    sideColumn: {
-      flex: 1,
+  sideColumn: {
+    flex: 1,
 
-      minWidth: 320,
-    },
+    minWidth: 320,
+  },
 
-    fullColumn: {
-      width: "100%",
-      minWidth: 0,
+  fullColumn: {
+    width: "100%",
+    minWidth: 0,
 
-      flexGrow: 0,
-      flexShrink: 0,
-      flexBasis: "auto",
-    },
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: "auto",
+  },
 
-    sideMobile: {
-      marginTop:
-        spacing.lg,
-    },
+  sideMobile: {
+    marginTop: spacing.lg,
+  },
 
-    card: {
-      width: "100%",
+  card: {
+    width: "100%",
 
-      padding:
-        spacing.xl,
-    },
+    padding: spacing.xl,
+  },
 
-    sectionHeader: {
-      flexDirection: "row",
-      alignItems: "center",
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
 
-      marginBottom:
-        spacing.xl,
-    },
+    marginBottom: spacing.xl,
+  },
 
-    sectionIcon: {
-      width: 38,
-      height: 38,
+  sectionIcon: {
+    width: 38,
+    height: 38,
 
-      borderRadius: 11,
+    borderRadius: 11,
 
-      backgroundColor:
-        colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
-      alignItems: "center",
-      justifyContent: "center",
-    },
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-    cardTitle: {
-      color: colors.text,
+  cardTitle: {
+    color: colors.text,
 
-      fontSize: 17,
-      fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "800",
 
-      marginLeft:
-        spacing.md,
-    },
+    marginLeft: spacing.md,
+  },
 
-    description: {
-      color:
-        colors.textSecondary,
+  description: {
+    color: colors.textSecondary,
 
-      fontSize: 15,
-      lineHeight: 24,
-    },
+    fontSize: 15,
+    lineHeight: 24,
+  },
 
-    infoRow: {
-      flexDirection: "row",
-      alignItems:
-        "flex-start",
-    },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
 
-    infoContent: {
-      flex: 1,
+  infoContent: {
+    flex: 1,
 
-      marginLeft:
-        spacing.md,
-    },
+    marginLeft: spacing.md,
+  },
 
-    infoLabel: {
-      color:
-        colors.textMuted,
+  infoLabel: {
+    color: colors.textMuted,
 
-      fontSize: 11,
-    },
+    fontSize: 11,
+  },
 
-    infoValue: {
-      color: colors.text,
+  infoValue: {
+    color: colors.text,
 
-      fontSize: 14,
-      lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 20,
 
-      fontWeight: "600",
+    fontWeight: "600",
 
-      marginTop: 3,
-    },
+    marginTop: 3,
+  },
 
-    notice: {
-      flexDirection: "row",
+  notice: {
+    flexDirection: "row",
 
-      alignItems:
-        "flex-start",
+    alignItems: "flex-start",
 
-      marginTop:
-        spacing.lg,
+    marginTop: spacing.lg,
 
-      padding:
-        spacing.lg,
+    padding: spacing.lg,
 
-      backgroundColor:
-        colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
-      borderRadius: 12,
-    },
+    borderRadius: 12,
+  },
 
-    noticeText: {
-      flex: 1,
+  noticeText: {
+    flex: 1,
 
-      marginLeft:
-        spacing.sm,
+    marginLeft: spacing.sm,
 
-      color:
-        colors.textSecondary,
+    color: colors.textSecondary,
 
-      fontSize: 13,
-      lineHeight: 20,
-    },
+    fontSize: 13,
+    lineHeight: 20,
+  },
 
-    action: {
-      marginTop:
-        spacing.lg,
-    },
-  });
+  action: {
+    marginTop: spacing.lg,
+  },
+});

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mi-proyecto",
+    "name": "Serv-IA",
     "slug": "mi-proyecto",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,7 +21,23 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Serv-IA necesita acceso a tus fotos para adjuntarlas a una solicitud.",
+          "cameraPermission": "Serv-IA necesita acceso a la cámara para fotografiar el problema.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Serv-IA usa tu ubicación para completar la dirección donde necesitas el servicio."
+        }
+      ]
     ]
   }
 }

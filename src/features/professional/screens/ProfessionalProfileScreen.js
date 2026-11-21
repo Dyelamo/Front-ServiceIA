@@ -8,20 +8,9 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import { colors, radius, spacing, layout } from "../../../theme/index";
 
-import {
-  Avatar,
-  Button,
-  Card,
-  ErrorState,
-  Skeleton,
-  Divider
-} from "../../../shared/ui/index";
+import { Avatar, Button, Card, ErrorState, Skeleton, Divider } from "../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 
 import { getMyProfileApi } from "../../profile/api/user.api";
 
@@ -107,9 +96,7 @@ export default function ProfessionalProfileScreen() {
       <Screen>
         <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <Skeleton height={210} style={styles.skeleton} />
 
           <Skeleton height={180} />
@@ -123,9 +110,7 @@ export default function ProfessionalProfileScreen() {
       <Screen>
         <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <ErrorState
             title="No pudimos cargar tu perfil profesional"
             description="Intenta nuevamente."
@@ -148,8 +133,7 @@ export default function ProfessionalProfileScreen() {
 
   const phone = user?.telefono || professional?.telefono || "No registrado";
 
-  const location =
-    user?.ubicacion || professional?.ubicacion || "Valledupar, Cesar";
+  const location = user?.ubicacion || professional?.ubicacion || "Valledupar, Cesar";
 
   const description = professional?.descripcion || professional?.sobre_mi || "";
 
@@ -169,14 +153,10 @@ export default function ProfessionalProfileScreen() {
     <Screen scroll backgroundColor={colors.background}>
       <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
 
-      <ResponsiveContainer
-        maxWidth={layout.content.wide}
-        style={styles.container}>
+      <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         {error && (user || professional) ? (
           <View style={styles.updateWarning}>
-            <Text style={styles.updateWarningTitle}>
-              No pudimos actualizar tu perfil
-            </Text>
+            <Text style={styles.updateWarningTitle}>No pudimos actualizar tu perfil</Text>
 
             <Text style={styles.updateWarningText}>
               Seguimos mostrando la última información disponible.
@@ -192,11 +172,7 @@ export default function ProfessionalProfileScreen() {
                 <Text style={styles.name}>{fullName}</Text>
 
                 {isVerified ? (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color={colors.success}
-                  />
+                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                 ) : null}
               </View>
 
@@ -215,11 +191,7 @@ export default function ProfessionalProfileScreen() {
                 </View>
 
                 <View style={styles.locationRow}>
-                  <Ionicons
-                    name="location-outline"
-                    size={15}
-                    color={colors.textMuted}
-                  />
+                  <Ionicons name="location-outline" size={15} color={colors.textMuted} />
 
                   <Text style={styles.location}>{location}</Text>
                 </View>
@@ -232,8 +204,7 @@ export default function ProfessionalProfileScreen() {
           <View style={[styles.mainColumn, !isDesktop && styles.fullColumn]}>
             <SectionCard title="Sobre mí" icon="person-outline">
               <Text style={description ? styles.description : styles.emptyText}>
-                {description ||
-                  "Aún no has agregado una descripción profesional."}
+                {description || "Aún no has agregado una descripción profesional."}
               </Text>
             </SectionCard>
 
@@ -257,9 +228,7 @@ export default function ProfessionalProfileScreen() {
                   })}
                 </View>
               ) : (
-                <Text style={styles.emptyText}>
-                  No tienes especialidades registradas.
-                </Text>
+                <Text style={styles.emptyText}>No tienes especialidades registradas.</Text>
               )}
             </SectionCard>
 
@@ -268,9 +237,7 @@ export default function ProfessionalProfileScreen() {
                 <View>
                   <View style={styles.ratingSummaryCard}>
                     <View style={styles.ratingBigCol}>
-                      <Text style={styles.ratingBigNumber}>
-                        {reviewsData.promedio.toFixed(1)}
-                      </Text>
+                      <Text style={styles.ratingBigNumber}>{reviewsData.promedio.toFixed(1)}</Text>
                       <View style={styles.starsInline}>
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Ionicons
@@ -279,8 +246,8 @@ export default function ProfessionalProfileScreen() {
                               s <= Math.round(reviewsData.promedio)
                                 ? "star"
                                 : s - 0.5 <= reviewsData.promedio
-                                ? "star-half"
-                                : "star-outline"
+                                  ? "star-half"
+                                  : "star-outline"
                             }
                             size={16}
                             color="#F59E0B"
@@ -310,9 +277,7 @@ export default function ProfessionalProfileScreen() {
                             <Text style={styles.reviewClientName}>
                               {r.cliente_nombre || "Cliente"}
                             </Text>
-                            <Text style={styles.reviewItemDate}>
-                              {formatDate(r.created_at)}
-                            </Text>
+                            <Text style={styles.reviewItemDate}>{formatDate(r.created_at)}</Text>
                           </View>
                           <View style={styles.starsInline}>
                             {[1, 2, 3, 4, 5].map((s) => (
@@ -325,14 +290,16 @@ export default function ProfessionalProfileScreen() {
                             ))}
                           </View>
                         </View>
-                        <Text style={styles.reviewItemComment}>"{r.comentario}"</Text>
+                        <Text style={styles.reviewItemComment}>{`"${r.comentario}"`}</Text>
                       </View>
                     ))}
                   </View>
                 </View>
               ) : (
                 <Text style={styles.emptyText}>
-                  Aún no tienes reseñas registradas. Al completar trabajos para tus clientes en Valledupar, ellos calificarán obligatoriamente tu atención y aparecerán aquí con su puntuación promedio.
+                  Aún no tienes reseñas registradas. Al completar trabajos para tus clientes en
+                  Valledupar, ellos calificarán obligatoriamente tu atención y aparecerán aquí con
+                  su puntuación promedio.
                 </Text>
               )}
             </SectionCard>
@@ -394,13 +361,7 @@ function getSpecialtyName(specialty) {
 
   const category = serviceCategories.find((item) => item.id === id);
 
-  return (
-    specialty?.nombre ||
-    specialty?.name ||
-    specialty?.label ||
-    category?.label ||
-    "Servicio"
-  );
+  return specialty?.nombre || specialty?.name || specialty?.label || category?.label || "Servicio";
 }
 
 function SectionCard({ title, icon, children }) {
@@ -474,7 +435,6 @@ function StatusPill({ active }) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

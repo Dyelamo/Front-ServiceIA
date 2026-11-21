@@ -1,16 +1,8 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import {
-  colors,
-  radius,
-  spacing,
-} from "../../../theme/index";
+import { colors, radius, spacing } from "../../../theme/index";
 
 const DEFAULT_STATUS = {
   label: "Publicada",
@@ -64,38 +56,26 @@ const STATUS_CONFIG = {
   },
 };
 
-export default function RequestStatusBadge({
-  status,
-}) {
-  const normalizedStatus =
-    String(
-      status || "publicada"
-    ).toLowerCase();
+export default function RequestStatusBadge({ status }) {
+  const normalizedStatus = String(status || "publicada").toLowerCase();
 
-  const config =
-    STATUS_CONFIG[
-      normalizedStatus
-    ] || DEFAULT_STATUS;
+  const config = STATUS_CONFIG[normalizedStatus] || DEFAULT_STATUS;
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor:
-            config.background,
+          backgroundColor: config.background,
         },
-      ]}
-    >
+      ]}>
       <Text
         style={[
           styles.label,
           {
-            color:
-              config.color,
+            color: config.color,
           },
-        ]}
-      >
+        ]}>
         {config.label}
       </Text>
     </View>
@@ -106,14 +86,11 @@ const styles = StyleSheet.create({
   container: {
     alignSelf: "flex-start",
 
-    borderRadius:
-      radius.pill,
+    borderRadius: radius.pill,
 
-    paddingHorizontal:
-      spacing.md,
+    paddingHorizontal: spacing.md,
 
-    paddingVertical:
-      spacing.xs,
+    paddingVertical: spacing.xs,
   },
 
   label: {

@@ -12,16 +12,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { getAccessToken, getUserId } from "../../../core/storage/auth.storage";
 import { Button, Input } from "../../../shared/ui";
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout";
 import { colors, layout, radius, spacing } from "../../../theme";
-import {
-  createChatWebSocketUrl,
-  fetchConversationMessages,
-} from "../api/chat.api";
+import { createChatWebSocketUrl, fetchConversationMessages } from "../api/chat.api";
 
 export default function ChatScreen({ navigation, route }) {
   const {
@@ -37,6 +30,7 @@ export default function ChatScreen({ navigation, route }) {
   const [historyError, setHistoryError] = useState(false);
   const [socketError, setSocketError] = useState("");
   const [sending, setSending] = useState(false);
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
   const socketRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -51,10 +45,7 @@ export default function ChatScreen({ navigation, route }) {
       }
 
       try {
-        const [token, currentUserId] = await Promise.all([
-          getAccessToken(),
-          getUserId(),
-        ]);
+        const [token, currentUserId] = await Promise.all([getAccessToken(), getUserId()]);
         if (!active) {
           return;
         }
@@ -66,13 +57,10 @@ export default function ChatScreen({ navigation, route }) {
         }
 
         try {
-          const loadedMessages =
-            await fetchConversationMessages(conversationId);
+          const loadedMessages = await fetchConversationMessages(conversationId);
           if (active) {
             setMessages(
-              loadedMessages.map((message, index) =>
-                normalizeMessage(message, index, partnerId),
-              ),
+              loadedMessages.map((message, index) => normalizeMessage(message, index, partnerId)),
             );
           }
         } catch (historyErrorValue) {
@@ -95,10 +83,14 @@ export default function ChatScreen({ navigation, route }) {
             return;
           }
 
-          setMessages((currentMessages) => [
-            ...currentMessages,
-            normalizeIncomingMessage(event.data, partnerId),
-          ]);
+          const incomingMessage = normalizeIncomingMessage(event.data, partnerId);
+          if (
+            incomingMessage.conversationId &&
+            String(incomingMessage.conversationId) !== String(conversationId)
+          ) {
+            return;
+          }
+          setMessages((currentMessages) => appendUniqueMessage(currentMessages, incomingMessage));
         };
         socket.onerror = () => {
           if (active) {
@@ -116,9 +108,7 @@ export default function ChatScreen({ navigation, route }) {
         if (active) {
           setSocketStatus("error");
           setSocketError(
-            error?.response?.data?.detail ||
-              error?.message ||
-              "No pudimos cargar la conversación.",
+            error?.response?.data?.detail || error?.message || "No pudimos cargar la conversación.",
           );
           if (error?.response) {
             setHistoryError(true);
@@ -136,7 +126,7 @@ export default function ChatScreen({ navigation, route }) {
       }
       socketRef.current = null;
     };
-  }, [conversationId, partnerId]);
+  }, [connectionAttempt, conversationId, partnerId]);
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
@@ -158,15 +148,15 @@ export default function ChatScreen({ navigation, route }) {
           id_conversacion: conversationId,
         }),
       );
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        {
+      setMessages((currentMessages) =>
+        appendUniqueMessage(currentMessages, {
           id: `local-${Date.now()}`,
           senderId: userId,
           content,
           createdAt: new Date().toISOString(),
-        },
-      ]);
+          conversationId,
+        }),
+      );
       setDraft("");
     } catch (error) {
       console.error("Error enviando mensaje:", error);
@@ -201,15 +191,10 @@ export default function ChatScreen({ navigation, route }) {
         maxWidth={layout.content.wide}
       />
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
-        {publicationTitle ? (
-          <Text style={styles.publicationTitle}>{publicationTitle}</Text>
-        ) : null}
+        {publicationTitle ? <Text style={styles.publicationTitle}>{publicationTitle}</Text> : null}
         <View style={styles.connection}>
           <View
-            style={[
-              styles.connectionDot,
-              socketStatus === "connected" && styles.connectedDot,
-            ]}
+            style={[styles.connectionDot, socketStatus === "connected" && styles.connectedDot]}
           />
           <Text style={styles.connectionText}>
             {socketStatus === "connected"
@@ -220,9 +205,24 @@ export default function ChatScreen({ navigation, route }) {
           </Text>
         </View>
         {historyError || socketError ? (
-          <Text style={styles.errorText}>
-            {socketError || "No pudimos cargar el historial del chat."}
-          </Text>
+          <View style={styles.errorRow}>
+            <Text style={styles.errorText}>
+              {socketError || "No pudimos cargar el historial del chat."}
+            </Text>
+            {socketStatus !== "connected" ? (
+              <Button
+                size="small"
+                variant="outline"
+                fullWidth={false}
+                onPress={() => {
+                  setSocketStatus("connecting");
+                  setSocketError("");
+                  setConnectionAttempt((current) => current + 1);
+                }}>
+                Reconectar
+              </Button>
+            ) : null}
+          </View>
         ) : null}
 
         <KeyboardAvoidingView
@@ -236,9 +236,7 @@ export default function ChatScreen({ navigation, route }) {
             {messages.length === 0 && socketStatus === "connecting" ? (
               <ActivityIndicator color={colors.primary} />
             ) : messages.length === 0 ? (
-              <Text style={styles.emptyText}>
-                Aún no hay mensajes. Inicia la conversación.
-              </Text>
+              <Text style={styles.emptyText}>Aún no hay mensajes. Inicia la conversación.</Text>
             ) : (
               messages.map((message) => {
                 const ownMessage = String(message.senderId) === String(userId);
@@ -249,18 +247,10 @@ export default function ChatScreen({ navigation, route }) {
                       styles.messageBubble,
                       ownMessage ? styles.ownMessage : styles.partnerMessage,
                     ]}>
-                    <Text
-                      style={[
-                        styles.messageText,
-                        ownMessage && styles.ownMessageText,
-                      ]}>
+                    <Text style={[styles.messageText, ownMessage && styles.ownMessageText]}>
                       {message.content}
                     </Text>
-                    <Text
-                      style={[
-                        styles.messageTime,
-                        ownMessage && styles.ownMessageTime,
-                      ]}>
+                    <Text style={[styles.messageTime, ownMessage && styles.ownMessageTime]}>
                       {formatTime(message.createdAt)}
                     </Text>
                   </View>
@@ -278,12 +268,11 @@ export default function ChatScreen({ navigation, route }) {
               containerStyle={styles.input}
               returnKeyType="send"
               onSubmitEditing={sendMessage}
+              maxLength={1000}
             />
             <Button
               onPress={sendMessage}
-              disabled={
-                socketStatus !== "connected" || !draft.trim() || sending
-              }
+              disabled={socketStatus !== "connected" || !draft.trim() || sending}
               fullWidth={false}
               accessibilityLabel="Enviar mensaje"
               style={styles.sendButton}
@@ -301,21 +290,31 @@ function normalizeMessage(message, index, fallbackSenderId) {
   return {
     id: message?.id || message?._id || `history-${index}`,
     senderId:
-      message?.id_remitente ||
-      message?.remitente_id ||
-      message?.senderId ||
-      fallbackSenderId,
-    content:
-      message?.contenido ||
-      message?.mensaje ||
-      message?.message ||
-      "",
-    createdAt:
-      message?.created_at ||
-      message?.fecha_creacion ||
-      message?.createdAt ||
-      null,
+      message?.id_remitente || message?.remitente_id || message?.senderId || fallbackSenderId,
+    content: message?.contenido || message?.mensaje || message?.message || "",
+    createdAt: message?.created_at || message?.fecha_creacion || message?.createdAt || null,
+    conversationId:
+      message?.id_conversacion || message?.conversacion_id || message?.conversationId || null,
   };
+}
+
+function appendUniqueMessage(messages, nextMessage) {
+  if (!nextMessage?.content) return messages;
+  const isDuplicate = messages.some((message) => {
+    if (nextMessage.id && message.id === nextMessage.id) return true;
+    if (
+      String(message.senderId) !== String(nextMessage.senderId) ||
+      message.content !== nextMessage.content
+    ) {
+      return false;
+    }
+    const currentTime = new Date(message.createdAt).getTime();
+    const nextTime = new Date(nextMessage.createdAt).getTime();
+    return Number.isFinite(currentTime) && Number.isFinite(nextTime)
+      ? Math.abs(currentTime - nextTime) < 10000
+      : false;
+  });
+  return isDuplicate ? messages : [...messages, nextMessage];
 }
 
 function normalizeIncomingMessage(rawMessage, fallbackSenderId) {
@@ -447,9 +446,15 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   errorText: {
+    flex: 1,
     color: colors.error,
     fontSize: 13,
     lineHeight: 19,
+  },
+  errorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
     marginBottom: spacing.md,
   },
 });

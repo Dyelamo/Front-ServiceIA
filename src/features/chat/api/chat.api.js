@@ -2,9 +2,7 @@ import { api } from "../../../core/api/client";
 import { extractList } from "../../../core/api/response";
 
 export const fetchConversationMessages = async (conversationId) => {
-  const { data } = await api.get(
-    `/chat/conversacion/${encodeURIComponent(conversationId)}`,
-  );
+  const { data } = await api.get(`/chat/conversacion/${encodeURIComponent(conversationId)}`);
 
   return extractList(data);
 };
@@ -15,9 +13,7 @@ export const createChatWebSocketUrl = (token) => {
 
   if (!/^https?:\/\//i.test(baseUrl)) {
     if (typeof window === "undefined" || !window.location?.origin) {
-      throw new Error(
-        "Configura EXPO_PUBLIC_API_URL con una URL absoluta para conectar el chat.",
-      );
+      throw new Error("Configura EXPO_PUBLIC_API_URL con una URL absoluta para conectar el chat.");
     }
 
     baseUrl = new URL(baseUrl, window.location.origin).toString();
