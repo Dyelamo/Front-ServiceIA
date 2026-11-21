@@ -58,10 +58,30 @@ export default function ProfessionalRequestCard({
   request,
   onPress,
 }) {
-  const category =
-    getCategory(
-      request.categoria_id
-    );
+  const categoryId = request.categoria_id || request.categoryId;
+  const category = getCategory(categoryId);
+  const categoryTitle =
+    request.categoryName ||
+    category?.label ||
+    category?.name ||
+    request.categoria?.nombre ||
+    "Servicio";
+  const iconName =
+    request.categoryIcon ||
+    category?.icon ||
+    request.categoria?.icono ||
+    "construct-outline";
+  const urgencyText =
+    request.urgencyLabel ||
+    getUrgencyLabel(request.urgencia || request.urgency);
+  const descriptionText =
+    request.description ||
+    request.descripcion ||
+    "Sin descripción";
+  const locationText =
+    request.location ||
+    (request.barrio ? `${request.barrio}, Valledupar` : (request.direccion || "Valledupar"));
+  const dateValue = request.createdAt || request.created_at;
 
   return (
     <Pressable
@@ -85,10 +105,7 @@ export default function ProfessionalRequestCard({
             }
           >
             <Ionicons
-              name={
-                category?.icon ||
-                "construct-outline"
-              }
+              name={iconName}
               size={22}
               color={colors.primary}
             />
@@ -105,9 +122,7 @@ export default function ProfessionalRequestCard({
                 styles.category
               }
             >
-              {category?.label ||
-                category?.name ||
-                "Servicio"}
+              {categoryTitle}
             </Text>
 
             <View
@@ -127,8 +142,9 @@ export default function ProfessionalRequestCard({
                 style={
                   styles.location
                 }
+                numberOfLines={1}
               >
-                Valledupar
+                {locationText}
               </Text>
             </View>
           </View>
@@ -144,9 +160,7 @@ export default function ProfessionalRequestCard({
               styles.urgencyText
             }
           >
-            {getUrgencyLabel(
-              request.urgencia
-            )}
+            {urgencyText}
           </Text>
         </View>
       </View>
@@ -157,15 +171,12 @@ export default function ProfessionalRequestCard({
           styles.description
         }
       >
-        {request.descripcion ||
-          "Sin descripción"}
+        {descriptionText}
       </Text>
 
       <View style={styles.footer}>
         <Text style={styles.date}>
-          {formatDate(
-            request.created_at
-          )}
+          {formatDate(dateValue)}
         </Text>
 
         <View

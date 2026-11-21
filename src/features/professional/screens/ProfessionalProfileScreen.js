@@ -26,6 +26,7 @@ import {
 import { getMyProfileApi } from "../../profile/api/user.api";
 
 import { getMyProfessionalProfileApi } from "../api/professional.api";
+import { fetchProviderReviews } from "../../reviews/api/reviews.api";
 
 import { useAuth } from "../../../hook/useAuth";
 
@@ -43,15 +44,11 @@ export default function ProfessionalProfileScreen() {
   const { isMobile, isDesktop } = useResponsive();
 
   const [user, setUser] = useState(null);
-
   const [professional, setProfessional] = useState(null);
-
+  const [reviewsData, setReviewsData] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [retrying, setRetrying] = useState(false);
-
   const [updating, setUpdating] = useState(false);
-
   const [error, setError] = useState(false);
 
   const loadProfile = useCallback(async () => {
@@ -63,10 +60,20 @@ export default function ProfessionalProfileScreen() {
 
       setUser(userData);
       setProfessional(professionalData);
+
+      const targetId = professionalData?.id || userData?.id;
+      if (targetId) {
+        try {
+          const revs = await fetchProviderReviews(targetId);
+          setReviewsData(revs);
+        } catch (revErr) {
+          console.error("Error al cargar reseñas del prestador:", revErr);
+        }
+      }
+
       setError(false);
     } catch (err) {
       console.error("Error cargando perfil profesional:", err);
-
       setError(true);
     } finally {
       setLoading(false);
@@ -198,6 +205,15 @@ export default function ProfessionalProfileScreen() {
               <View style={styles.metaRow}>
                 <StatusPill active={isAvailable} />
 
+                <View style={styles.ratingBadge}>
+                  <Ionicons name="star" size={14} color="#F59E0B" />
+                  <Text style={styles.ratingBadgeText}>
+                    {reviewsData && reviewsData.total_resenas > 0
+                      ? `${reviewsData.promedio.toFixed(1)} (${reviewsData.total_resenas})`
+                      : "Sin calificaciones"}
+                  </Text>
+                </View>
+
                 <View style={styles.locationRow}>
                   <Ionicons
                     name="location-outline"
@@ -243,6 +259,80 @@ export default function ProfessionalProfileScreen() {
               ) : (
                 <Text style={styles.emptyText}>
                   No tienes especialidades registradas.
+                </Text>
+              )}
+            </SectionCard>
+
+            <SectionCard title="Opiniones y Reseñas de Clientes" icon="star-outline">
+              {reviewsData && reviewsData.total_resenas > 0 ? (
+                <View>
+                  <View style={styles.ratingSummaryCard}>
+                    <View style={styles.ratingBigCol}>
+                      <Text style={styles.ratingBigNumber}>
+                        {reviewsData.promedio.toFixed(1)}
+                      </Text>
+                      <View style={styles.starsInline}>
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Ionicons
+                            key={s}
+                            name={
+                              s <= Math.round(reviewsData.promedio)
+                                ? "star"
+                                : s - 0.5 <= reviewsData.promedio
+                                ? "star-half"
+                                : "star-outline"
+                            }
+                            size={16}
+                            color="#F59E0B"
+                          />
+                        ))}
+                      </View>
+                    </View>
+
+                    <View style={styles.ratingTextCol}>
+                      <Text style={styles.ratingAverageTitle}>
+                        Promedio general de satisfacción
+                      </Text>
+                      <Text style={styles.ratingTotalText}>
+                        Calculado sobre {reviewsData.total_resenas}{" "}
+                        {reviewsData.total_resenas === 1
+                          ? "reseña de cliente"
+                          : "reseñas de clientes"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.reviewsList}>
+                    {reviewsData.resenas.map((r) => (
+                      <View key={r.id} style={styles.reviewItem}>
+                        <View style={styles.reviewItemHeader}>
+                          <View>
+                            <Text style={styles.reviewClientName}>
+                              {r.cliente_nombre || "Cliente"}
+                            </Text>
+                            <Text style={styles.reviewItemDate}>
+                              {formatDate(r.created_at)}
+                            </Text>
+                          </View>
+                          <View style={styles.starsInline}>
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Ionicons
+                                key={s}
+                                name={s <= r.calificacion ? "star" : "star-outline"}
+                                size={14}
+                                color="#F59E0B"
+                              />
+                            ))}
+                          </View>
+                        </View>
+                        <Text style={styles.reviewItemComment}>"{r.comentario}"</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : (
+                <Text style={styles.emptyText}>
+                  Aún no tienes reseñas registradas. Al completar trabajos para tus clientes en Valledupar, ellos calificarán obligatoriamente tu atención y aparecerán aquí con su puntuación promedio.
                 </Text>
               )}
             </SectionCard>
@@ -341,6 +431,17 @@ function InfoRow({ icon, label, value }) {
       </View>
     </View>
   );
+}
+
+function formatDate(value) {
+  if (!value) return "Reciente";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "Reciente";
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
 
 function StatusPill({ active }) {
@@ -598,5 +699,104 @@ const styles = StyleSheet.create({
 
   buttonGap: {
     height: spacing.md,
+  },
+  ratingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+  },
+  ratingBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#B45309",
+  },
+  ratingSummaryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FEF3C7",
+    padding: spacing.md,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+    gap: spacing.md,
+  },
+  ratingBigCol: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingRight: spacing.sm,
+    borderRightWidth: 1,
+    borderRightColor: "#FDE68A",
+  },
+  ratingBigNumber: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#B45309",
+  },
+  ratingTextCol: {
+    flex: 1,
+  },
+  ratingAverageTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  ratingTotalText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  reviewItemDate: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 1,
+  },
+  ratingSummaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: spacing.md,
+  },
+  ratingAverage: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  ratingTotal: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: "600",
+  },
+  reviewsList: {
+    gap: spacing.md,
+  },
+  reviewItem: {
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  reviewItemHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  reviewClientName: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  starsInline: {
+    flexDirection: "row",
+    gap: 2,
+  },
+  reviewItemComment: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontStyle: "italic",
   },
 });

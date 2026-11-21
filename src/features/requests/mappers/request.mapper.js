@@ -12,12 +12,14 @@ const URGENCY_LABELS = {
 const STATUS_LABELS = {
   activo: "Activa",
   publicada: "Publicada",
-
-  cancelado: "Cancelada",
-  cancelada: "Cancelada",
-
+  con_ofertas: "Con ofertas",
+  acuerdo: "Acuerdo alcanzado",
+  en_progreso: "En progreso",
+  terminado: "Completado",
   completado: "Completada",
   completada: "Completada",
+  cancelado: "Cancelada",
+  cancelada: "Cancelada",
 };
 
 const findCategory = (
@@ -37,56 +39,47 @@ export const mapRequestFromApi = (
   }
 
   const category =
+    request.categoria ||
     findCategory(
       request.categoria_id
     );
 
+  const direccion = request.direccion || "Valledupar, Cesar";
+  const barrio = request.barrio || "Valledupar";
+  const formattedLocation = barrio !== "Valledupar" 
+    ? `${barrio}, ${direccion}` 
+    : direccion;
+
   return {
     id: request.id,
-
-    userId:
-      request.usuario_id,
-
-    categoryId:
-      request.categoria_id,
-
-    categoryName:
-      category?.name ||
-      "Servicio",
-
-    categoryIcon:
-      category?.icon ||
-      "construct-outline",
-
-    description:
-      request.descripcion ||
-      "",
-
-    urgency:
-      request.urgencia,
-
-    urgencyLabel:
-      URGENCY_LABELS[
-        request.urgencia
-      ] ||
-      request.urgencia ||
-      "No especificada",
-
-    status:
-      request.estado,
-
-    statusLabel:
-      STATUS_LABELS[
-        request.estado
-      ] ||
-      request.estado ||
-      "Publicada",
-
-    createdAt:
-      request.created_at,
-
-    updatedAt:
-      request.updated_at,
+    userId: request.usuario_id,
+    user: request.usuario,
+    categoryId: request.categoria_id,
+    categoryName: category?.nombre || category?.name || "Servicio",
+    categoryIcon: category?.icono || category?.icon || "construct-outline",
+    description: request.descripcion || "",
+    urgency: request.urgencia,
+    urgencyLabel: URGENCY_LABELS[request.urgencia] || request.urgencia || "No especificada",
+    status: request.estado,
+    statusLabel: STATUS_LABELS[request.estado] || request.estado || "Publicada",
+    direccion: direccion,
+    barrio: barrio,
+    referencia: request.referencia || "",
+    ciudad: request.ciudad || "Valledupar",
+    location: formattedLocation,
+    haSidoCalificada: Boolean(request.ha_sido_calificada),
+    ha_sido_calificada: Boolean(request.ha_sido_calificada),
+    createdAt: request.created_at,
+    updatedAt: request.updated_at,
+    // Compatibilidad tanto con camelCase como snake_case
+    categoria_id: request.categoria_id,
+    categoria: request.categoria,
+    descripcion: request.descripcion || "",
+    urgencia: request.urgencia,
+    estado: request.estado,
+    created_at: request.created_at,
+    updated_at: request.updated_at,
+    usuario_id: request.usuario_id,
   };
 };
 

@@ -102,26 +102,37 @@ export default function ProfessionalRequestDetailScreen({
     );
   }
 
-  const category =
-    getCategory(
-      request.categoria_id
-    );
+  const categoryId = request.categoria_id || request.categoryId;
+  const category = getCategory(categoryId);
 
   const categoryName =
+    request.categoryName ||
     category?.label ||
     category?.name ||
+    request.categoria?.nombre ||
     "Servicio";
 
+  const categoryIcon =
+    request.categoryIcon ||
+    category?.icon ||
+    request.categoria?.icono ||
+    "construct-outline";
+
   const description =
+    request.description ||
     request.descripcion ||
     "Sin descripción";
 
   const urgency =
-    urgencyLabels[
-      request.urgencia
-    ] ||
+    request.urgencyLabel ||
+    urgencyLabels[request.urgencia || request.urgency] ||
     request.urgencia ||
+    request.urgency ||
     "No especificada";
+
+  const locationText = request.location || (request.barrio 
+    ? `${request.barrio} - ${request.direccion || "Valledupar"}${request.referencia ? ` (${request.referencia})` : ""}`
+    : (request.direccion || "Valledupar, Cesar"));
 
   return (
     <Screen
@@ -156,8 +167,7 @@ export default function ProfessionalRequestDetailScreen({
           >
             <Ionicons
               name={
-                category?.icon ||
-                "construct-outline"
+                categoryIcon
               }
               size={26}
               color={colors.primary}
@@ -262,7 +272,7 @@ export default function ProfessionalRequestDetailScreen({
               <InfoRow
                 icon="location-outline"
                 label="Ubicación"
-                value="Valledupar, Cesar"
+                value={locationText}
               />
 
               <Divider />

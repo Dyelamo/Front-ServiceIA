@@ -17,9 +17,13 @@ import ProfessionalRequestDetailScreen from "../../features/requests/screens/pro
 import CreateOfferScreen from "../../features/offers/screens/CreateOfferScreen";
 
 import ProfessionalProfileScreen from "../../features/professional/screens/ProfessionalProfileScreen";
+import WorkerProfileScreen from "../../features/professional/screens/WorkerProfileScreen";
+import NotificationsScreen from "../../features/notifications/screens/NotificationsScreen";
 import ProfessionalOffersScreen from "../../features/offers/screens/ProfessionalOffersScreen";
 import BalanceScreen from "../../features/wallet/screens/BalanceScreen";
 import JobsScreen from "../../features/jobs/screens/JobsScreen";
+import MessagesScreen from "../../features/chat/screens/MessagesScreen";
+import ChatScreen from "../../features/chat/screens/ChatScreen";
 
 import { StyleSheet } from "react-native";
 
@@ -76,6 +80,10 @@ function ProfessionalTabs() {
               iconName = focused ? "briefcase" : "briefcase-outline";
               break;
 
+            case "Messages":
+              iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+              break;
+
             case "ProfessionalProfile":
               iconName = focused ? "person" : "person-outline";
               break;
@@ -118,6 +126,15 @@ function ProfessionalTabs() {
           title: "Trabajos",
         }}
       />
+
+      <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          title: "Mensajes",
+        }}
+      />
+
       <Tab.Screen
         name="ProfessionalProfile"
         component={ProfessionalProfileScreen}
@@ -145,6 +162,12 @@ export default function ProfessionalNavigator() {
       <Stack.Screen name="CreateOffer" component={CreateOfferScreen} />
 
       <Stack.Screen name="Balance" component={BalanceScreen} />
+
+      <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
+
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
+
+      <Stack.Screen name="Chat" component={ChatScreen} />
     </Stack.Navigator>
   );
 }
