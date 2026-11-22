@@ -88,14 +88,18 @@ export default function MessagesScreen({ navigation }) {
       return;
     }
 
+    const partnerName = isProfessional
+      ? offer.publication?.user?.nombre_completo ||
+        offer.publication?.userName ||
+        "Cliente"
+      : offer.provider?.nombre_completo ||
+        offer.provider?.usuario?.nombre_completo ||
+        "Profesional";
+
     navigation.navigate("Chat", {
       conversationId: offer.conversationId,
       partnerId,
-      partnerName: isProfessional
-        ? "Cliente"
-        : offer.provider?.nombre_completo ||
-          offer.provider?.usuario?.nombre_completo ||
-          "Profesional",
+      partnerName,
       publicationTitle: offer.publication?.description,
     });
   };
@@ -166,7 +170,9 @@ export default function MessagesScreen({ navigation }) {
                 ? offer.publication?.userId
                 : offer.providerId;
               const partnerName = isProfessional
-                ? "Cliente"
+                ? offer.publication?.user?.nombre_completo ||
+                  offer.publication?.userName ||
+                  "Cliente"
                 : offer.provider?.nombre_completo ||
                   offer.provider?.usuario?.nombre_completo ||
                   "Profesional";

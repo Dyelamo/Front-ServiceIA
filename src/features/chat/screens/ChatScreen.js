@@ -43,6 +43,7 @@ export default function ChatScreen({ navigation, route }) {
   useEffect(() => {
     let active = true;
     let socket;
+    let reconnectTimeout = null;
 
     const connect = async () => {
       if (!conversationId || !partnerId) {
@@ -51,12 +52,33 @@ export default function ChatScreen({ navigation, route }) {
       }
 
       try {
-        const [token, currentUserId] = await Promise.all([
+        let [token, currentUserId] = await Promise.all([
           getAccessToken(),
           getUserId(),
         ]);
         if (!active) {
           return;
+        }
+
+        // Si no está en storage, extraer del JWT
+        if (!currentUserId && token) {
+          try {
+            const parts = token.split(".");
+            if (parts.length === 3) {
+              const base64Url = parts[1];
+              const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+              const jsonPayload = decodeURIComponent(
+                (typeof atob !== "undefined" ? atob(base64) : Buffer.from(base64, "base64").toString("utf8"))
+                  .split("")
+                  .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                  .join("")
+              );
+              const decoded = JSON.parse(jsonPayload);
+              currentUserId = decoded?.sub;
+            }
+          } catch (e) {
+            console.log("No se pudo decodificar el ID desde el token:", e);
+          }
         }
 
         setUserId(currentUserId);
@@ -82,33 +104,74 @@ export default function ChatScreen({ navigation, route }) {
           }
         }
 
-        socket = new WebSocket(createChatWebSocketUrl(token));
+        const socketUrl = createChatWebSocketUrl(token);
+        socket = new WebSocket(socketUrl);
         socketRef.current = socket;
+
         socket.onopen = () => {
           if (active) {
             setSocketStatus("connected");
             setSocketError("");
           }
         };
+
         socket.onmessage = (event) => {
           if (!active) {
             return;
           }
 
-          setMessages((currentMessages) => [
-            ...currentMessages,
-            normalizeIncomingMessage(event.data, partnerId),
-          ]);
+          try {
+            const incoming = normalizeIncomingMessage(event.data, partnerId);
+            if (!incoming || !incoming.content) {
+              return;
+            }
+
+            setMessages((currentMessages) => {
+              // Evitar duplicados por id exacto
+              if (currentMessages.some((m) => m.id === incoming.id)) {
+                return currentMessages;
+              }
+
+              // Si el mensaje es eco del propio usuario, actualizar el mensaje local pendiente
+              if (String(incoming.senderId) === String(currentUserId || userId)) {
+                const localIndex = currentMessages.findIndex(
+                  (m) =>
+                    String(m.id).startsWith("local-") &&
+                    m.content === incoming.content
+                );
+                if (localIndex !== -1) {
+                  const updated = [...currentMessages];
+                  updated[localIndex] = incoming;
+                  return updated;
+                }
+              }
+
+              return [...currentMessages, incoming];
+            });
+          } catch (err) {
+            console.error("Error procesando mensaje entrante:", err);
+          }
         };
-        socket.onerror = () => {
+
+        socket.onerror = (err) => {
           if (active) {
+            console.warn("WebSocket error:", err?.message || err);
             setSocketStatus("error");
             setSocketError("No pudimos conectar con el chat.");
           }
         };
-        socket.onclose = () => {
+
+        socket.onclose = (event) => {
           if (active) {
             setSocketStatus("disconnected");
+            // Reconexión automática tras 3 segundos si no fue cierre limpio
+            if (active && event?.code !== 1000) {
+              reconnectTimeout = setTimeout(() => {
+                if (active) {
+                  connect();
+                }
+              }, 3000);
+            }
           }
         };
       } catch (error) {
@@ -131,6 +194,9 @@ export default function ChatScreen({ navigation, route }) {
 
     return () => {
       active = false;
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
       if (socket) {
         socket.close();
       }
@@ -232,7 +298,8 @@ export default function ChatScreen({ navigation, route }) {
           <ScrollView
             ref={scrollRef}
             contentContainerStyle={styles.messageList}
-            keyboardShouldPersistTaps="handled">
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}>
             {messages.length === 0 && socketStatus === "connecting" ? (
               <ActivityIndicator color={colors.primary} />
             ) : messages.length === 0 ? (
@@ -299,7 +366,11 @@ export default function ChatScreen({ navigation, route }) {
 
 function normalizeMessage(message, index, fallbackSenderId) {
   return {
-    id: message?.id || message?._id || `history-${index}`,
+    id:
+      message?.id_mensaje ||
+      message?.id ||
+      message?._id ||
+      `msg-${index}-${Date.now()}`,
     senderId:
       message?.id_remitente ||
       message?.remitente_id ||
@@ -311,29 +382,40 @@ function normalizeMessage(message, index, fallbackSenderId) {
       message?.message ||
       "",
     createdAt:
+      message?.fecha_hora ||
       message?.created_at ||
       message?.fecha_creacion ||
       message?.createdAt ||
-      null,
+      new Date().toISOString(),
   };
 }
 
 function normalizeIncomingMessage(rawMessage, fallbackSenderId) {
   try {
-    const parsedMessage = JSON.parse(rawMessage);
-    return normalizeMessage(
-      parsedMessage,
-      Date.now(),
-      parsedMessage?.id_remitente || fallbackSenderId,
-    );
+    const parsed =
+      typeof rawMessage === "string" ? JSON.parse(rawMessage) : rawMessage;
+    if (parsed && typeof parsed === "object") {
+      if (parsed.error) {
+        console.warn("Error recibido en WS:", parsed.error);
+        return null;
+      }
+      return normalizeMessage(
+        parsed,
+        Date.now(),
+        parsed?.id_remitente || parsed?.senderId || fallbackSenderId,
+      );
+    }
   } catch {
-    return {
-      id: `incoming-${Date.now()}`,
-      senderId: fallbackSenderId,
-      content: String(rawMessage).replace(/^Message text was:\s*/, ""),
-      createdAt: new Date().toISOString(),
-    };
+    // Si no es JSON, fallback para texto plano
   }
+
+  const content = String(rawMessage).replace(/^Message text was:\s*/, "");
+  return {
+    id: `incoming-${Date.now()}`,
+    senderId: fallbackSenderId,
+    content,
+    createdAt: new Date().toISOString(),
+  };
 }
 
 function formatTime(value) {

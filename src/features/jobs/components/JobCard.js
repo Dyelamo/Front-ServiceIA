@@ -6,7 +6,7 @@ import { colors, radius, spacing } from "../../../theme/index";
 import { Badge, Button, Card } from "../../../shared/ui/index";
 import { formatCOP } from "../../../utils";
 
-export default function JobCard({ job }) {
+export default function JobCard({ job, onMessage }) {
   const isCompleted = job.estado === "terminado" || job.status === "Completado";
   const isInProgress = job.estado === "en_progreso" || job.status === "En camino";
   const isAgreed = job.estado === "acuerdo" || job.status === "Acuerdo";
@@ -91,20 +91,34 @@ export default function JobCard({ job }) {
           <Text style={styles.price}>{formatCOP(job.price || job.precio_ofertado)}</Text>
         </View>
 
-        {/* Indicadores informativos del estado (gestión exclusiva del cliente) */}
-        {isAgreed ? (
-          <View style={styles.statusPill}>
-            <Ionicons name="time-outline" size={14} color="#B45309" />
-            <Text style={styles.statusPillText}>Inicio a cargo del cliente</Text>
-          </View>
-        ) : isInProgress ? (
-          <View style={[styles.statusPill, styles.inProgressPill]}>
-            <Ionicons name="construct-outline" size={14} color="#047857" />
-            <Text style={[styles.statusPillText, styles.inProgressPillText]}>
-              En progreso (Cliente finaliza)
-            </Text>
-          </View>
-        ) : null}
+        <View style={styles.actionsGroup}>
+          {onMessage ? (
+            <Button
+              size="sm"
+              variant="outline"
+              fullWidth={false}
+              onPress={onMessage}
+              style={styles.chatButton}
+              leftIcon={<Ionicons name="chatbubbles-outline" size={15} color={colors.primary} />}>
+              Mensajes
+            </Button>
+          ) : null}
+
+          {/* Indicadores informativos del estado (gestión exclusiva del cliente) */}
+          {isAgreed ? (
+            <View style={styles.statusPill}>
+              <Ionicons name="time-outline" size={14} color="#B45309" />
+              <Text style={styles.statusPillText}>Inicio a cargo del cliente</Text>
+            </View>
+          ) : isInProgress ? (
+            <View style={[styles.statusPill, styles.inProgressPill]}>
+              <Ionicons name="construct-outline" size={14} color="#047857" />
+              <Text style={[styles.statusPillText, styles.inProgressPillText]}>
+                En progreso (Cliente finaliza)
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
     </Card>
   );
@@ -201,6 +215,16 @@ const styles = StyleSheet.create({
   },
   priceContainer: {
     minWidth: 120,
+  },
+  actionsGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    flexWrap: "wrap",
+  },
+  chatButton: {
+    paddingHorizontal: spacing.md,
+    height: 34,
   },
   priceLabel: {
     color: colors.textSecondary,

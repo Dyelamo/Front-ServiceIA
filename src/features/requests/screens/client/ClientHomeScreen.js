@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
@@ -20,6 +20,7 @@ import { useRequestDraft } from "../../context/RequestDraftContext";
 import CategoryCard from "../../components/CategoryCard";
 import { fetchPendingReview } from "../../../reviews/api/reviews.api";
 import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
+import { fetchNotifications } from "../../../notifications/api/notifications.api";
 
 export default function ClientHomeScreen({ navigation }) {
   const { updateDraft } = useRequestDraft();
@@ -28,6 +29,7 @@ export default function ClientHomeScreen({ navigation }) {
 
   const [search, setSearch] = useState("");
   const [pendingReview, setPendingReview] = useState(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +45,15 @@ export default function ClientHomeScreen({ navigation }) {
         }
       };
       checkPendingReview();
+
+      fetchNotifications()
+        .then((data) => {
+          if (active) setUnreadNotifications(data?.no_leidas || 0);
+        })
+        .catch(() => {
+          if (active) setUnreadNotifications(0);
+        });
+
       return () => {
         active = false;
       };
@@ -91,8 +102,40 @@ export default function ClientHomeScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={styles.avatar}>
-            <Ionicons name="person-outline" size={22} color={colors.text} />
+          <View style={styles.headerActionsRow}>
+            {/* BOTÓN DE NOTIFICACIONES CON BOLITA FLOTANTE */}
+            <Pressable
+              onPress={() => navigation.navigate("Notifications")}
+              style={styles.notificationIconButton}
+              accessibilityRole="button"
+              accessibilityLabel="Notificaciones">
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color={colors.text}
+              />
+              {unreadNotifications > 0 ? (
+                <View style={styles.floatingBadge}>
+                  <Text style={styles.floatingBadgeText}>
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </Text>
+                </View>
+              ) : null}
+            </Pressable>
+
+            {/* BOTÓN DE PERFIL EN LA PARTE SUPERIOR */}
+            <Pressable
+              onPress={() => navigation.navigate("Profile")}
+              style={styles.profileHeaderButton}
+              accessibilityRole="button"
+              accessibilityLabel="Mi Perfil">
+              <View style={styles.profileAvatarBubble}>
+                <Ionicons name="person" size={16} color={colors.primary} />
+              </View>
+              {!isMobile ? (
+                <Text style={styles.profileHeaderText}>Perfil</Text>
+              ) : null}
+            </Pressable>
           </View>
         </View>
 
@@ -341,19 +384,71 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 
-  avatar: {
-    width: 44,
-    height: 44,
-
-    borderRadius: 22,
-
-    backgroundColor: colors.surface,
-
+  headerActionsRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: spacing.sm,
+  },
 
+  notificationIconButton: {
+    position: "relative",
+    padding: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  floatingBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#EF4444",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: colors.surface,
+  },
+
+  floatingBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+
+  profileHeaderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+
+  profileAvatarBubble: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  profileHeaderText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.text,
+    marginRight: 4,
   },
 
   /* HERO */

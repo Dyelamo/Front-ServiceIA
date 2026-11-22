@@ -98,6 +98,11 @@ export default function NotificationsScreen({ navigation }) {
     <Screen backgroundColor={colors.background}>
       <AppHeader
         title="Notificaciones"
+        onBack={() => {
+          if (navigation?.canGoBack?.()) {
+            navigation.goBack();
+          }
+        }}
         maxWidth={layout.content.medium}
         action={
           unreadCount > 0 ? (

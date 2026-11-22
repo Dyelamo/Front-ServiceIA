@@ -67,22 +67,12 @@ function ClientTabs() {
 
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
-          }
-
-          if (route.name === "MyRequests") {
+          } else if (route.name === "MyRequests") {
             iconName = focused ? "document-text" : "document-text-outline";
-          }
-
-          if (route.name === "Notifications") {
-            iconName = focused ? "notifications" : "notifications-outline";
-          }
-
-          if (route.name === "Messages") {
+          } else if (route.name === "Messages") {
             iconName = focused ? "chatbubbles" : "chatbubbles-outline";
-          }
-
-          if (route.name === "Profile") {
-            iconName = focused ? "person" : "person-outline";
+          } else {
+            iconName = "ellipse-outline";
           }
 
           return <Ionicons name={iconName} size={22} color={color} />;
@@ -105,26 +95,10 @@ function ClientTabs() {
       />
 
       <Tab.Screen
-        name="Notifications"
-        component={NotificationsScreen}
-        options={{
-          title: "Notificaciones",
-        }}
-      />
-
-      <Tab.Screen
         name="Messages"
         component={MessagesScreen}
         options={{
           title: "Mensajes",
-        }}
-      />
-
-      <Tab.Screen
-        name="Profile"
-        component={ClientProfileScreen}
-        options={{
-          title: "Perfil",
         }}
       />
     </Tab.Navigator>
@@ -140,6 +114,8 @@ export default function ClientNavigator() {
         }}>
         <Stack.Screen name="ClientTabs" component={ClientTabs} />
 
+        <Stack.Screen name="Profile" component={ClientProfileScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
         <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
         <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />

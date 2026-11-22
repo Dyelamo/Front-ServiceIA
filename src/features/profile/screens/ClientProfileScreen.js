@@ -112,7 +112,11 @@ export default function ClientProfileScreen({ navigation }) {
   if (loading) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Mi perfil"
+          onBack={navigation?.canGoBack?.() ? () => navigation.goBack() : undefined}
+          maxWidth={layout.content.wide}
+        />
 
         <ResponsiveContainer
           maxWidth={layout.content.wide}
@@ -126,7 +130,11 @@ export default function ClientProfileScreen({ navigation }) {
   if (error && !profile) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Mi perfil"
+          onBack={navigation?.canGoBack?.() ? () => navigation.goBack() : undefined}
+          maxWidth={layout.content.wide}
+        />
 
         <ResponsiveContainer
           maxWidth={layout.content.wide}
@@ -154,7 +162,11 @@ export default function ClientProfileScreen({ navigation }) {
 
   return (
     <Screen scroll backgroundColor={colors.background}>
-      <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
+      <AppHeader
+        title="Mi perfil"
+        onBack={navigation?.canGoBack?.() ? () => navigation.goBack() : undefined}
+        maxWidth={layout.content.wide}
+      />
 
       <ResponsiveContainer
         maxWidth={layout.content.wide}

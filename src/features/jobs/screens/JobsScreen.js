@@ -14,7 +14,7 @@ const TABS = [
   { id: "completados", label: "Historial Completados" },
 ];
 
-export default function JobsScreen() {
+export default function JobsScreen({ navigation }) {
   const [tab, setTab] = useState("activos");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +110,23 @@ export default function JobsScreen() {
               <View
                 key={job.id}
                 style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
-                <JobCard job={job} />
+                <JobCard
+                  job={job}
+                  onMessage={() => {
+                    const convId = job.conversation_id || job.conversationId;
+                    const partnerId = job.cliente_id || job.cliente?.id;
+                    if (convId && partnerId) {
+                      navigation.navigate("Chat", {
+                        conversationId: convId,
+                        partnerId,
+                        partnerName: job.cliente?.nombre_completo || job.client || "Cliente",
+                        publicationTitle: job.title || job.description,
+                      });
+                    } else {
+                      navigation.navigate("Messages");
+                    }
+                  }}
+                />
               </View>
             ))}
           </View>
