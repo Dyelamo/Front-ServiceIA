@@ -84,10 +84,6 @@ function ProfessionalTabs() {
               iconName = focused ? "chatbubbles" : "chatbubbles-outline";
               break;
 
-            case "ProfessionalProfile":
-              iconName = focused ? "person" : "person-outline";
-              break;
-
             default:
               iconName = "ellipse-outline";
           }
@@ -134,14 +130,6 @@ function ProfessionalTabs() {
           title: "Mensajes",
         }}
       />
-
-      <Tab.Screen
-        name="ProfessionalProfile"
-        component={ProfessionalProfileScreen}
-        options={{
-          title: "Perfil",
-        }}
-      />
     </Tab.Navigator>
   );
 }
@@ -153,6 +141,11 @@ export default function ProfessionalNavigator() {
         headerShown: false,
       }}>
       <Stack.Screen name="ProfessionalTabs" component={ProfessionalTabs} />
+
+      <Stack.Screen
+        name="ProfessionalProfile"
+        component={ProfessionalProfileScreen}
+      />
 
       <Stack.Screen
         name="ProfessionalRequestDetail"

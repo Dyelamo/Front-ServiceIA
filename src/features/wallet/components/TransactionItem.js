@@ -1,14 +1,13 @@
 import React from "react";
-
 import { StyleSheet, Text, View } from "react-native";
-
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, spacing } from "../../../theme/index";
-
-import { formatCOP } from "../../../utils";
+import { formatCOP, formatDate } from "../../../utils";
 
 export default function TransactionItem({ transaction }) {
+  const displayDate = transaction.date ? formatDate(transaction.date) || transaction.date : "Reciente";
+
   return (
     <View style={styles.container}>
       <View style={styles.icon}>
@@ -20,15 +19,18 @@ export default function TransactionItem({ transaction }) {
           {transaction.title}
         </Text>
 
-        <Text style={styles.meta}>{transaction.date}</Text>
+        <Text style={styles.meta}>
+          {displayDate} {transaction.client ? `• Cliente: ${transaction.client}` : ""}
+        </Text>
 
         <Text style={styles.commission}>
-          Comisión {formatCOP(transaction.commission)}
+          Intermediación (7%): {formatCOP(transaction.commission)}
         </Text>
       </View>
 
       <View style={styles.amountBox}>
         <Text style={styles.amount}>+{formatCOP(transaction.amount)}</Text>
+        <Text style={styles.estimatedTag}>Estimado</Text>
       </View>
     </View>
   );
@@ -37,73 +39,54 @@ export default function TransactionItem({ transaction }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-
     alignItems: "center",
-
     paddingVertical: spacing.lg,
-
     borderBottomWidth: 1,
-
     borderBottomColor: colors.border,
   },
-
   icon: {
     width: 42,
     height: 42,
-
     borderRadius: 12,
-
     backgroundColor: colors.primaryLight,
-
     alignItems: "center",
     justifyContent: "center",
   },
-
   content: {
     flex: 1,
-
     minWidth: 0,
-
     marginLeft: spacing.md,
   },
-
   title: {
     color: colors.text,
-
     fontSize: 14,
-
     fontWeight: "700",
   },
-
   meta: {
     color: colors.textSecondary,
-
     fontSize: 12,
-
     marginTop: 3,
   },
-
   commission: {
-    color: colors.textMuted,
-
-    fontSize: 11,
-
+    color: "#DC2626",
+    fontSize: 12,
+    fontWeight: "600",
     marginTop: 2,
   },
-
   amountBox: {
     flexShrink: 0,
-
     marginLeft: spacing.sm,
+    alignItems: "flex-end",
   },
-
   amount: {
     color: colors.primaryDark,
-
     fontSize: 15,
-
     fontWeight: "800",
-
     textAlign: "right",
+  },
+  estimatedTag: {
+    color: colors.textMuted,
+    fontSize: 10,
+    marginTop: 2,
   },
 });

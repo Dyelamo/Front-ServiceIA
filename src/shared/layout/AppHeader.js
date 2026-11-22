@@ -15,10 +15,12 @@ export default function AppHeader({
   subtitle,
   onBack,
   right,
+  action,
   maxWidth = 1200,
   showBorder = true,
 }) {
   const { isDesktop } = useResponsive();
+  const rightContent = right || action;
 
   return (
     <View style={[styles.header, showBorder && styles.headerBorder]}>
@@ -57,7 +59,9 @@ export default function AppHeader({
             </View>
           </View>
 
-          {right ? <View style={styles.rightSection}>{right}</View> : null}
+          {rightContent ? (
+            <View style={styles.rightSection}>{rightContent}</View>
+          ) : null}
         </View>
       </ResponsiveContainer>
     </View>

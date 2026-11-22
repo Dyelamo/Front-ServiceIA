@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { colors, layout, radius, spacing } from "../../../theme/index";
 
@@ -19,6 +20,7 @@ import { useResponsive } from "../../../shared/hooks/useResponsive";
 import { categories } from "../../requests/data/categories";
 
 import { createProfessionalOffer } from "../api/offers.api";
+import { fetchProviderBalance } from "../../wallet/api/wallet.api";
 
 const URGENCY_LABELS = {
   ahora: "Lo antes posible",
@@ -44,6 +46,25 @@ export default function CreateOfferScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
 
   const [error, setError] = useState("");
+  const [providerBalance, setProviderBalance] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      fetchProviderBalance()
+        .then((data) => {
+          if (active) {
+            setProviderBalance(Number(data?.saldo_disponible) || 0);
+          }
+        })
+        .catch(() => {
+          if (active) setProviderBalance(0);
+        });
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   const categoryId = request?.categoria_id || request?.categoryId;
   const category = categories.find((item) => item.id === categoryId);
@@ -65,6 +86,18 @@ export default function CreateOfferScreen({ navigation, route }) {
   const isValid = Number(price) > 0 && availability.trim() && message.trim();
 
   const handleSubmit = async () => {
+    if (providerBalance !== null && providerBalance <= 0) {
+      Alert.alert(
+        "Saldo insuficiente",
+        "No cuentas con saldo en tu cuenta. Para enviar ofertas a las solicitudes de clientes debes recargar saldo para la tarifa de intermediación (7%).",
+        [
+          { text: "Recargar saldo", onPress: () => navigation.navigate("Balance") },
+          { text: "Cancelar", style: "cancel" },
+        ]
+      );
+      return;
+    }
+
     if (loading || !request?.id || !isValid) {
       return;
     }
@@ -235,6 +268,33 @@ export default function CreateOfferScreen({ navigation, route }) {
               </View>
             ) : null}
 
+            {providerBalance !== null && providerBalance <= 0 ? (
+              <View style={styles.zeroBalanceCard}>
+                <View style={styles.zeroBalanceHeader}>
+                  <Ionicons name="alert-circle" size={20} color="#DC2626" />
+                  <Text style={styles.zeroBalanceTitle}>
+                    Saldo insuficiente para postularte
+                  </Text>
+                </View>
+                <Text style={styles.zeroBalanceText}>
+                  Tu saldo actual es de $0. No puedes enviar ofertas a solicitudes sin saldo disponible para cubrir la tarifa fija de intermediación (7%).
+                </Text>
+                <Button
+                  size="small"
+                  variant="secondary"
+                  onPress={() => navigation.navigate("Balance")}
+                  leftIcon={
+                    <Ionicons
+                      name="wallet-outline"
+                      size={16}
+                      color={colors.primaryDark}
+                    />
+                  }>
+                  Recargar saldo ahora
+                </Button>
+              </View>
+            ) : null}
+
             <Card variant="outlined" style={styles.formCard}>
               <View
                 style={[styles.fieldRow, !isDesktop && styles.fieldRowMobile]}>
@@ -301,10 +361,12 @@ export default function CreateOfferScreen({ navigation, route }) {
                   ]}>
                   <Button
                     onPress={handleSubmit}
-                    disabled={!isValid || loading}
+                    disabled={!isValid || loading || (providerBalance !== null && providerBalance <= 0)}
                     loading={loading}
                     loadingLabel="Enviando oferta...">
-                    Enviar oferta
+                    {providerBalance !== null && providerBalance <= 0
+                      ? "Saldo insuficiente para ofertar"
+                      : "Enviar oferta"}
                   </Button>
                 </View>
               </View>
@@ -484,6 +546,31 @@ const styles = StyleSheet.create({
     maxWidth: 620,
   },
 
+  zeroBalanceCard: {
+    backgroundColor: "#FEF2F2",
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    padding: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xs,
+    gap: spacing.sm,
+  },
+  zeroBalanceHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  zeroBalanceTitle: {
+    color: "#B91C1C",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  zeroBalanceText: {
+    color: "#991B1B",
+    fontSize: 12,
+    lineHeight: 18,
+  },
   formCard: {
     marginTop: spacing.xxl,
 

@@ -18,7 +18,7 @@ import {
   acceptOffer,
   fetchOffersForPublication,
 } from "../../../offers/api/offers.api";
-import { completeServiceRequest } from "../../api/requests.api";
+import { completeServiceRequest, startServiceRequest } from "../../api/requests.api";
 import { fetchPublicationReview } from "../../../reviews/api/reviews.api";
 import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
 
@@ -36,11 +36,12 @@ export default function RequestDetailScreen({ navigation, route }) {
   const [acceptingOfferId, setAcceptingOfferId] = useState(null);
   const [offersRetryCount, setOffersRetryCount] = useState(0);
 
-  // Estados del módulo de Reseñas Obligatorias
+  // Estados del módulo de Reseñas Obligatorias y Ciclo de Trabajo
   const [review, setReview] = useState(null);
   const [hasReviewed, setHasReviewed] = useState(
     Boolean(request?.ha_sido_calificada || request?.haSidoCalificada)
   );
+  const [startingService, setStartingService] = useState(false);
   const [completingService, setCompletingService] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
@@ -196,6 +197,26 @@ export default function RequestDetailScreen({ navigation, route }) {
     }
   };
 
+  const handleStartService = async () => {
+    setStartingService(true);
+    try {
+      await startServiceRequest(publicationId);
+      setCurrentStatus("en_progreso");
+      Alert.alert(
+        "¡Trabajo iniciado!",
+        `Has iniciado formalmente el trabajo con ${providerName}. Cuando culmine la labor, márcalo como completado para dejar tu reseña.`
+      );
+    } catch (error) {
+      console.error("Error al iniciar servicio:", error);
+      Alert.alert(
+        "Error",
+        error?.response?.data?.detail || "No se pudo iniciar el servicio."
+      );
+    } finally {
+      setStartingService(false);
+    }
+  };
+
   const handleCompleteService = async () => {
     setCompletingService(true);
     try {
@@ -205,7 +226,7 @@ export default function RequestDetailScreen({ navigation, route }) {
       setShowReviewModal(true);
     } catch (error) {
       console.error("Error al finalizar servicio:", error);
-      Alert.alert("Error", "No se pudo finalizar el servicio.");
+      Alert.alert("Error", error?.response?.data?.detail || "No se pudo finalizar el servicio.");
     } finally {
       setCompletingService(false);
     }
@@ -298,11 +319,26 @@ export default function RequestDetailScreen({ navigation, route }) {
               <Text style={styles.description}>{description}</Text>
             </Card>
 
+            {/* BOTÓN PARA INICIAR TRABAJO POR EL CLIENTE */}
+            {currentStatus === "acuerdo" && Boolean(acceptedOffer) ? (
+              <View style={styles.completeActionBox}>
+                <Text style={styles.completeActionPrompt}>
+                  ¿El profesional {providerName} ya está en el lugar para comenzar la labor?
+                </Text>
+                <Button
+                  onPress={handleStartService}
+                  loading={startingService}
+                  leftIcon={<Ionicons name="play-circle" size={18} color="#FFFFFF" />}>
+                  Iniciar trabajo
+                </Button>
+              </View>
+            ) : null}
+
             {/* BOTÓN PARA FINALIZAR TRABAJO POR EL CLIENTE */}
             {canCompleteService ? (
               <View style={styles.completeActionBox}>
                 <Text style={styles.completeActionPrompt}>
-                  ¿El profesional {providerName} ya realizó el trabajo?
+                  ¿El profesional {providerName} ya realizó y culminó el trabajo?
                 </Text>
                 <Button
                   onPress={handleCompleteService}

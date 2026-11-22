@@ -6,7 +6,7 @@ import { colors, layout, radius, spacing } from "../../../theme/index";
 import { EmptyState, Skeleton } from "../../../shared/ui/index";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 import { useResponsive } from "../../../shared/hooks/useResponsive";
-import { completeJob, fetchProviderJobs, startJob } from "../api/jobs.api";
+import { fetchProviderJobs } from "../api/jobs.api";
 import JobCard from "../components/JobCard";
 
 const TABS = [
@@ -19,7 +19,6 @@ export default function JobsScreen() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const { isDesktop } = useResponsive();
 
@@ -47,37 +46,6 @@ export default function JobsScreen() {
       loadJobs();
     }, [loadJobs])
   );
-
-  const handleStartJob = async (job) => {
-    setActionLoadingId(job.id);
-    try {
-      await startJob(job.publicacion_id || job.id);
-      Alert.alert("Trabajo iniciado", "El estado del servicio cambió a 'En progreso'.");
-      await loadJobs();
-    } catch (error) {
-      console.error("Error al iniciar trabajo:", error);
-      Alert.alert("Error", "No se pudo actualizar el estado del trabajo.");
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleCompleteJob = async (job) => {
-    setActionLoadingId(job.id);
-    try {
-      await completeJob(job.publicacion_id || job.id);
-      Alert.alert(
-        "¡Trabajo finalizado con éxito!",
-        "El servicio ha sido completado. El cliente recibirá una solicitud obligatoria de reseña para calificar tu atención."
-      );
-      await loadJobs();
-    } catch (error) {
-      console.error("Error al completar trabajo:", error);
-      Alert.alert("Error", "No se pudo marcar el trabajo como finalizado.");
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
   return (
     <Screen
@@ -142,13 +110,7 @@ export default function JobsScreen() {
               <View
                 key={job.id}
                 style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
-                <JobCard
-                  job={job}
-                  onStart={handleStartJob}
-                  onComplete={handleCompleteJob}
-                  starting={actionLoadingId === job.id}
-                  completing={actionLoadingId === job.id}
-                />
+                <JobCard job={job} />
               </View>
             ))}
           </View>
@@ -156,7 +118,7 @@ export default function JobsScreen() {
 
         <Text style={styles.hint}>
           {tab === "activos"
-            ? "Tip: Al finalizar el trabajo, presiona 'Finalizar trabajo' para que el cliente califique tu labor obligatoriamente."
+            ? "Tip: El cliente es el único encargado de iniciar y finalizar el trabajo desde su aplicación para luego calificar tu labor."
             : "Este historial refleja la reputación que los clientes construyen sobre tu perfil profesional en ServIA."}
         </Text>
       </ResponsiveContainer>

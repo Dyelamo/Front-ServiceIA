@@ -36,7 +36,7 @@ import { categories as serviceCategories } from "../../requests/data/categories"
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
-export default function ProfessionalProfileScreen() {
+export default function ProfessionalProfileScreen({ navigation }) {
   const { logout } = useAuth();
 
   const { setMode } = useAppMode();
@@ -105,7 +105,11 @@ export default function ProfessionalProfileScreen() {
   if (loading) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Mi perfil"
+          onBack={navigation?.canGoBack?.() ? () => navigation.goBack() : undefined}
+          maxWidth={layout.content.wide}
+        />
 
         <ResponsiveContainer
           maxWidth={layout.content.wide}
@@ -121,7 +125,11 @@ export default function ProfessionalProfileScreen() {
   if (error && !user && !professional) {
     return (
       <Screen>
-        <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Mi perfil"
+          onBack={navigation?.canGoBack?.() ? () => navigation.goBack() : undefined}
+          maxWidth={layout.content.wide}
+        />
 
         <ResponsiveContainer
           maxWidth={layout.content.wide}
@@ -167,7 +175,11 @@ export default function ProfessionalProfileScreen() {
 
   return (
     <Screen scroll backgroundColor={colors.background}>
-      <AppHeader title="Mi perfil" maxWidth={layout.content.wide} />
+      <AppHeader
+        title="Mi perfil"
+        onBack={navigation?.canGoBack?.() ? () => navigation.goBack() : undefined}
+        maxWidth={layout.content.wide}
+      />
 
       <ResponsiveContainer
         maxWidth={layout.content.wide}

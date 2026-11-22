@@ -37,6 +37,7 @@ import {
 import { fetchProfessionalPublications } from "../../requests/api/requests.api";
 import { fetchProfessionalOffersWithPublications } from "../../offers/api/offers.api";
 import { fetchProviderJobs } from "../../jobs/api/jobs.api";
+import { fetchNotifications } from "../../notifications/api/notifications.api";
 
 export default function ProfessionalHomeScreen({
   navigation,
@@ -52,15 +53,17 @@ export default function ProfessionalHomeScreen({
     jobs: "—",
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const loadStats = useCallback(async () => {
     try {
-      const [availableRequests, myOffers, activeJobs, completedJobs] =
+      const [availableRequests, myOffers, activeJobs, completedJobs, notifsData] =
         await Promise.all([
           fetchProfessionalPublications().catch(() => []),
           fetchProfessionalOffersWithPublications().catch(() => []),
           fetchProviderJobs("activos").catch(() => []),
           fetchProviderJobs("completados").catch(() => []),
+          fetchNotifications().catch(() => ({ no_leidas: 0 })),
         ]);
 
       setStats({
@@ -72,6 +75,8 @@ export default function ProfessionalHomeScreen({
           (Array.isArray(activeJobs) ? activeJobs.length : 0) +
           (Array.isArray(completedJobs) ? completedJobs.length : 0),
       });
+
+      setUnreadNotifications(notifsData?.no_leidas || 0);
     } catch (error) {
       console.error("Error al cargar estadísticas del profesional:", error);
     } finally {
@@ -103,17 +108,44 @@ export default function ProfessionalHomeScreen({
         maxWidth={
           layout.content.wide
         }
-        action={
-          <Pressable
-            onPress={() => navigation.navigate("Notifications")}
-            style={styles.notificationIconButton}
-          >
-            <Ionicons
-              name="notifications-outline"
-              size={22}
-              color={colors.primary}
-            />
-          </Pressable>
+        right={
+          <View style={styles.headerActionsRow}>
+            {/* BOTÓN DE NOTIFICACIONES CON BOLITA FLOTANTE */}
+            <Pressable
+              onPress={() => navigation.navigate("Notifications")}
+              style={styles.notificationIconButton}
+              accessibilityRole="button"
+              accessibilityLabel="Notificaciones"
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color={colors.text}
+              />
+              {unreadNotifications > 0 ? (
+                <View style={styles.floatingBadge}>
+                  <Text style={styles.floatingBadgeText}>
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </Text>
+                </View>
+              ) : null}
+            </Pressable>
+
+            {/* BOTÓN DE PERFIL EN LA PARTE SUPERIOR */}
+            <Pressable
+              onPress={() => navigation.navigate("ProfessionalProfile")}
+              style={styles.profileHeaderButton}
+              accessibilityRole="button"
+              accessibilityLabel="Mi Perfil"
+            >
+              <View style={styles.profileAvatarBubble}>
+                <Ionicons name="person" size={16} color={colors.primary} />
+              </View>
+              {!isMobile ? (
+                <Text style={styles.profileHeaderText}>Perfil</Text>
+              ) : null}
+            </Pressable>
+          </View>
         }
       />
 
@@ -484,9 +516,65 @@ function QuickAction({
 }
 
 const styles = StyleSheet.create({
+  headerActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
   notificationIconButton: {
-    padding: spacing.xs,
+    position: "relative",
+    padding: 8,
     borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  floatingBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#EF4444",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: colors.surface,
+  },
+  floatingBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  profileHeaderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  profileAvatarBubble: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileHeaderText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.text,
+    marginRight: 4,
   },
   container: {
     paddingVertical:

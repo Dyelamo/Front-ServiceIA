@@ -6,13 +6,7 @@ import { colors, radius, spacing } from "../../../theme/index";
 import { Badge, Button, Card } from "../../../shared/ui/index";
 import { formatCOP } from "../../../utils";
 
-export default function JobCard({
-  job,
-  onStart,
-  onComplete,
-  starting = false,
-  completing = false,
-}) {
+export default function JobCard({ job }) {
   const isCompleted = job.estado === "terminado" || job.status === "Completado";
   const isInProgress = job.estado === "en_progreso" || job.status === "En camino";
   const isAgreed = job.estado === "acuerdo" || job.status === "Acuerdo";
@@ -97,25 +91,19 @@ export default function JobCard({
           <Text style={styles.price}>{formatCOP(job.price || job.precio_ofertado)}</Text>
         </View>
 
-        {/* Botones de acción del ciclo de trabajo */}
-        {isAgreed && onStart ? (
-          <Button
-            size="small"
-            onPress={() => onStart(job)}
-            loading={starting}
-            leftIcon={<Ionicons name="play-outline" size={16} color="#FFFFFF" />}>
-            Iniciar trabajo
-          </Button>
-        ) : null}
-
-        {isInProgress && onComplete ? (
-          <Button
-            size="small"
-            onPress={() => onComplete(job)}
-            loading={completing}
-            leftIcon={<Ionicons name="checkmark-done-outline" size={16} color="#FFFFFF" />}>
-            Finalizar trabajo
-          </Button>
+        {/* Indicadores informativos del estado (gestión exclusiva del cliente) */}
+        {isAgreed ? (
+          <View style={styles.statusPill}>
+            <Ionicons name="time-outline" size={14} color="#B45309" />
+            <Text style={styles.statusPillText}>Inicio a cargo del cliente</Text>
+          </View>
+        ) : isInProgress ? (
+          <View style={[styles.statusPill, styles.inProgressPill]}>
+            <Ionicons name="construct-outline" size={14} color="#047857" />
+            <Text style={[styles.statusPillText, styles.inProgressPillText]}>
+              En progreso (Cliente finaliza)
+            </Text>
+          </View>
         ) : null}
       </View>
     </Card>
@@ -208,9 +196,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    flexWrap: "wrap",
+    gap: spacing.sm,
   },
   priceContainer: {
-    flex: 1,
+    minWidth: 120,
   },
   priceLabel: {
     color: colors.textSecondary,
@@ -220,5 +210,29 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 18,
     fontWeight: "800",
+    marginTop: 2,
+  },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    backgroundColor: "#FEF3C7",
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+  },
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#92400E",
+  },
+  inProgressPill: {
+    backgroundColor: "#D1FAE5",
+    borderColor: "#A7F3D0",
+  },
+  inProgressPillText: {
+    color: "#065F46",
   },
 });
