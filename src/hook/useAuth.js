@@ -18,6 +18,7 @@ import {
   clearAuthData,
 } from "../core/storage/auth.storage";
 import { api } from "../core/api/client";
+import { setOnSessionExpired } from "../core/api/authMiddleware";
 
 const AuthContext = createContext(null);
 const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000;
@@ -41,6 +42,14 @@ export const AuthProvider = ({ children }) => {
     lastPersistedActivityAt.current = 0;
     setUserToken(null);
   }, []);
+
+  useEffect(() => {
+    setOnSessionExpired(() => {
+      logout().catch((err) => {
+        console.error("Error al cerrar sesión expirada:", err);
+      });
+    });
+  }, [logout]);
 
   const scheduleInactivityLogout = useCallback(() => {
     if (inactivityTimer.current) {

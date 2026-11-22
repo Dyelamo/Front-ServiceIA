@@ -13,6 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { AppModeContext } from "../../app-mode/context/AppModeContext";
 import { fetchClientPublications } from "../../requests/api/requests.api";
 import { fetchOffersForPublication, fetchProfessionalOffersWithPublications } from "../../offers/api/offers.api";
+import { markChatMessagesAsRead } from "../api/chat.api";
 import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui";
 import {
   AppHeader,
@@ -69,6 +70,7 @@ export default function MessagesScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       loadConversations();
+      markChatMessagesAsRead().catch(() => {});
     }, [loadConversations]),
   );
 

@@ -21,6 +21,7 @@ import { colors, layout, radius, spacing } from "../../../theme";
 import {
   createChatWebSocketUrl,
   fetchConversationMessages,
+  markChatMessagesAsRead,
 } from "../api/chat.api";
 
 export default function ChatScreen({ navigation, route }) {
@@ -97,6 +98,7 @@ export default function ChatScreen({ navigation, route }) {
               ),
             );
           }
+          markChatMessagesAsRead(conversationId).catch(() => {});
         } catch (historyErrorValue) {
           console.error("Error cargando historial del chat:", historyErrorValue);
           if (active) {

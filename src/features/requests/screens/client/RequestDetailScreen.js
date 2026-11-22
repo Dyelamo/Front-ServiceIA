@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -44,6 +44,7 @@ export default function RequestDetailScreen({ navigation, route }) {
   const [startingService, setStartingService] = useState(false);
   const [completingService, setCompletingService] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showLocationDetails, setShowLocationDetails] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -357,30 +358,52 @@ export default function RequestDetailScreen({ navigation, route }) {
               !isDesktop && styles.sideMobile,
             ]}>
             <Card variant="outlined" style={styles.card}>
-              <SectionHeader
-                icon="information-circle-outline"
-                title="Información y Ubicación"
-              />
+              <Pressable
+                onPress={() => setShowLocationDetails((prev) => !prev)}
+                accessibilityLabel="Mostrar u ocultar información y ubicación"
+                style={styles.collapsibleHeader}>
+                <View style={styles.sectionHeaderNoMargin}>
+                  <View style={styles.sectionIcon}>
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={19}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <Text style={styles.cardTitle}>Información y Ubicación</Text>
+                </View>
+                <View style={styles.expandButtonCircle}>
+                  <Ionicons
+                    name={showLocationDetails ? "remove" : "add"}
+                    size={22}
+                    color={colors.primary}
+                  />
+                </View>
+              </Pressable>
 
-              <InfoRow icon="grid-outline" label="Categoría" value={category} />
-              <Divider />
-              <InfoRow icon="time-outline" label="Urgencia" value={urgency} />
-              <Divider />
-              <InfoRow
-                icon="location-outline"
-                label="Ubicación en Valledupar"
-                value={location}
-              />
-
-              {createdAt ? (
-                <>
+              {showLocationDetails ? (
+                <View style={styles.collapsibleDetails}>
+                  <InfoRow icon="grid-outline" label="Categoría" value={category} />
+                  <Divider />
+                  <InfoRow icon="time-outline" label="Urgencia" value={urgency} />
                   <Divider />
                   <InfoRow
-                    icon="calendar-outline"
-                    label="Publicada"
-                    value={formatDate(createdAt)}
+                    icon="location-outline"
+                    label="Ubicación en Valledupar"
+                    value={location}
                   />
-                </>
+
+                  {createdAt ? (
+                    <>
+                      <Divider />
+                      <InfoRow
+                        icon="calendar-outline"
+                        label="Publicada"
+                        value={formatDate(createdAt)}
+                      />
+                    </>
+                  ) : null}
+                </View>
               ) : null}
             </Card>
           </View>
@@ -665,6 +688,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: spacing.xl,
+  },
+  collapsibleHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionHeaderNoMargin: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  expandButtonCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.surfaceSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  collapsibleDetails: {
+    marginTop: spacing.xl,
   },
   sectionIcon: {
     width: 38,

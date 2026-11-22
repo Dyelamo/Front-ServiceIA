@@ -40,3 +40,23 @@ export const createChatWebSocketUrl = (token) => {
 
   return `${socketBaseUrl}/chat/ws?token=${encodeURIComponent(token)}`;
 };
+
+export const fetchUnreadChatCount = async () => {
+  try {
+    const { data } = await api.get("/chat/no-leidos");
+    return Number(data?.no_leidos || 0);
+  } catch {
+    return 0;
+  }
+};
+
+export const markChatMessagesAsRead = async (conversationId) => {
+  try {
+    const url = conversationId
+      ? `/chat/marcar-leidos?conversacion_id=${encodeURIComponent(conversationId)}`
+      : "/chat/marcar-leidos";
+    await api.patch(url);
+  } catch {
+    // ignore
+  }
+};

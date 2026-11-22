@@ -28,6 +28,7 @@ import SuccessScreen from "../../features/requests/screens/client/create/Success
 import { StyleSheet } from "react-native";
 
 import { useResponsive } from "../../shared/hooks/useResponsive";
+import { useUnreadMessages } from "../../features/chat/hooks/useUnreadMessages";
 
 import { RequestDraftProvider } from "../../features/requests/context/RequestDraftContext";
 
@@ -37,6 +38,7 @@ const Stack = createNativeStackNavigator();
 
 function ClientTabs() {
   const { isDesktop } = useResponsive();
+  const { unreadCount } = useUnreadMessages();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -99,6 +101,20 @@ function ClientTabs() {
         component={MessagesScreen}
         options={{
           title: "Mensajes",
+          tabBarBadge:
+            unreadCount > 0
+              ? unreadCount > 99
+                ? "99+"
+                : unreadCount
+              : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: "#EF4444",
+            color: "#FFFFFF",
+            fontSize: 10,
+            fontWeight: "700",
+            minWidth: 18,
+            height: 18,
+          },
         }}
       />
     </Tab.Navigator>

@@ -1,8 +1,5 @@
 import axios from "axios";
-
-import {
-  getAccessToken,
-} from "../storage/auth.storage";
+import { setupAuthMiddleware } from "./authMiddleware";
 
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL || "/api";
@@ -15,20 +12,7 @@ export const api = axios.create({
   },
 });
 
-api.interceptors.request.use(
-  async (config) => {
-    const token =
-      await getAccessToken();
-
-    if (token) {
-      config.headers.Authorization =
-        `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) =>
-    Promise.reject(error)
-);
+// Configura el middleware de autenticación y redirección al login ante expiración
+setupAuthMiddleware(api);
 
 export default api;
