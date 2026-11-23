@@ -1,182 +1,121 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import {
-  Ionicons,
-} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-  layout,
-  radius,
-  spacing,
-} from "../../../theme/index";
+import { useFocusEffect } from "@react-navigation/native";
 
-import {
-  Card,
-} from "../../../shared/ui/index";
+import { colors, layout, radius, spacing } from "../../../theme/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { Card } from "../../../shared/ui/index";
 
-import {
-  useResponsive,
-} from "../../../shared/hooks/useResponsive";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 
-export default function ProfessionalHomeScreen({
-  navigation,
-}) {
-  const {
-    isMobile,
-    isDesktop,
-  } = useResponsive();
+import { useResponsive } from "../../../shared/hooks/useResponsive";
+
+import { fetchProfessionalPublications } from "../../requests/api/requests.api";
+import { fetchProfessionalOffersWithPublications } from "../../offers/api/offers.api";
+import { fetchProviderJobs } from "../../jobs/api/jobs.api";
+
+export default function ProfessionalHomeScreen({ navigation }) {
+  const { isMobile, isDesktop } = useResponsive();
+
+  const [stats, setStats] = useState({
+    requests: "—",
+    offers: "—",
+    jobs: "—",
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  const loadStats = useCallback(async () => {
+    try {
+      const [availableRequests, myOffers, activeJobs, completedJobs] = await Promise.all([
+        fetchProfessionalPublications().catch(() => []),
+        fetchProfessionalOffersWithPublications().catch(() => []),
+        fetchProviderJobs("activos").catch(() => []),
+        fetchProviderJobs("historial").catch(() => []),
+      ]);
+
+      setStats({
+        requests: Array.isArray(availableRequests) ? availableRequests.length : 0,
+        offers: Array.isArray(myOffers) ? myOffers.length : 0,
+        jobs:
+          (Array.isArray(activeJobs) ? activeJobs.length : 0) +
+          (Array.isArray(completedJobs) ? completedJobs.length : 0),
+      });
+    } catch (error) {
+      console.error("Error al cargar estadísticas del profesional:", error);
+    } finally {
+      setLoadingStats(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadStats();
+    }, [loadStats]),
+  );
 
   const handleBalance = () => {
-    navigation
-      .getParent()
-      ?.navigate("Balance");
+    navigation.getParent()?.navigate("Balance");
   };
 
   return (
-    <Screen
-      scroll
-      backgroundColor={
-        colors.background
-      }
-    >
+    <Screen scroll backgroundColor={colors.background}>
       <AppHeader
         title="Inicio profesional"
-        maxWidth={
-          layout.content.wide
+        maxWidth={layout.content.wide}
+        action={
+          <Pressable
+            onPress={() => navigation.navigate("Notifications")}
+            style={styles.notificationIconButton}>
+            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+          </Pressable>
         }
       />
 
-      <ResponsiveContainer
-        maxWidth={
-          layout.content.wide
-        }
-        style={styles.container}
-      >
+      <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         {/* HERO */}
 
-        <View
-          style={[
-            styles.hero,
+        <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
+          <View style={styles.heroContent}>
+            <Text style={styles.eyebrow}>MODO PROFESIONAL</Text>
 
-            isDesktop &&
-              styles.heroDesktop,
-          ]}
-        >
-          <View
-            style={styles.heroContent}
-          >
-            <Text style={styles.eyebrow}>
-              MODO PROFESIONAL
+            <Text style={[styles.greeting, isDesktop && styles.greetingDesktop]}>
+              Encuentra nuevas oportunidades
             </Text>
 
-            <Text
-              style={[
-                styles.greeting,
-
-                isDesktop &&
-                  styles.greetingDesktop,
-              ]}
-            >
-              Encuentra nuevas
-              oportunidades
-            </Text>
-
-            <Text
-              style={[
-                styles.description,
-
-                isDesktop &&
-                  styles.descriptionDesktop,
-              ]}
-            >
-              Revisa solicitudes
-              compatibles con tus
-              especialidades y envía
-              propuestas a nuevos
+            <Text style={[styles.description, isDesktop && styles.descriptionDesktop]}>
+              Revisa solicitudes compatibles con tus especialidades y envía propuestas a nuevos
               clientes.
             </Text>
 
             <Pressable
-              onPress={() =>
-                navigation.navigate(
-                  "AvailableRequests"
-                )
-              }
-              style={({
-                pressed,
-              }) => [
+              onPress={() => navigation.navigate("AvailableRequests")}
+              style={({ pressed }) => [
                 styles.heroAction,
 
-                !isMobile &&
-                  styles.heroActionWide,
+                !isMobile && styles.heroActionWide,
 
-                pressed &&
-                  styles.pressed,
-              ]}
-            >
-              <Ionicons
-                name="search-outline"
-                size={20}
-                color={colors.white}
-              />
+                pressed && styles.pressed,
+              ]}>
+              <Ionicons name="search-outline" size={20} color={colors.white} />
 
-              <Text
-                style={
-                  styles.heroActionText
-                }
-              >
-                Ver solicitudes
-              </Text>
+              <Text style={styles.heroActionText}>Ver solicitudes</Text>
             </Pressable>
           </View>
 
           {isDesktop ? (
-            <View
-              style={styles.heroVisual}
-            >
-              <View
-                style={
-                  styles.heroVisualIcon
-                }
-              >
-                <Ionicons
-                  name="briefcase-outline"
-                  size={46}
-                  color={colors.primary}
-                />
+            <View style={styles.heroVisual}>
+              <View style={styles.heroVisualIcon}>
+                <Ionicons name="briefcase-outline" size={46} color={colors.primary} />
               </View>
 
-              <Text
-                style={
-                  styles.heroVisualTitle
-                }
-              >
-                Haz crecer tu trabajo
-              </Text>
+              <Text style={styles.heroVisualTitle}>Haz crecer tu trabajo</Text>
 
-              <Text
-                style={
-                  styles.heroVisualText
-                }
-              >
-                Encuentra solicitudes,
-                envía ofertas y gestiona
-                tus servicios desde un
-                solo lugar.
+              <Text style={styles.heroVisualText}>
+                Encuentra solicitudes, envía ofertas y gestiona tus servicios desde un solo lugar.
               </Text>
             </View>
           ) : null}
@@ -184,79 +123,47 @@ export default function ProfessionalHomeScreen({
 
         {/* MÉTRICAS */}
 
-        <Text
-          style={styles.sectionTitle}
-        >
-          Resumen
-        </Text>
+        <Text style={styles.sectionTitle}>Resumen</Text>
 
         <View style={styles.statsGrid}>
-          <View
-            style={[
-              styles.statWrapper,
-
-              isMobile &&
-                styles.statWrapperMobile,
-            ]}
-          >
+          <View style={[styles.statWrapper, isMobile && styles.statWrapperMobile]}>
             <Stat
               icon="search-outline"
-              value="—"
+              value={loadingStats ? "..." : String(stats.requests)}
               label="Solicitudes"
+              onPress={() => navigation.navigate("AvailableRequests")}
             />
           </View>
 
-          <View
-            style={[
-              styles.statWrapper,
-
-              isMobile &&
-                styles.statWrapperMobile,
-            ]}
-          >
+          <View style={[styles.statWrapper, isMobile && styles.statWrapperMobile]}>
             <Stat
               icon="paper-plane-outline"
-              value="—"
+              value={loadingStats ? "..." : String(stats.offers)}
               label="Ofertas"
+              onPress={() => navigation.navigate("ProfessionalOffers")}
             />
           </View>
 
-          <View
-            style={[
-              styles.statWrapper,
-
-              isMobile &&
-                styles.statWrapperMobile,
-            ]}
-          >
+          <View style={[styles.statWrapper, isMobile && styles.statWrapperMobile]}>
             <Stat
               icon="briefcase-outline"
-              value="—"
+              value={loadingStats ? "..." : String(stats.jobs)}
               label="Trabajos"
+              onPress={() => navigation.navigate("Jobs")}
             />
           </View>
         </View>
 
         {/* ACCIONES */}
 
-        <Text
-          style={styles.sectionTitle}
-        >
-          Acciones rápidas
-        </Text>
+        <Text style={styles.sectionTitle}>Acciones rápidas</Text>
 
-        <View
-          style={styles.actionsGrid}
-        >
+        <View style={styles.actionsGrid}>
           <QuickAction
             icon="search-outline"
             title="Solicitudes"
             description="Encuentra trabajos disponibles."
-            onPress={() =>
-              navigation.navigate(
-                "AvailableRequests"
-              )
-            }
+            onPress={() => navigation.navigate("AvailableRequests")}
             isDesktop={isDesktop}
           />
 
@@ -264,11 +171,7 @@ export default function ProfessionalHomeScreen({
             icon="paper-plane-outline"
             title="Mis ofertas"
             description="Consulta las propuestas que has enviado."
-            onPress={() =>
-              navigation.navigate(
-                "ProfessionalOffers"
-              )
-            }
+            onPress={() => navigation.navigate("ProfessionalOffers")}
             isDesktop={isDesktop}
           />
 
@@ -276,21 +179,15 @@ export default function ProfessionalHomeScreen({
             icon="briefcase-outline"
             title="Trabajos"
             description="Revisa tus servicios activos y completados."
-            onPress={() =>
-              navigation.navigate(
-                "Jobs"
-              )
-            }
+            onPress={() => navigation.navigate("Jobs")}
             isDesktop={isDesktop}
           />
 
           <QuickAction
             icon="wallet-outline"
-            title="Saldo"
-            description="Consulta tu balance y movimientos."
-            onPress={
-              handleBalance
-            }
+            title="Saldo (vista previa)"
+            description="Diseño del balance; integración próximamente."
+            onPress={handleBalance}
             isDesktop={isDesktop}
           />
         </View>
@@ -299,125 +196,59 @@ export default function ProfessionalHomeScreen({
   );
 }
 
-function Stat({
-  icon,
-  value,
-  label,
-}) {
+function Stat({ icon, value, label, onPress }) {
   return (
-    <Card
-      variant="outlined"
-      style={styles.stat}
-    >
-      <View
-        style={styles.statIcon}
-      >
-        <Ionicons
-          name={icon}
-          size={20}
-          color={colors.primary}
-        />
-      </View>
+    <Pressable onPress={onPress} style={({ pressed }) => [pressed && styles.pressed]}>
+      <Card variant="outlined" style={styles.stat}>
+        <View style={styles.statIcon}>
+          <Ionicons name={icon} size={20} color={colors.primary} />
+        </View>
 
-      <Text
-        style={styles.statValue}
-      >
-        {value}
-      </Text>
+        <Text style={styles.statValue}>{value}</Text>
 
-      <Text
-        style={styles.statLabel}
-      >
-        {label}
-      </Text>
-    </Card>
+        <Text style={styles.statLabel}>{label}</Text>
+      </Card>
+    </Pressable>
   );
 }
 
-function QuickAction({
-  icon,
-  title,
-  description,
-  onPress,
-  isDesktop,
-}) {
+function QuickAction({ icon, title, description, onPress, isDesktop }) {
   return (
-    <View
-      style={[
-        styles.actionWrapper,
-
-        isDesktop &&
-          styles.actionWrapperDesktop,
-      ]}
-    >
+    <View style={[styles.actionWrapper, isDesktop && styles.actionWrapperDesktop]}>
       <Pressable
         onPress={onPress}
-        style={({
-          pressed,
-        }) => [
-          styles.actionCard,
-
-          pressed &&
-            styles.pressed,
-        ]}
-      >
-        <View
-          style={styles.actionIcon}
-        >
-          <Ionicons
-            name={icon}
-            size={23}
-            color={colors.primary}
-          />
+        style={({ pressed }) => [styles.actionCard, pressed && styles.pressed]}>
+        <View style={styles.actionIcon}>
+          <Ionicons name={icon} size={23} color={colors.primary} />
         </View>
 
-        <View
-          style={
-            styles.actionContent
-          }
-        >
-          <Text
-            style={
-              styles.actionTitle
-            }
-          >
-            {title}
-          </Text>
+        <View style={styles.actionContent}>
+          <Text style={styles.actionTitle}>{title}</Text>
 
-          <Text
-            style={
-              styles.actionDescription
-            }
-          >
-            {description}
-          </Text>
+          <Text style={styles.actionDescription}>{description}</Text>
         </View>
 
-        <Ionicons
-          name="chevron-forward"
-          size={19}
-          color={colors.textMuted}
-        />
+        <Ionicons name="chevron-forward" size={19} color={colors.textMuted} />
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  notificationIconButton: {
+    padding: spacing.xs,
+    borderRadius: radius.pill,
+  },
   container: {
-    paddingVertical:
-      spacing.xl,
+    paddingVertical: spacing.xl,
   },
 
   hero: {
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
-    borderRadius:
-      radius.lg,
+    borderRadius: radius.lg,
 
-    padding:
-      spacing.xl,
+    padding: spacing.xl,
   },
 
   heroDesktop: {
@@ -426,8 +257,7 @@ const styles = StyleSheet.create({
 
     minHeight: 320,
 
-    padding:
-      spacing.xxl,
+    padding: spacing.xxl,
   },
 
   heroContent: {
@@ -442,8 +272,7 @@ const styles = StyleSheet.create({
 
     letterSpacing: 1.1,
 
-    marginBottom:
-      spacing.sm,
+    marginBottom: spacing.sm,
   },
 
   greeting: {
@@ -463,16 +292,14 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: 15,
     lineHeight: 23,
 
     maxWidth: 580,
 
-    marginTop:
-      spacing.md,
+    marginTop: spacing.md,
   },
 
   descriptionDesktop: {
@@ -488,17 +315,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
 
-    backgroundColor:
-      colors.primary,
+    backgroundColor: colors.primary,
 
-    borderRadius:
-      radius.md,
+    borderRadius: radius.md,
 
-    paddingHorizontal:
-      spacing.lg,
+    paddingHorizontal: spacing.lg,
 
-    marginTop:
-      spacing.xl,
+    marginTop: spacing.xl,
   },
 
   heroActionWide: {
@@ -511,28 +334,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
 
-    marginLeft:
-      spacing.sm,
+    marginLeft: spacing.sm,
   },
 
   heroVisual: {
     width: 320,
 
-    marginLeft:
-      spacing.xxl,
+    marginLeft: spacing.xxl,
 
-    padding:
-      spacing.xl,
+    padding: spacing.xl,
 
-    backgroundColor:
-      colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor:
-      colors.border,
+    borderColor: colors.border,
 
-    borderRadius:
-      radius.lg,
+    borderRadius: radius.lg,
   },
 
   heroVisualIcon: {
@@ -541,14 +358,12 @@ const styles = StyleSheet.create({
 
     borderRadius: 41,
 
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
     alignItems: "center",
     justifyContent: "center",
 
-    marginBottom:
-      spacing.lg,
+    marginBottom: spacing.lg,
   },
 
   heroVisualTitle: {
@@ -559,14 +374,12 @@ const styles = StyleSheet.create({
   },
 
   heroVisualText: {
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: 13,
     lineHeight: 20,
 
-    marginTop:
-      spacing.sm,
+    marginTop: spacing.sm,
   },
 
   sectionTitle: {
@@ -575,11 +388,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "800",
 
-    marginTop:
-      spacing.xxxl,
+    marginTop: spacing.xxxl,
 
-    marginBottom:
-      spacing.lg,
+    marginBottom: spacing.lg,
   },
 
   statsGrid: {
@@ -601,8 +412,7 @@ const styles = StyleSheet.create({
   stat: {
     width: "100%",
 
-    padding:
-      spacing.lg,
+    padding: spacing.lg,
   },
 
   statIcon: {
@@ -611,8 +421,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 11,
 
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
     alignItems: "center",
     justifyContent: "center",
@@ -624,13 +433,11 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: "800",
 
-    marginTop:
-      spacing.md,
+    marginTop: spacing.md,
   },
 
   statLabel: {
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: 12,
 
@@ -660,18 +467,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
 
-    backgroundColor:
-      colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor:
-      colors.border,
+    borderColor: colors.border,
 
-    borderRadius:
-      radius.lg,
+    borderRadius: radius.lg,
 
-    padding:
-      spacing.lg,
+    padding: spacing.lg,
   },
 
   actionIcon: {
@@ -680,8 +483,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 14,
 
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
     alignItems: "center",
     justifyContent: "center",
@@ -690,8 +492,7 @@ const styles = StyleSheet.create({
   actionContent: {
     flex: 1,
 
-    marginHorizontal:
-      spacing.md,
+    marginHorizontal: spacing.md,
   },
 
   actionTitle: {
@@ -702,8 +503,7 @@ const styles = StyleSheet.create({
   },
 
   actionDescription: {
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: 12,
     lineHeight: 18,

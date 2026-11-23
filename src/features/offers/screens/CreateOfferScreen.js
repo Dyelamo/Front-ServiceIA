@@ -3,22 +3,28 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { colors, layout, radius, spacing } from "../../../theme/index";
 
 import { Button, Card, Input, TextArea } from "../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
+import { getApiErrorMessage } from "../../../core/errors/error-message";
+import { queryKeys } from "../../../core/query/query-keys";
+import { useProfessionalAvailability } from "../../professional/hooks/useProfessionalAvailability";
+import { resolveCategoryIcon } from "../../catalog/utils/category-presentation";
+import { publicationDistance } from "../../location/location";
+import { fetchPublicationById } from "../../requests/api/requests.api";
 
 import { categories } from "../../requests/data/categories";
 
 import { createProfessionalOffer } from "../api/offers.api";
+import { offerSchema } from "../schema/offer.schema";
 
 const URGENCY_LABELS = {
   ahora: "Lo antes posible",
@@ -31,94 +37,82 @@ const URGENCY_LABELS = {
 };
 
 export default function CreateOfferScreen({ navigation, route }) {
-  const request = route?.params?.request;
+  const initialRequest = route?.params?.request;
+  const { data: request = initialRequest } = useQuery({
+    queryKey: queryKeys.publicationDetail(initialRequest?.id),
+    queryFn: () => fetchPublicationById(initialRequest.id),
+    enabled: Boolean(initialRequest?.id),
+  });
 
   const { isDesktop } = useResponsive();
-
-  const [price, setPrice] = useState("");
-
-  const [availability, setAvailability] = useState("");
-
-  const [message, setMessage] = useState("");
-
-  const [loading, setLoading] = useState(false);
-
+  const { isAvailable } = useProfessionalAvailability();
+  const queryClient = useQueryClient();
   const [error, setError] = useState("");
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(offerSchema),
+    defaultValues: { price: "", availability: "", message: "" },
+    mode: "onTouched",
+  });
+  const message = useWatch({ control, name: "message" }) || "";
 
-  const category = categories.find((item) => item.id === request?.categoria_id);
+  const categoryId = request?.categoria_id || request?.categoryId;
+  const category = categories.find((item) => item.id === categoryId);
 
-  const categoryName = category?.label || category?.name || "Servicio";
+  const categoryName =
+    request?.categoryName ||
+    category?.label ||
+    category?.name ||
+    request?.categoria?.nombre ||
+    "Servicio";
 
   const urgency =
-    URGENCY_LABELS[request?.urgencia] || request?.urgencia || "No especificada";
+    request?.urgencyLabel ||
+    URGENCY_LABELS[request?.urgencia || request?.urgency] ||
+    request?.urgencia ||
+    request?.urgency ||
+    "No especificada";
 
-  const isValid = Number(price) > 0 && availability.trim() && message.trim();
-
-  const handleSubmit = async () => {
-    if (loading || !request?.id || !isValid) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError("");
-
-      await createProfessionalOffer({
-        publicationId: request.id,
-
-        price: Number(price),
-
-        availability: availability.trim(),
-
-        message: message.trim(),
-      });
-
+  const createOfferMutation = useMutation({
+    mutationFn: createProfessionalOffer,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalOffers }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalRequests }),
+      ]);
       navigation.navigate("ProfessionalTabs", {
         screen: "ProfessionalOffers",
-
-        params: {
-          offerSent: true,
-        },
+        params: { offerSent: true },
       });
-    } catch (err) {
+    },
+    onError: (err) => {
       console.error("Error enviando oferta:", err);
-
+      const backendDetail = err?.response?.data?.detail;
       setError(
-        getApiErrorMessage(
-          err,
-          "No pudimos enviar la oferta. Intenta nuevamente.",
-        ),
+        err?.response?.status === 409
+          ? typeof backendDetail === "string"
+            ? backendDetail
+            : "No puedes enviar esta oferta porque ya existe una postulación activa o tienes un servicio en curso."
+          : getApiErrorMessage(err, "No pudimos enviar la oferta. Intenta nuevamente."),
       );
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  const submitOffer = ({ price, availability, message: offerMessage }) => {
+    if (!request?.id || createOfferMutation.isPending || !isAvailable) return;
+    setError("");
+    createOfferMutation.mutate({
+      publicationId: request.id,
+      price: Number(price),
+      availability: availability.trim(),
+      message: offerMessage.trim(),
+    });
   };
 
-  function getApiErrorMessage(err, fallback) {
-    const detail = err?.response?.data?.detail ?? err?.response?.data?.message;
-
-    if (typeof detail === "string") {
-      return detail;
-    }
-
-    if (Array.isArray(detail)) {
-      const first = detail[0];
-
-      if (typeof first === "string") {
-        return first;
-      }
-
-      if (first?.msg) {
-        return first.msg;
-      }
-    }
-
-    if (detail?.msg) {
-      return detail.msg;
-    }
-
-    return fallback;
-  }
+  const loading = createOfferMutation.isPending;
 
   if (!request) {
     return (
@@ -129,12 +123,8 @@ export default function CreateOfferScreen({ navigation, route }) {
           maxWidth={layout.content.wide}
         />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.medium}
-          style={styles.container}>
-          <Text style={styles.missingText}>
-            No encontramos la solicitud para crear la oferta.
-          </Text>
+        <ResponsiveContainer maxWidth={layout.content.medium} style={styles.container}>
+          <Text style={styles.missingText}>No encontramos la solicitud para crear la oferta.</Text>
         </ResponsiveContainer>
       </Screen>
     );
@@ -148,9 +138,7 @@ export default function CreateOfferScreen({ navigation, route }) {
         maxWidth={layout.content.wide}
       />
 
-      <ResponsiveContainer
-        maxWidth={layout.content.wide}
-        style={styles.container}>
+      <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>
           {/* RESUMEN */}
 
@@ -159,7 +147,7 @@ export default function CreateOfferScreen({ navigation, route }) {
               <View style={styles.summaryHeader}>
                 <View style={styles.summaryIcon}>
                   <Ionicons
-                    name={category?.icon || "construct-outline"}
+                    name={request.categoryIcon || resolveCategoryIcon(categoryId, categoryName)}
                     size={23}
                     color={colors.primary}
                   />
@@ -181,16 +169,28 @@ export default function CreateOfferScreen({ navigation, route }) {
               <SummaryRow
                 icon="location-outline"
                 label="Ubicación"
-                value="Valledupar, Cesar"
+                value={request.location || request.direccion || "Valledupar, Cesar"}
               />
 
               <View style={styles.summaryGap} />
-
               <SummaryRow
-                icon="time-outline"
-                label="Urgencia"
-                value={urgency}
+                icon="navigate-outline"
+                label="Distancia"
+                value={publicationDistance(request)}
               />
+              {request.providerHasPoint === false ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={() =>
+                    navigation.navigate("ProfessionalTabs", { screen: "ProfessionalProfile" })
+                  }>
+                  Configurar mi ubicación base
+                </Button>
+              ) : null}
+              <View style={styles.summaryGap} />
+
+              <SummaryRow icon="time-outline" label="Urgencia" value={urgency} />
             </Card>
           </View>
 
@@ -207,91 +207,120 @@ export default function CreateOfferScreen({ navigation, route }) {
             <Text style={styles.title}>Prepara tu propuesta</Text>
 
             <Text style={styles.description}>
-              Indica cuánto cobrarías, cuándo puedes realizar el trabajo y cómo
-              puedes ayudar al cliente.
+              Indica cuánto cobrarías, cuándo puedes realizar el trabajo y cómo puedes ayudar al
+              cliente.
             </Text>
 
-            {error ? (
-              <View style={styles.errorBox}>
-                <Ionicons
-                  name="alert-circle-outline"
-                  size={20}
-                  color={colors.error}
-                />
-
-                <Text style={styles.errorText}>
-                  {Array.isArray(error) ? error[0]?.msg : error?.msg || error}
+            {!isAvailable ? (
+              <View style={styles.availabilityNotice}>
+                <Ionicons name="briefcase-outline" size={20} color="#9A3412" />
+                <Text style={styles.availabilityNoticeText}>
+                  Tienes un servicio activo. Cuando se complete o se cancele podrás enviar otra
+                  oferta.
                 </Text>
               </View>
             ) : null}
 
-            <Card variant="outlined" style={styles.formCard}>
-              <View
-                style={[styles.fieldRow, !isDesktop && styles.fieldRowMobile]}>
-                <View style={styles.field}>
-                  <Input
-                    label="Precio"
-                    placeholder="Ej. 120000"
-                    keyboardType="numeric"
-                    value={price}
-                    editable={!loading}
-                    onChangeText={(value) => {
-                      setPrice(value);
+            {error ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
+                <View style={styles.errorContent}>
+                  <Text style={styles.errorText}>
+                    {Array.isArray(error) ? error[0]?.msg : error?.msg || error}
+                  </Text>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    fullWidth={false}
+                    onPress={() =>
+                      navigation.navigate("ProfessionalTabs", {
+                        screen: "ProfessionalOffers",
+                      })
+                    }
+                    style={styles.manageOffersButton}>
+                    Administrar mis ofertas
+                  </Button>
+                </View>
+              </View>
+            ) : null}
 
-                      if (error) {
-                        setError("");
-                      }
-                    }}
-                    helperText="Valor en pesos colombianos"
+            <Card variant="outlined" style={styles.formCard}>
+              <View style={[styles.fieldRow, !isDesktop && styles.fieldRowMobile]}>
+                <View style={styles.field}>
+                  <Controller
+                    control={control}
+                    name="price"
+                    render={({ field: { onBlur, onChange, value } }) => (
+                      <Input
+                        label="Precio"
+                        placeholder="Ej. 120000"
+                        keyboardType="numeric"
+                        value={value}
+                        onBlur={onBlur}
+                        editable={!loading}
+                        onChangeText={(nextValue) => {
+                          onChange(nextValue.replace(/[^0-9]/g, ""));
+                          setError("");
+                        }}
+                        error={errors.price?.message}
+                        helperText="Valor en pesos colombianos"
+                      />
+                    )}
                   />
                 </View>
 
                 <View style={[styles.field, !isDesktop && styles.fieldMobile]}>
-                  <Input
-                    label="Disponibilidad"
-                    placeholder="Ej. Hoy después de las 3:00 p.m."
-                    value={availability}
-                    editable={!loading}
-                    onChangeText={(value) => {
-                      setAvailability(value);
-
-                      if (error) {
-                        setError("");
-                      }
-                    }}
+                  <Controller
+                    control={control}
+                    name="availability"
+                    render={({ field: { onBlur, onChange, value } }) => (
+                      <Input
+                        label="Disponibilidad"
+                        placeholder="Ej. Hoy después de las 3:00 p.m."
+                        value={value}
+                        onBlur={onBlur}
+                        editable={!loading}
+                        onChangeText={(nextValue) => {
+                          onChange(nextValue);
+                          setError("");
+                        }}
+                        error={errors.availability?.message}
+                        maxLength={120}
+                      />
+                    )}
                   />
                 </View>
               </View>
 
               <View style={styles.messageField}>
-                <TextArea
-                  label="Mensaje"
-                  placeholder="Cuéntale al cliente cómo puedes ayudarlo..."
-                  value={message}
-                  editable={!loading}
-                  onChangeText={(value) => {
-                    setMessage(value);
-
-                    if (error) {
-                      setError("");
-                    }
-                  }}
-                  maxLength={500}
+                <Controller
+                  control={control}
+                  name="message"
+                  render={({ field: { onBlur, onChange, value } }) => (
+                    <TextArea
+                      label="Mensaje"
+                      placeholder="Cuéntale al cliente cómo puedes ayudarlo..."
+                      value={value}
+                      onBlur={onBlur}
+                      editable={!loading}
+                      onChangeText={(nextValue) => {
+                        onChange(nextValue);
+                        setError("");
+                      }}
+                      error={errors.message?.message}
+                      maxLength={500}
+                    />
+                  )}
                 />
 
                 <Text style={styles.counter}>{message.length}/500</Text>
               </View>
 
               <View style={[styles.action, isDesktop && styles.actionDesktop]}>
-                <View
-                  style={[
-                    styles.actionButton,
-
-                    isDesktop && styles.actionButtonDesktop,
-                  ]}>
+                <View style={[styles.actionButton, isDesktop && styles.actionButtonDesktop]}>
                   <Button
-                    onPress={handleSubmit}
-                    disabled={!isValid || loading}
+                    onPress={handleSubmit(submitOffer)}
+                    disabled={loading || !isAvailable}
                     loading={loading}
                     loadingLabel="Enviando oferta...">
                     Enviar oferta
@@ -548,15 +577,38 @@ const styles = StyleSheet.create({
     borderColor: "#FECACA",
   },
 
-  errorText: {
+  availabilityNotice: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: spacing.xl,
+    padding: spacing.md,
+    backgroundColor: "#FFF7ED",
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    borderRadius: radius.md,
+  },
+
+  availabilityNoticeText: {
     flex: 1,
-
     marginLeft: spacing.sm,
+    color: "#9A3412",
+    fontSize: 13,
+    lineHeight: 19,
+  },
 
+  errorText: {
     color: "#B91C1C",
 
     fontSize: 14,
     lineHeight: 20,
+  },
+  errorContent: {
+    flex: 1,
+    marginLeft: spacing.sm,
+  },
+  manageOffersButton: {
+    alignSelf: "flex-start",
+    marginTop: spacing.sm,
   },
 
   missingText: {

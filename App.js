@@ -1,25 +1,26 @@
 // App.js
 import "react-native-gesture-handler";
 import React from "react";
-import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { GlobalErrorProvider } from "./src/core/errors/GlobalErrorContext";
+import { AppQueryProvider } from "./src/core/query/AppQueryProvider";
 import { AppModeProvider } from "./src/features/app-mode/context/AppModeContext";
 import { AuthProvider } from "./src/hook/useAuth";
-import RootNavigator from "./src/app/navigation/RootNavigator";
-import { RequestDraftProvider } from "./src/features/requests/context/RequestDraftContext";
-
+import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <AppModeProvider>
-          <RequestDraftProvider>
-            <RootNavigator />
-          </RequestDraftProvider>
-        </AppModeProvider>
-      </AuthProvider>
+      <GlobalErrorProvider>
+        <AppQueryProvider>
+          <AuthProvider>
+            <AppModeProvider>
+              <RootNavigator />
+            </AppModeProvider>
+          </AuthProvider>
+        </AppQueryProvider>
+      </GlobalErrorProvider>
     </SafeAreaProvider>
   );
 }

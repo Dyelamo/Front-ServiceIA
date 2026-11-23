@@ -6,27 +6,30 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { colors } from "../../theme";
+import { colors } from "../theme";
 
-import ClientHomeScreen from "../../features/requests/screens/client/ClientHomeScreen";
-import ClientRequestsScreen from "../../features/requests/screens/client/ClientRequestsScreen";
-import RequestDetailScreen from "../../features/requests/screens/client/RequestDetailScreen";
-import ClientProfileScreen from "../../features/profile/screens/ClientProfileScreen";
-import NotificationsScreen from "../../features/notifications/screens/NotificationsScreen";
+import ClientHomeScreen from "../features/requests/screens/client/ClientHomeScreen";
+import ClientRequestsScreen from "../features/requests/screens/client/ClientRequestsScreen";
+import RequestDetailScreen from "../features/requests/screens/client/RequestDetailScreen";
+import WorkerProfileScreen from "../features/professional/screens/WorkerProfileScreen";
+import ClientProfileScreen from "../features/profile/screens/ClientProfileScreen";
+import NotificationsScreen from "../features/notifications/screens/NotificationsScreen";
+import MessagesScreen from "../features/chat/screens/MessagesScreen";
+import ChatScreen from "../features/chat/screens/ChatScreen";
 
-import DescribeScreen from "../../features/requests/screens/client/create/DescribeScreen";
-import CategoryScreen from "../../features/requests/screens/client/create/CategoryScreen";
-import LocationScreen from "../../features/requests/screens/client/create/LocationScreen";
-import UrgencyScreen from "../../features/requests/screens/client/create/UrgencyScreen";
-import PhotosScreen from "../../features/requests/screens/client/create/PhotosScreen";
-import ReviewScreen from "../../features/requests/screens/client/create/ReviewScreen";
-import SuccessScreen from "../../features/requests/screens/client/create/SuccessScreen";
+import DescribeScreen from "../features/requests/screens/client/create/DescribeScreen";
+import CategoryScreen from "../features/requests/screens/client/create/CategoryScreen";
+import LocationScreen from "../features/requests/screens/client/create/LocationScreen";
+import UrgencyScreen from "../features/requests/screens/client/create/UrgencyScreen";
+import PhotosScreen from "../features/requests/screens/client/create/PhotosScreen";
+import ReviewScreen from "../features/requests/screens/client/create/ReviewScreen";
+import SuccessScreen from "../features/requests/screens/client/create/SuccessScreen";
 
 import { StyleSheet } from "react-native";
 
-import { useResponsive } from "../../shared/hooks/useResponsive";
+import { useResponsive } from "../shared/hooks/useResponsive";
 
-import { RequestDraftProvider } from "../../features/requests/context/RequestDraftContext";
+import { RequestDraftProvider } from "../features/requests/context/RequestDraftContext";
 
 const Tab = createBottomTabNavigator();
 
@@ -47,9 +50,7 @@ function ClientTabs() {
 
         tabBarInactiveTintColor: colors.textMuted,
 
-        tabBarActiveBackgroundColor: isDesktop
-          ? colors.primaryLight
-          : undefined,
+        tabBarActiveBackgroundColor: isDesktop ? colors.primaryLight : undefined,
 
         tabBarHideOnKeyboard: true,
 
@@ -72,6 +73,10 @@ function ClientTabs() {
 
           if (route.name === "Notifications") {
             iconName = focused ? "notifications" : "notifications-outline";
+          }
+
+          if (route.name === "Messages") {
+            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           }
 
           if (route.name === "Profile") {
@@ -106,6 +111,14 @@ function ClientTabs() {
       />
 
       <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          title: "Mensajes",
+        }}
+      />
+
+      <Tab.Screen
         name="Profile"
         component={ClientProfileScreen}
         options={{
@@ -126,11 +139,10 @@ export default function ClientNavigator() {
         <Stack.Screen name="ClientTabs" component={ClientTabs} />
 
         <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
+        <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
 
-        <Stack.Screen
-          name="CreateRequestDescription"
-          component={DescribeScreen}
-        />
+        <Stack.Screen name="CreateRequestDescription" component={DescribeScreen} />
 
         <Stack.Screen name="CreateRequestCategory" component={CategoryScreen} />
 

@@ -74,9 +74,7 @@ export default function UrgencyScreen({ navigation }) {
           const selected = draft.urgency === option.value;
 
           return (
-            <View
-              key={option.value}
-              style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+            <View key={option.value} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
               <Pressable
                 onPress={() => handleSelect(option)}
                 style={({ pressed }) => [
@@ -86,12 +84,7 @@ export default function UrgencyScreen({ navigation }) {
 
                   pressed && styles.optionPressed,
                 ]}>
-                <View
-                  style={[
-                    styles.iconContainer,
-
-                    selected && styles.iconContainerSelected,
-                  ]}>
+                <View style={[styles.iconContainer, selected && styles.iconContainerSelected]}>
                   <Ionicons
                     name={option.icon}
                     size={24}
@@ -100,8 +93,7 @@ export default function UrgencyScreen({ navigation }) {
                 </View>
 
                 <View style={styles.content}>
-                  <Text
-                    style={[styles.title, selected && styles.titleSelected]}>
+                  <Text style={[styles.title, selected && styles.titleSelected]}>
                     {option.label}
                   </Text>
 

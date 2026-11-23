@@ -10,6 +10,7 @@ export default function Screen({
   scroll = false,
   backgroundColor = colors.background,
   contentContainerStyle,
+  refreshControl,
   style,
 }) {
   if (scroll) {
@@ -24,10 +25,9 @@ export default function Screen({
         ]}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode={
-            Platform.OS === "ios" ? "interactive" : "on-drag"
-          }
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          refreshControl={refreshControl}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, contentContainerStyle]}>
           {children}

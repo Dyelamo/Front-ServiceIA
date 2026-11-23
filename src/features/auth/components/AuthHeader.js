@@ -13,13 +13,9 @@ export default function AuthHeader({ title, description }) {
     <View style={styles.container}>
       {!isDesktop ? <Text style={styles.logo}>Serv-IA</Text> : null}
 
-      <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
-        {title}
-      </Text>
+      <Text style={[styles.title, isDesktop && styles.titleDesktop]}>{title}</Text>
 
-      {description ? (
-        <Text style={styles.description}>{description}</Text>
-      ) : null}
+      {description ? <Text style={styles.description}>{description}</Text> : null}
     </View>
   );
 }

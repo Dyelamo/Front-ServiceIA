@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,6 +11,8 @@ import {
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { colors, spacing } from "../../../theme";
 
@@ -19,54 +22,29 @@ import AuthLayout from "../components/AuthLayout";
 import AuthHeader from "../components/AuthHeader";
 
 import { useAuth } from "../../../hook/useAuth";
+import { loginSchema } from "../schema/auth.schema";
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
-
-  const [email, setEmail] = useState("");
-
-  const [password, setPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
-
-  const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    mode: "onTouched",
+  });
 
-  const [fieldErrors, setFieldErrors] = useState({});
-
-  const validate = () => {
-    const errors = {};
-
-    if (!email.trim()) {
-      errors.email = "Ingresa tu correo electrónico.";
-    } else if (!/\S+@\S+\.\S+/.test(email.trim())) {
-      errors.email = "Ingresa un correo válido.";
-    }
-
-    if (!password) {
-      errors.password = "Ingresa tu contraseña.";
-    }
-
-    setFieldErrors(errors);
-
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleLogin = async () => {
-    if (loading) {
-      return;
-    }
-
+  const handleLogin = async ({ email, password }) => {
     setError("");
 
-    if (!validate()) {
-      return;
-    }
-
     try {
-      setLoading(true);
-
       await login(email.trim().toLowerCase(), password);
     } catch (err) {
       console.error("Error iniciando sesión:", err);
@@ -84,19 +62,13 @@ export default function LoginScreen({ navigation }) {
 
         return;
       }
-
-      setError(
-        "No pudimos iniciar sesión. Verifica tu conexión e intenta nuevamente.",
-      );
-    } finally {
-      setLoading(false);
+      setError("No pudimos iniciar sesión. Verifica tu conexión e intenta nuevamente.");
     }
   };
 
   return (
     <AuthLayout>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <AuthHeader
           title="Bienvenido de nuevo"
           description="Inicia sesión para continuar en Serv-IA."
@@ -104,88 +76,88 @@ export default function LoginScreen({ navigation }) {
 
         {error ? (
           <View style={styles.errorBox}>
-            <Ionicons
-              name="alert-circle-outline"
-              size={20}
-              color={colors.error}
-            />
+            <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
 
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
 
         <View style={styles.form}>
-          <Input
-            label="Correo electrónico"
-            placeholder="correo@ejemplo.com"
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-              setError("");
-
-              if (fieldErrors.email) {
-                setFieldErrors((prev) => ({
-                  ...prev,
-                  email: null,
-                }));
-              }
-            }}
-            error={fieldErrors.email}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!loading}
-            returnKeyType="next"
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onBlur, onChange, value } }) => (
+              <Input
+                label="Correo electrónico"
+                placeholder="correo@ejemplo.com"
+                value={value}
+                onBlur={onBlur}
+                onChangeText={(nextValue) => {
+                  onChange(nextValue);
+                  setError("");
+                }}
+                error={errors.email?.message}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isSubmitting}
+                returnKeyType="next"
+              />
+            )}
           />
 
           <View style={styles.fieldSpacing} />
 
-          <Input
-            label="Contraseña"
-            placeholder="Ingresa tu contraseña"
-            value={password}
-            onChangeText={(value) => {
-              setPassword(value);
-              setError("");
-
-              if (fieldErrors.password) {
-                setFieldErrors((prev) => ({
-                  ...prev,
-                  password: null,
-                }));
-              }
-            }}
-            error={fieldErrors.password}
-            secureTextEntry={!showPassword}
-            editable={!loading}
-            rightIcon={
-              <Pressable
-                disabled={loading}
-                onPress={() => setShowPassword((current) => !current)}>
-                <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={21}
-                  color={colors.textSecondary}
-                />
-              </Pressable>
-            }
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onBlur, onChange, value } }) => (
+              <Input
+                label="Contraseña"
+                placeholder="Ingresa tu contraseña"
+                value={value}
+                onBlur={onBlur}
+                onChangeText={(nextValue) => {
+                  onChange(nextValue);
+                  setError("");
+                }}
+                error={errors.password?.message}
+                secureTextEntry={!showPassword}
+                editable={!isSubmitting}
+                rightIcon={
+                  <Pressable
+                    accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    accessibilityRole="button"
+                    disabled={isSubmitting}
+                    onPress={() => setShowPassword((current) => !current)}>
+                    <Ionicons
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={21}
+                      color={colors.textSecondary}
+                    />
+                  </Pressable>
+                }
+              />
+            )}
           />
 
           <View style={styles.forgotContainer}>
             <Pressable
-              disabled={loading}
+              disabled={isSubmitting}
               onPress={() => {
-                // Lo conectaremos cuando exista
-                // recuperación de contraseña real.
+                Alert.alert(
+                  "Recuperación de contraseña",
+                  "Esta opción estará disponible cuando el backend habilite el envío de enlaces de recuperación.",
+                );
               }}>
               <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
             </Pressable>
           </View>
 
           <Button
-            onPress={handleLogin}
-            loading={loading}
-            disabled={loading}
+            onPress={handleSubmit(handleLogin)}
+            loading={isSubmitting}
+            disabled={isSubmitting}
             loadingLabel="Iniciando...">
             Iniciar sesión
           </Button>
@@ -193,9 +165,7 @@ export default function LoginScreen({ navigation }) {
           <View style={styles.registerRow}>
             <Text style={styles.registerText}>¿No tienes una cuenta?</Text>
 
-            <Pressable
-              disabled={loading}
-              onPress={() => navigation.navigate("Register")}>
+            <Pressable disabled={isSubmitting} onPress={() => navigation.navigate("Register")}>
               <Text style={styles.registerLink}>Crear cuenta</Text>
             </Pressable>
           </View>

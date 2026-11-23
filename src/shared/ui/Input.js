@@ -29,19 +29,13 @@ export default function Input({
 
   const isDisabled = disabled || editable === false;
 
-  const borderColor = error
-    ? colors.error
-    : focused
-      ? colors.primary
-      : colors.border;
+  const borderColor = error ? colors.error : focused ? colors.primary : colors.border;
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? (
-        <Text style={[styles.label, isDisabled && styles.labelDisabled]}>
-          {label}
-        </Text>
-      ): null}
+        <Text style={[styles.label, isDisabled && styles.labelDisabled]}>{label}</Text>
+      ) : null}
       <View
         style={[
           styles.inputContainer,
@@ -83,9 +77,7 @@ export default function Input({
           style={[styles.input, isDisabled && styles.inputDisabled, inputStyle]}
         />
         {rightIcon ? (
-          <View
-            pointerEvents={isDisabled ? "none" : "auto"}
-            style={styles.rightIcon}>
+          <View pointerEvents={isDisabled ? "none" : "auto"} style={styles.rightIcon}>
             {rightIcon}
           </View>
         ) : null}

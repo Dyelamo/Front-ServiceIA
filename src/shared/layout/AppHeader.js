@@ -30,10 +30,7 @@ export default function AppHeader({
                 onPress={onBack}
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
-                style={({ pressed }) => [
-                  styles.backButton,
-                  pressed && styles.pressed,
-                ]}
+                style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
                 hitSlop={8}>
                 <Ionicons name="arrow-back" size={22} color={colors.text} />
               </Pressable>

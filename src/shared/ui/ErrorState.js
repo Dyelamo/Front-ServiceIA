@@ -31,9 +31,7 @@ export default function ErrorState({
 
       <Text style={styles.title}>{title}</Text>
 
-      {description ? (
-        <Text style={styles.description}>{description}</Text>
-      ) : null}
+      {description ? <Text style={styles.description}>{description}</Text> : null}
 
       {onRetry ? (
         <View style={styles.action}>

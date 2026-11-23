@@ -27,13 +27,10 @@ export default function AuthLayout({ children }) {
 
               <Text style={styles.heroEyebrow}>SERVICIOS CERCA DE TI</Text>
 
-              <Text style={styles.heroTitle}>
-                Encuentra ayuda para lo que necesitas.
-              </Text>
+              <Text style={styles.heroTitle}>Encuentra ayuda para lo que necesitas.</Text>
 
               <Text style={styles.heroDescription}>
-                Publica tu solicitud y conecta con profesionales que puedan
-                ayudarte.
+                Publica tu solicitud y conecta con profesionales que puedan ayudarte.
               </Text>
 
               <View style={styles.features}>

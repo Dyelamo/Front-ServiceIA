@@ -2,62 +2,47 @@ import React, { useCallback, useState, useEffect } from "react";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useFocusEffect } from "@react-navigation/native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { colors, layout, spacing } from "../../../theme/index";
 
 import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui/index";
 
-import {
-  AppHeader,
-  ResponsiveContainer,
-  Screen,
-} from "../../../shared/layout/index";
+import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
-import { fetchProfessionalOffersWithPublications } from "../api/offers.api";
+import {
+  fetchProfessionalOffersWithPublications,
+  withdrawProfessionalOffer,
+} from "../api/offers.api";
+import { queryKeys } from "../../../core/query/query-keys";
+import { getApiErrorMessage } from "../../../core/errors/error-message";
 
 import OfferCard from "../components/OfferCard";
 
 export default function ProfessionalOffersScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
+  const queryClient = useQueryClient();
 
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const [offers, setOffers] = useState([]);
-
-  const [loading, setLoading] = useState(true);
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [retrying, setRetrying] = useState(false);
-
-  const [error, setError] = useState(false);
-
-  const loadOffers = useCallback(async () => {
-    try {
+  const {
+    data: offers = [],
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.professionalOffers,
+    queryFn: async () => {
       const data = await fetchProfessionalOffersWithPublications();
-
-      setOffers(Array.isArray(data) ? data : []);
-      setError(false);
-    } catch (err) {
-      console.error("Error cargando ofertas:", err);
-
-      setError(true);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      return Array.isArray(data) ? data : [];
+    },
+  });
 
   useEffect(() => {
     if (!route?.params?.offerSent) {
@@ -81,50 +66,61 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
 
   useFocusEffect(
     useCallback(() => {
-      loadOffers();
-    }, [loadOffers]),
+      refetch();
+    }, [refetch]),
   );
 
-  const handleRefresh = () => {
-    setRefreshing(true);
+  const refreshing = isFetching && !isLoading;
 
-    loadOffers();
+  const withdrawMutation = useMutation({
+    mutationFn: withdrawProfessionalOffer,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalOffers }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalRequests }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalProfile }),
+      ]);
+    },
+    onError: (error) => {
+      Alert.alert("No pudimos retirar la oferta", getApiErrorMessage(error, "Intenta nuevamente."));
+    },
+  });
+
+  const confirmWithdraw = (offer) => {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      const confirmed = window.confirm(
+        "Retirar oferta\n\nLa propuesta dejará de estar disponible para el cliente. Esta acción no se puede deshacer.",
+      );
+
+      if (confirmed) {
+        withdrawMutation.mutate(offer.id);
+      }
+      return;
+    }
+
+    Alert.alert(
+      "Retirar oferta",
+      "La propuesta dejará de estar disponible para el cliente. Esta acción no se puede deshacer.",
+      [
+        { text: "Conservar", style: "cancel" },
+        {
+          text: "Retirar",
+          style: "destructive",
+          onPress: () => withdrawMutation.mutate(offer.id),
+        },
+      ],
+    );
   };
 
-  const handleRetry = async () => {
-    setRetrying(true);
-
-    await loadOffers();
-
-    setRetrying(false);
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Screen>
         <AppHeader title="Ofertas enviadas" maxWidth={layout.content.wide} />
-        {showSuccess ? (
-          <View style={styles.successBanner}>
-            <Ionicons name="checkmark-circle" size={22} color="#15803D" />
-
-            <View style={styles.successContent}>
-              <Text style={styles.successTitle}>Oferta enviada</Text>
-
-              <Text style={styles.successText}>
-                Tu propuesta fue enviada correctamente al cliente.
-              </Text>
-            </View>
-          </View>
-        ) : null}
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           {showSuccess ? <OfferSentBanner /> : null}
           <View style={styles.grid}>
             {[1, 2, 3, 4].map((item) => (
-              <View
-                key={item}
-                style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+              <View key={item} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
                 <Skeleton height={260} />
               </View>
             ))}
@@ -134,20 +130,18 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
     );
   }
 
-  if (error && offers.length === 0) {
+  if (isError && offers.length === 0) {
     return (
       <Screen>
         <AppHeader title="Ofertas enviadas" maxWidth={layout.content.wide} />
 
-        <ResponsiveContainer
-          maxWidth={layout.content.wide}
-          style={styles.container}>
+        <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           {showSuccess ? <OfferSentBanner /> : null}
           <ErrorState
             title="No pudimos cargar tus ofertas"
             description="Intenta nuevamente."
-            onRetry={handleRetry}
-            retrying={retrying}
+            onRetry={refetch}
+            retrying={isFetching}
           />
         </ResponsiveContainer>
       </Screen>
@@ -159,21 +153,16 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
       <AppHeader title="Ofertas enviadas" maxWidth={layout.content.wide} />
 
       <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}
         contentContainerStyle={styles.scrollContent}>
         <ResponsiveContainer maxWidth={layout.content.wide}>
           {showSuccess ? <OfferSentBanner /> : null}
-          {error && offers.length > 0 ? (
+          {isError && offers.length > 0 ? (
             <View style={styles.updateWarning}>
-              <Text style={styles.updateWarningTitle}>
-                No pudimos actualizar
-              </Text>
+              <Text style={styles.updateWarningTitle}>No pudimos actualizar</Text>
 
               <Text style={styles.updateWarningText}>
-                Tus ofertas siguen visibles con la última información
-                disponible.
+                Tus ofertas siguen visibles con la última información disponible.
               </Text>
             </View>
           ) : null}
@@ -189,21 +178,28 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
                 <Text style={styles.title}>Mis ofertas</Text>
 
                 <Text style={styles.description}>
-                  {offers.length}{" "}
-                  {offers.length === 1 ? "oferta enviada" : "ofertas enviadas"}
+                  {offers.length} {offers.length === 1 ? "oferta enviada" : "ofertas enviadas"}
                 </Text>
               </View>
 
               <View style={styles.grid}>
                 {offers.map((offer) => (
-                  <View
-                    key={offer.id}
-                    style={[
-                      styles.wrapper,
-
-                      isDesktop && styles.wrapperDesktop,
-                    ]}>
-                    <OfferCard offer={offer} />
+                  <View key={offer.id} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
+                    <OfferCard
+                      offer={offer}
+                      withdrawing={
+                        withdrawMutation.isPending && withdrawMutation.variables === offer.id
+                      }
+                      onWithdraw={() => confirmWithdraw(offer)}
+                      onMessage={() =>
+                        navigation.navigate("Chat", {
+                          conversationId: offer.conversationId,
+                          partnerId: offer.publication?.userId,
+                          partnerName: "Cliente",
+                          publicationTitle: offer.publication?.description,
+                        })
+                      }
+                    />
                   </View>
                 ))}
               </View>
@@ -223,9 +219,7 @@ function OfferSentBanner() {
       <View style={styles.successContent}>
         <Text style={styles.successTitle}>Oferta enviada</Text>
 
-        <Text style={styles.successText}>
-          Tu propuesta fue enviada correctamente al cliente.
-        </Text>
+        <Text style={styles.successText}>Tu propuesta fue enviada correctamente al cliente.</Text>
       </View>
     </View>
   );

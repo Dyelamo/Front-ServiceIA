@@ -1,12 +1,6 @@
 import React from "react";
 
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, radius, spacing } from "../../theme/index";
 
@@ -98,8 +92,7 @@ export default function Button({
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityLabel={
-        accessibilityLabel ||
-        (typeof children === "string" ? children : undefined)
+        accessibilityLabel || (typeof children === "string" ? children : undefined)
       }
       accessibilityState={{
         disabled: isDisabled,
@@ -150,9 +143,7 @@ export default function Button({
           {loading && loadingLabel ? loadingLabel : children}
         </Text>
 
-        {!loading && rightIcon ? (
-          <View style={styles.rightIcon}>{rightIcon}</View>
-        ) : null}
+        {!loading && rightIcon ? <View style={styles.rightIcon}>{rightIcon}</View> : null}
       </View>
     </Pressable>
   );

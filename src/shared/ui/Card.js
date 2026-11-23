@@ -42,11 +42,7 @@ export default function Card({
         accessibilityState={{
           disabled,
         }}
-        style={({ pressed }) => [
-          ...cardStyles,
-
-          pressed && !disabled && styles.pressed,
-        ]}>
+        style={({ pressed }) => [...cardStyles, pressed && !disabled && styles.pressed]}>
         {children}
       </Pressable>
     );

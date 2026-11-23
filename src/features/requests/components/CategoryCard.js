@@ -27,7 +27,11 @@ export default function CategoryCard({ category, selected = false, onPress }) {
             backgroundColor: category.backgroundColor,
           },
         ]}>
-        <Ionicons name={category.icon} size={24} color={category.color} />
+        <Ionicons
+          name={category.icon || "construct-outline"}
+          size={24}
+          color={category.color || colors.primary}
+        />
       </View>
 
       <Text numberOfLines={2} style={styles.label}>

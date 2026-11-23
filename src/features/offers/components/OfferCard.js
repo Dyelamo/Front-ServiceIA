@@ -1,195 +1,76 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import {
-  Ionicons,
-} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
-import {
-  colors,
-  radius,
-  spacing,
-} from "../../../theme/index";
+import { colors, radius, spacing } from "../../../theme/index";
+import { Button } from "../../../shared/ui/index";
+import { canWithdrawOffer } from "../../../core/domain/statuses";
 
-export default function OfferCard({
-  offer,
-}) {
-  const publication =
-    offer.publication;
+export default function OfferCard({ offer, onMessage, onWithdraw, withdrawing = false }) {
+  const publication = offer.publication;
 
   return (
     <View style={styles.card}>
       {publication ? (
-        <View
-          style={
-            styles.publicationSection
-          }
-        >
-          <View
-            style={
-              styles.publicationHeader
-            }
-          >
-            <View
-              style={
-                styles.publicationIcon
-              }
-            >
+        <View style={styles.publicationSection}>
+          <View style={styles.publicationHeader}>
+            <View style={styles.publicationIcon}>
               <Ionicons
-                name={
-                  publication.categoryIcon ||
-                  "construct-outline"
-                }
+                name={publication.categoryIcon || "construct-outline"}
                 size={21}
                 color={colors.primary}
               />
             </View>
 
-            <View
-              style={
-                styles.publicationContent
-              }
-            >
-              <Text
-                numberOfLines={1}
-                style={
-                  styles.category
-                }
-              >
-                {publication.categoryName ||
-                  "Servicio"}
+            <View style={styles.publicationContent}>
+              <Text numberOfLines={1} style={styles.category}>
+                {publication.categoryName || "Servicio"}
               </Text>
 
-              <Text
-                numberOfLines={3}
-                style={
-                  styles.publicationDescription
-                }
-              >
-                {publication.description ||
-                  "Sin descripción"}
+              <Text numberOfLines={3} style={styles.publicationDescription}>
+                {publication.description || "Sin descripción"}
               </Text>
             </View>
           </View>
 
-          <View
-            style={
-              styles.publicationMeta
-            }
-          >
-            <View
-              style={styles.metaItem}
-            >
-              <Ionicons
-                name="location-outline"
-                size={15}
-                color={
-                  colors.textMuted
-                }
-              />
+          <View style={styles.publicationMeta}>
+            <View style={styles.metaItem}>
+              <Ionicons name="location-outline" size={15} color={colors.textMuted} />
 
-              <Text
-                style={
-                  styles.metaText
-                }
-              >
-                Valledupar
-              </Text>
+              <Text style={styles.metaText}>Valledupar</Text>
             </View>
 
-            <View
-              style={styles.metaItem}
-            >
-              <Ionicons
-                name="time-outline"
-                size={15}
-                color={
-                  colors.textMuted
-                }
-              />
+            <View style={styles.metaItem}>
+              <Ionicons name="time-outline" size={15} color={colors.textMuted} />
 
-              <Text
-                style={
-                  styles.metaText
-                }
-              >
-                {publication.urgencyLabel ||
-                  "No especificada"}
-              </Text>
+              <Text style={styles.metaText}>{publication.urgencyLabel || "No especificada"}</Text>
             </View>
           </View>
         </View>
       ) : (
-        <View
-          style={
-            styles.publicationFallback
-          }
-        >
-          <Ionicons
-            name="document-text-outline"
-            size={20}
-            color={
-              colors.textMuted
-            }
-          />
+        <View style={styles.publicationFallback}>
+          <Ionicons name="document-text-outline" size={20} color={colors.textMuted} />
 
-          <Text
-            style={
-              styles.publicationFallbackText
-            }
-          >
-            No pudimos cargar los
-            detalles de la publicación.
+          <Text style={styles.publicationFallbackText}>
+            No pudimos cargar los detalles de la publicación.
           </Text>
         </View>
       )}
 
       <View style={styles.divider} />
 
-      <View
-        style={styles.offerHeader}
-      >
+      <View style={styles.offerHeader}>
         <View>
-          <Text
-            style={styles.priceLabel}
-          >
-            Tu oferta
-          </Text>
+          <Text style={styles.priceLabel}>Tu oferta</Text>
 
-          <Text
-            style={styles.price}
-          >
-            {formatCurrency(
-              offer.price
-            )}
-          </Text>
+          <Text style={styles.price}>{formatCurrency(offer.price)}</Text>
         </View>
 
-        <View
-          style={[
-            styles.badge,
-
-            getStatusStyle(
-              offer.status
-            ),
-          ]}
-        >
-          <Text
-            style={[
-              styles.badgeText,
-
-              getStatusTextStyle(
-                offer.status
-              ),
-            ]}
-          >
-            {offer.statusLabel ||
-              "Pendiente"}
+        <View style={[styles.badge, getStatusStyle(offer.status)]}>
+          <Text style={[styles.badgeText, getStatusTextStyle(offer.status)]}>
+            {offer.statusLabel || "Pendiente"}
           </Text>
         </View>
       </View>
@@ -199,81 +80,65 @@ export default function OfferCard({
       <InfoRow
         icon="time-outline"
         label="Disponibilidad"
-        value={
-          offer.availability ||
-          "No especificada"
-        }
+        value={offer.availability || "No especificada"}
       />
 
       {offer.message ? (
         <>
-          <View
-            style={styles.divider}
-          />
+          <View style={styles.divider} />
 
-          <InfoRow
-            icon="chatbubble-outline"
-            label="Mensaje"
-            value={offer.message}
-          />
+          <InfoRow icon="chatbubble-outline" label="Mensaje" value={offer.message} />
         </>
       ) : null}
 
-      <View style={styles.footer}>
-        <Ionicons
-          name="calendar-outline"
-          size={14}
-          color={colors.textMuted}
-        />
+      {offer.status === "aceptada" || offer.status === "aceptado" ? (
+        <Button
+          variant="secondary"
+          disabled={!offer.conversationId || !publication?.userId}
+          onPress={onMessage}
+          style={styles.messageButton}
+          leftIcon={
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primaryDark} />
+          }>
+          {offer.conversationId && publication?.userId
+            ? "Abrir conversación"
+            : "Chat no disponible"}
+        </Button>
+      ) : null}
 
-        <Text style={styles.date}>
-          Enviada{" "}
-          {formatDate(
-            offer.createdAt
-          )}
-        </Text>
+      {canWithdrawOffer(offer.status) ? (
+        <Button
+          variant="outline"
+          disabled={withdrawing}
+          loading={withdrawing}
+          loadingLabel="Retirando..."
+          onPress={onWithdraw}
+          style={styles.withdrawButton}
+          leftIcon={<Ionicons name="close-circle-outline" size={18} color={colors.error} />}>
+          Retirar oferta
+        </Button>
+      ) : null}
+
+      <View style={styles.footer}>
+        <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
+
+        <Text style={styles.date}>Enviada {formatDate(offer.createdAt)}</Text>
       </View>
     </View>
   );
 }
 
-function InfoRow({
-  icon,
-  label,
-  value,
-}) {
+function InfoRow({ icon, label, value }) {
   return (
-    <View
-      style={styles.infoRow}
-    >
-      <View
-        style={styles.infoIcon}
-      >
-        <Ionicons
-          name={icon}
-          size={18}
-          color={colors.primary}
-        />
+    <View style={styles.infoRow}>
+      <View style={styles.infoIcon}>
+        <Ionicons name={icon} size={18} color={colors.primary} />
       </View>
 
-      <View
-        style={styles.infoContent}
-      >
-        <Text
-          style={
-            styles.infoLabel
-          }
-        >
-          {label}
-        </Text>
+      <View style={styles.infoContent}>
+        <Text style={styles.infoLabel}>{label}</Text>
 
-        <Text
-          style={
-            styles.infoValue
-          }
-        >
-          {value}
-        </Text>
+        <Text style={styles.infoValue}>{value}</Text>
       </View>
     </View>
   );
@@ -284,30 +149,26 @@ function getStatusStyle(status) {
     case "aceptada":
     case "aceptado":
       return {
-        backgroundColor:
-          "#DCFCE7",
+        backgroundColor: "#DCFCE7",
       };
 
     case "rechazada":
     case "rechazado":
     case "cancelada":
     case "cancelado":
+    case "retirada":
       return {
-        backgroundColor:
-          "#FEE2E2",
+        backgroundColor: "#FEE2E2",
       };
 
     default:
       return {
-        backgroundColor:
-          "#FEF3C7",
+        backgroundColor: "#FEF3C7",
       };
   }
 }
 
-function getStatusTextStyle(
-  status
-) {
+function getStatusTextStyle(status) {
   switch (status) {
     case "aceptada":
     case "aceptado":
@@ -319,6 +180,7 @@ function getStatusTextStyle(
     case "rechazado":
     case "cancelada":
     case "cancelado":
+    case "retirada":
       return {
         color: "#B91C1C",
       };
@@ -331,16 +193,11 @@ function getStatusTextStyle(
 }
 
 function formatCurrency(value) {
-  return new Intl.NumberFormat(
-    "es-CO",
-    {
-      style: "currency",
-      currency: "COP",
-      maximumFractionDigits: 0,
-    }
-  ).format(
-    Number(value || 0)
-  );
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
 }
 
 function formatDate(value) {
@@ -348,25 +205,17 @@ function formatDate(value) {
     return "";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return date.toLocaleDateString(
-    "es-CO",
-    {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }
-  );
+  return date.toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 const styles = StyleSheet.create({
@@ -374,18 +223,23 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
 
-    backgroundColor:
-      colors.surface,
+    backgroundColor: colors.surface,
 
     borderWidth: 1,
-    borderColor:
-      colors.border,
+    borderColor: colors.border,
 
-    borderRadius:
-      radius.lg,
+    borderRadius: radius.lg,
 
-    padding:
-      spacing.lg,
+    padding: spacing.lg,
+  },
+
+  messageButton: {
+    marginTop: spacing.md,
+  },
+
+  withdrawButton: {
+    marginTop: spacing.md,
+    borderColor: colors.error,
   },
 
   publicationSection: {
@@ -394,8 +248,7 @@ const styles = StyleSheet.create({
 
   publicationHeader: {
     flexDirection: "row",
-    alignItems:
-      "flex-start",
+    alignItems: "flex-start",
   },
 
   publicationIcon: {
@@ -404,8 +257,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 12,
 
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
     alignItems: "center",
     justifyContent: "center",
@@ -414,8 +266,7 @@ const styles = StyleSheet.create({
   publicationContent: {
     flex: 1,
 
-    marginLeft:
-      spacing.md,
+    marginLeft: spacing.md,
   },
 
   category: {
@@ -439,14 +290,12 @@ const styles = StyleSheet.create({
   },
 
   publicationMeta: {
-    marginTop:
-      spacing.md,
+    marginTop: spacing.md,
 
     flexDirection: "row",
     flexWrap: "wrap",
 
-    gap:
-      spacing.lg,
+    gap: spacing.lg,
   },
 
   metaItem: {
@@ -455,8 +304,7 @@ const styles = StyleSheet.create({
   },
 
   metaText: {
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: 12,
 
@@ -469,27 +317,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
 
-    backgroundColor:
-      colors.background,
+    backgroundColor: colors.background,
 
-    borderRadius:
-      radius.md,
+    borderRadius: radius.md,
 
-    padding:
-      spacing.md,
+    padding: spacing.md,
   },
 
   publicationFallbackText: {
     flex: 1,
 
-    color:
-      colors.textSecondary,
+    color: colors.textSecondary,
 
     fontSize: 12,
     lineHeight: 18,
 
-    marginLeft:
-      spacing.sm,
+    marginLeft: spacing.sm,
   },
 
   offerHeader: {
@@ -497,13 +340,11 @@ const styles = StyleSheet.create({
 
     alignItems: "center",
 
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
   },
 
   priceLabel: {
-    color:
-      colors.textMuted,
+    color: colors.textMuted,
 
     fontSize: 12,
   },
@@ -518,17 +359,13 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    borderRadius:
-      radius.pill,
+    borderRadius: radius.pill,
 
-    paddingHorizontal:
-      spacing.md,
+    paddingHorizontal: spacing.md,
 
-    paddingVertical:
-      spacing.xs,
+    paddingVertical: spacing.xs,
 
-    marginLeft:
-      spacing.md,
+    marginLeft: spacing.md,
   },
 
   badgeText: {
@@ -539,18 +376,15 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
 
-    backgroundColor:
-      colors.border,
+    backgroundColor: colors.border,
 
-    marginVertical:
-      spacing.lg,
+    marginVertical: spacing.lg,
   },
 
   infoRow: {
     flexDirection: "row",
 
-    alignItems:
-      "flex-start",
+    alignItems: "flex-start",
   },
 
   infoIcon: {
@@ -559,8 +393,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 10,
 
-    backgroundColor:
-      colors.primaryLight,
+    backgroundColor: colors.primaryLight,
 
     alignItems: "center",
     justifyContent: "center",
@@ -569,13 +402,11 @@ const styles = StyleSheet.create({
   infoContent: {
     flex: 1,
 
-    marginLeft:
-      spacing.md,
+    marginLeft: spacing.md,
   },
 
   infoLabel: {
-    color:
-      colors.textMuted,
+    color: colors.textMuted,
 
     fontSize: 11,
   },
@@ -593,13 +424,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
 
-    marginTop:
-      spacing.lg,
+    marginTop: spacing.lg,
   },
 
   date: {
-    color:
-      colors.textMuted,
+    color: colors.textMuted,
 
     fontSize: 11,
 

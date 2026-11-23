@@ -1,0 +1,22 @@
+export const queryKeys = {
+  clientRequests: ["requests", "client"],
+  professionalRequests: ["requests", "professional"],
+  publicationDetail: (id) => ["publication-detail", id],
+  professionalOffers: ["offers", "professional"],
+  categories: ["categories"],
+  conversations: (role, status = "all") => ["conversations", role, status],
+  conversation: (conversationId, role) => ["conversations", role, "detail", conversationId],
+  conversationMessages: (conversationId, role) => [
+    "conversations",
+    role,
+    conversationId,
+    "messages",
+  ],
+  notifications: (role) => ["notifications", role],
+  userProfile: ["profile", "user"],
+  professionalProfile: ["profile", "professional"],
+  providerJobs: (status) => ["jobs", "provider", status],
+  providerReviews: (providerId) => ["reviews", "provider", providerId],
+  publicationOffers: (publicationId) => ["offers", "publication", publicationId],
+  publicationReview: (publicationId) => ["reviews", "publication", publicationId],
+};

@@ -3,21 +3,26 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { colors, spacing } from "../../../../../theme/index";
 
 import { Card, Divider } from "../../../../../shared/ui/index";
 
 import { useResponsive } from "../../../../../shared/hooks/useResponsive";
+import { getApiErrorMessage } from "../../../../../core/errors/error-message";
+import { queryKeys } from "../../../../../core/query/query-keys";
 
 import { createServiceRequest } from "../../../api/requests.api";
 
 import { useRequestDraft } from "../../../context/RequestDraftContext";
+import { requestDraftSchema } from "../../../schema/request.schema";
 
 import RequestWizardLayout from "../../../components/RequestWizardLayout";
 
 export default function ReviewScreen({ navigation }) {
   const { draft } = useRequestDraft();
+  const queryClient = useQueryClient();
 
   const { isDesktop } = useResponsive();
 
@@ -30,55 +35,42 @@ export default function ReviewScreen({ navigation }) {
       return;
     }
 
-    if (!draft.description?.trim() || !draft.categoryId || !draft.urgency) {
-      setError("Falta información necesaria para publicar la solicitud.");
+    const validation = requestDraftSchema.safeParse(draft);
+
+    if (!validation.success) {
+      setError(validation.error.issues[0]?.message || "Revisa la información de la solicitud.");
 
       return;
     }
+
+    const validatedDraft = validation.data;
 
     try {
       setLoading(true);
       setError("");
 
       const result = await createServiceRequest({
-        description: draft.description,
+        description: validatedDraft.description,
 
-        categoryId: draft.categoryId,
+        categoryId: validatedDraft.categoryId,
 
-        categoryLabel: draft.categoryName,
+        categoryLabel: validatedDraft.categoryName,
 
-        urgency: draft.urgency,
+        urgency: validatedDraft.urgency,
 
-        urgencyLabel: draft.urgencyLabel,
+        urgencyLabel: validatedDraft.urgencyLabel,
 
-        location: draft.location,
+        location: validatedDraft.location,
 
-        address: draft.address,
-
-        reference: draft.reference,
-
-        photos: draft.photos,
+        address: validatedDraft.address,
+        barrio: validatedDraft.barrio,
+        reference: validatedDraft.reference,
+        city: validatedDraft.city,
+        latitud: validatedDraft.latitud,
+        longitud: validatedDraft.longitud,
       });
 
-      navigation.reset({
-        index: 1,
-
-        routes: [
-          {
-            name: "ClientTabs",
-          },
-
-          {
-            name: "CreateRequestSuccess",
-
-            params: {
-              result,
-            },
-          },
-        ],
-      });
-
-      resetDraft();
+      queryClient.invalidateQueries({ queryKey: queryKeys.clientRequests });
 
       navigation.reset({
         index: 1,
@@ -100,42 +92,11 @@ export default function ReviewScreen({ navigation }) {
     } catch (err) {
       console.error("Error publicando solicitud:", err);
 
-      setError(
-        getApiErrorMessage(
-          err,
-          "No pudimos publicar tu solicitud. Intenta nuevamente.",
-        ),
-      );
+      setError(getApiErrorMessage(err, "No pudimos publicar tu solicitud. Intenta nuevamente."));
     } finally {
       setLoading(false);
     }
   };
-
-  function getApiErrorMessage(err, fallback) {
-    const detail = err?.response?.data?.detail ?? err?.response?.data?.message;
-
-    if (typeof detail === "string") {
-      return detail;
-    }
-
-    if (Array.isArray(detail)) {
-      const first = detail[0];
-
-      if (typeof first === "string") {
-        return first;
-      }
-
-      if (first?.msg) {
-        return first.msg;
-      }
-    }
-
-    if (detail?.msg) {
-      return detail.msg;
-    }
-
-    return fallback;
-  }
 
   return (
     <RequestWizardLayout
@@ -150,27 +111,18 @@ export default function ReviewScreen({ navigation }) {
       loading={loading}>
       {error ? (
         <View style={styles.errorBox}>
-          <Ionicons
-            name="alert-circle-outline"
-            size={20}
-            color={colors.error}
-          />
+          <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
 
           <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : null}
 
       <View style={styles.reviewGrid}>
-        <View
-          style={[styles.cardWrapper, isDesktop && styles.cardWrapperDesktop]}>
+        <View style={[styles.cardWrapper, isDesktop && styles.cardWrapperDesktop]}>
           <Card variant="outlined" style={styles.card}>
             <Text style={styles.cardTitle}>Solicitud</Text>
 
-            <ReviewRow
-              icon="document-text-outline"
-              label="Descripción"
-              value={draft.description}
-            />
+            <ReviewRow icon="document-text-outline" label="Descripción" value={draft.description} />
 
             <Divider />
 
@@ -182,8 +134,7 @@ export default function ReviewScreen({ navigation }) {
           </Card>
         </View>
 
-        <View
-          style={[styles.cardWrapper, isDesktop && styles.cardWrapperDesktop]}>
+        <View style={[styles.cardWrapper, isDesktop && styles.cardWrapperDesktop]}>
           <Card variant="outlined" style={styles.card}>
             <Text style={styles.cardTitle}>Detalles</Text>
 
@@ -201,11 +152,7 @@ export default function ReviewScreen({ navigation }) {
               <>
                 <Divider />
 
-                <ReviewRow
-                  icon="navigate-outline"
-                  label="Referencia"
-                  value={draft.reference}
-                />
+                <ReviewRow icon="navigate-outline" label="Referencia" value={draft.reference} />
               </>
             ) : null}
 
@@ -224,9 +171,7 @@ export default function ReviewScreen({ navigation }) {
               label="Fotos"
               value={
                 draft.photos.length > 0
-                  ? `${draft.photos.length} agregada${
-                      draft.photos.length === 1 ? "" : "s"
-                    }`
+                  ? `${draft.photos.length} agregada${draft.photos.length === 1 ? "" : "s"}`
                   : "Sin fotos"
               }
             />
@@ -235,15 +180,11 @@ export default function ReviewScreen({ navigation }) {
       </View>
 
       <View style={styles.notice}>
-        <Ionicons
-          name="information-circle-outline"
-          size={20}
-          color={colors.primary}
-        />
+        <Ionicons name="information-circle-outline" size={20} color={colors.primary} />
 
         <Text style={styles.noticeText}>
-          Al publicar, los profesionales disponibles podrán consultar la
-          solicitud y enviarte ofertas.
+          Al publicar, los profesionales disponibles podrán consultar la solicitud y enviarte
+          ofertas.
         </Text>
       </View>
     </RequestWizardLayout>

@@ -22,9 +22,7 @@ export default function TransactionItem({ transaction }) {
 
         <Text style={styles.meta}>{transaction.date}</Text>
 
-        <Text style={styles.commission}>
-          Comisión {formatCOP(transaction.commission)}
-        </Text>
+        <Text style={styles.commission}>Comisión {formatCOP(transaction.commission)}</Text>
       </View>
 
       <View style={styles.amountBox}>

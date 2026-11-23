@@ -8,10 +8,7 @@ import { colors, radius, spacing } from "../../../../../theme/index";
 
 import { Button } from "../../../../../shared/ui/index";
 
-import {
-  ResponsiveContainer,
-  Screen,
-} from "../../../../../shared/layout/index";
+import { ResponsiveContainer, Screen } from "../../../../../shared/layout/index";
 
 import { useResponsive } from "../../../../../shared/hooks/useResponsive";
 
@@ -26,12 +23,10 @@ export default function SuccessScreen({ navigation, route }) {
 
   useEffect(() => {
     resetDraft();
-  }, []);
+  }, [resetDraft]);
 
   const publicationId =
-    result?.apiData?.id ||
-    result?.apiData?.publicacion_id ||
-    result?.apiData?.data?.id;
+    result?.apiData?.id || result?.apiData?.publicacion_id || result?.apiData?.data?.id;
 
   const handleGoHome = () => {
     navigation.reset({
@@ -75,8 +70,7 @@ export default function SuccessScreen({ navigation, route }) {
           <Text style={styles.title}>¡Solicitud publicada!</Text>
 
           <Text style={styles.description}>
-            Ahora los profesionales disponibles podrán revisar tu solicitud y
-            enviarte sus ofertas.
+            Ahora los profesionales disponibles podrán revisar tu solicitud y enviarte sus ofertas.
           </Text>
 
           {publicationId ? (
@@ -94,11 +88,7 @@ export default function SuccessScreen({ navigation, route }) {
 
             <Pressable
               onPress={handleGoHome}
-              style={({ pressed }) => [
-                styles.homeButton,
-
-                pressed && styles.pressed,
-              ]}>
+              style={({ pressed }) => [styles.homeButton, pressed && styles.pressed]}>
               <Text style={styles.homeButtonText}>Volver al inicio</Text>
             </Pressable>
           </View>

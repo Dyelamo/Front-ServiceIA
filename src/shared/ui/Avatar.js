@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../theme";
 
@@ -19,19 +14,11 @@ function getInitials(name = "") {
     .toUpperCase();
 }
 
-export default function Avatar({
-  source,
-  name = "",
-  size = 48,
-}) {
+export default function Avatar({ source, name = "", size = 48 }) {
   if (source) {
     return (
       <Image
-        source={
-          typeof source === "string"
-            ? { uri: source }
-            : source
-        }
+        source={typeof source === "string" ? { uri: source } : source}
         style={{
           width: size,
           height: size,
@@ -50,16 +37,14 @@ export default function Avatar({
           height: size,
           borderRadius: size / 2,
         },
-      ]}
-    >
+      ]}>
       <Text
         style={[
           styles.initials,
           {
             fontSize: size * 0.35,
           },
-        ]}
-      >
+        ]}>
         {getInitials(name) || "?"}
       </Text>
     </View>
