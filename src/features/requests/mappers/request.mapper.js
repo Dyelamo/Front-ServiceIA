@@ -1,23 +1,12 @@
 import { categories } from "../data/categories";
+import { PUBLICATION_STATUS_LABELS } from "../../../core/domain/statuses";
+import { resolveCategoryIcon } from "../../catalog/utils/category-presentation";
 
 const URGENCY_LABELS = {
   ahora: "Lo antes posible",
   hoy: "Hoy",
   "esta semana": "Esta semana",
   "no tengo prisa": "No tengo prisa",
-};
-
-const STATUS_LABELS = {
-  activo: "Activa",
-  publicada: "Publicada",
-  con_ofertas: "Con ofertas",
-  acuerdo: "Acuerdo alcanzado",
-  en_progreso: "En progreso",
-  terminado: "Completado",
-  completado: "Completada",
-  completada: "Completada",
-  cancelado: "Cancelada",
-  cancelada: "Cancelada",
 };
 
 const findCategory = (categoryId) => {
@@ -30,29 +19,34 @@ export const mapRequestFromApi = (request) => {
   }
 
   const category = request.categoria || findCategory(request.categoria_id);
+  const categoryName = category?.nombre || category?.name || "Servicio";
 
-  const direccion = request.direccion || "Valledupar, Cesar";
-  const barrio = request.barrio || "Valledupar";
-  const formattedLocation = barrio !== "Valledupar" ? `${barrio}, ${direccion}` : direccion;
+  const direccion = request.direccion || "";
+  const barrio = request.barrio || "";
+  const formattedLocation =
+    [barrio, direccion].filter(Boolean).join(", ") || request.ciudad || "Valledupar";
 
   return {
     id: request.id,
     userId: request.usuario_id,
     user: request.usuario,
     categoryId: request.categoria_id,
-    categoryName: category?.nombre || category?.name || "Servicio",
-    categoryIcon: category?.icono || category?.icon || "construct-outline",
+    categoryName,
+    categoryIcon: resolveCategoryIcon(request.categoria_id || category?.id, categoryName),
     description: request.descripcion || "",
     urgency: request.urgencia,
     urgencyLabel: URGENCY_LABELS[request.urgencia] || request.urgencia || "No especificada",
     status: request.estado,
-    statusLabel: STATUS_LABELS[request.estado] || request.estado || "Publicada",
+    statusLabel: PUBLICATION_STATUS_LABELS[request.estado] || request.estado || "Publicada",
     direccion: direccion,
     barrio: barrio,
     referencia: request.referencia || "",
     ciudad: request.ciudad || "Valledupar",
     latitud: request.latitud ?? null,
     longitud: request.longitud ?? null,
+    distanceKm: request.distancia_km ?? null,
+    providerHasPoint: request.prestador_tiene_punto,
+    requestHasPoint: request.solicitud_tiene_punto,
     location: formattedLocation,
     haSidoCalificada: Boolean(request.ha_sido_calificada),
     ha_sido_calificada: Boolean(request.ha_sido_calificada),

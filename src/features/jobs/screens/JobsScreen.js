@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Alert, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { Alert, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -9,16 +9,18 @@ import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/i
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 import { queryKeys } from "../../../core/query/query-keys";
 import { getApiErrorMessage } from "../../../core/errors/error-message";
-import { completeJob, fetchProviderJobs, startJob } from "../api/jobs.api";
+import { cancelJob, completeJob, fetchProviderJobs, startJob } from "../api/jobs.api";
 import JobCard from "../components/JobCard";
+import CancellationModal from "../components/CancellationModal";
 
 const TABS = [
   { id: "activos", label: "Activos" },
-  { id: "completados", label: "Historial Completados" },
+  { id: "historial", label: "Historial" },
 ];
 
 export default function JobsScreen() {
   const [tab, setTab] = useState("activos");
+  const [jobToCancel, setJobToCancel] = useState(null);
   const queryClient = useQueryClient();
   const { isDesktop } = useResponsive();
 
@@ -34,6 +36,7 @@ export default function JobsScreen() {
       const data = await fetchProviderJobs(tab);
       return Array.isArray(data) ? data : [];
     },
+    refetchInterval: tab === "activos" ? 15_000 : false,
   });
 
   useFocusEffect(
@@ -43,7 +46,13 @@ export default function JobsScreen() {
   );
 
   const refreshJobs = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["jobs", "provider"] });
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["jobs", "provider"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.professionalProfile }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.professionalOffers }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.clientRequests }),
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+    ]);
   }, [queryClient]);
 
   const startMutation = useMutation({
@@ -64,8 +73,8 @@ export default function JobsScreen() {
     mutationFn: completeJob,
     onSuccess: () => {
       Alert.alert(
-        "¡Trabajo finalizado con éxito!",
-        "El servicio ha sido completado. El cliente recibirá una solicitud obligatoria de reseña para calificar tu atención.",
+        "Trabajo marcado como realizado",
+        "El cliente debe confirmar que el servicio terminó. Hasta entonces seguirá apareciendo como trabajo activo.",
       );
       refreshJobs();
     },
@@ -77,31 +86,54 @@ export default function JobsScreen() {
     },
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: cancelJob,
+    onSuccess: () => {
+      setJobToCancel(null);
+      Alert.alert("Servicio cancelado", "La otra persona fue notificada y el chat se cerró.");
+      refreshJobs();
+    },
+    onError: (error) => {
+      Alert.alert(
+        "No pudimos cancelar el servicio",
+        getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
+      );
+    },
+  });
+
   const handleStartJob = (job) => {
-    if (startMutation.isPending || completeMutation.isPending) return;
+    if (startMutation.isPending || completeMutation.isPending || cancelMutation.isPending) return;
     const jobId = job.publicacion_id || job.id;
-    Alert.alert("Iniciar trabajo", "¿Confirmas que ya vas a iniciar este servicio?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Iniciar", onPress: () => startMutation.mutate(jobId) },
-    ]);
+    confirmAction(
+      "Iniciar trabajo",
+      "¿Confirmas que ya vas a iniciar este servicio?",
+      () => startMutation.mutate(jobId),
+      "Iniciar",
+    );
   };
 
   const handleCompleteJob = (job) => {
-    if (startMutation.isPending || completeMutation.isPending) return;
+    if (startMutation.isPending || completeMutation.isPending || cancelMutation.isPending) return;
     const jobId = job.publicacion_id || job.id;
-    Alert.alert(
-      "Finalizar trabajo",
-      "Confirma que el servicio fue completado. Esta acción notificará al cliente.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Finalizar", onPress: () => completeMutation.mutate(jobId) },
-      ],
+    confirmAction(
+      "Marcar trabajo como realizado",
+      "El cliente será notificado y deberá confirmar que el servicio terminó. Seguirás ocupado hasta su confirmación.",
+      () => completeMutation.mutate(jobId),
+      "Marcar realizado",
     );
+  };
+
+  const handleOpenCancellation = (job) => {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      document.activeElement?.blur?.();
+    }
+    setJobToCancel(job);
   };
 
   const refreshing = isFetching && !isLoading;
   const startingId = startMutation.isPending ? startMutation.variables : null;
   const completingId = completeMutation.isPending ? completeMutation.variables : null;
+  const cancellingId = cancelMutation.isPending ? cancelMutation.variables?.publicationId : null;
 
   return (
     <Screen
@@ -156,12 +188,12 @@ export default function JobsScreen() {
             title={
               tab === "activos"
                 ? "No tienes trabajos activos"
-                : "No tienes trabajos completados en tu historial"
+                : "Aún no tienes trabajos en tu historial"
             }
             description={
               tab === "activos"
                 ? "Cuando un cliente acepte una de tus cotizaciones, el trabajo aparecerá aquí."
-                : "Los servicios que marques como finalizados aparecerán en este historial junto a las calificaciones de tus clientes."
+                : "Los servicios completados o cancelados aparecerán aquí con su estado y detalles."
             }
           />
         ) : (
@@ -172,8 +204,10 @@ export default function JobsScreen() {
                   job={job}
                   onStart={handleStartJob}
                   onComplete={handleCompleteJob}
+                  onCancel={handleOpenCancellation}
                   starting={startingId === (job.publicacion_id || job.id)}
                   completing={completingId === (job.publicacion_id || job.id)}
+                  cancelling={cancellingId === (job.publicacion_id || job.id)}
                 />
               </View>
             ))}
@@ -186,8 +220,34 @@ export default function JobsScreen() {
             : "Este historial refleja la reputación que los clientes construyen sobre tu perfil profesional en ServIA."}
         </Text>
       </ResponsiveContainer>
+
+      <CancellationModal
+        visible={Boolean(jobToCancel)}
+        loading={cancelMutation.isPending}
+        onClose={() => !cancelMutation.isPending && setJobToCancel(null)}
+        onConfirm={(reason) =>
+          cancelMutation.mutate({
+            publicationId: jobToCancel?.publicacion_id || jobToCancel?.id,
+            reason,
+          })
+        }
+      />
     </Screen>
   );
+}
+
+function confirmAction(title, message, onConfirm, confirmLabel) {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    if (window.confirm(`${title}\n\n${message}`)) {
+      onConfirm();
+    }
+    return;
+  }
+
+  Alert.alert(title, message, [
+    { text: "Volver", style: "cancel" },
+    { text: confirmLabel, onPress: onConfirm },
+  ]);
 }
 
 const styles = StyleSheet.create({

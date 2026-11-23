@@ -16,6 +16,7 @@ import { getMyProfileApi } from "../../profile/api/user.api";
 
 import { getMyProfessionalProfileApi } from "../api/professional.api";
 import { fetchProviderReviews } from "../../reviews/api/reviews.api";
+import ProfessionalBaseLocation from "../components/ProfessionalBaseLocation";
 
 import { useAuth } from "../../../hook/useAuth";
 
@@ -198,6 +199,7 @@ export default function ProfessionalProfileScreen() {
               </View>
             </View>
           </View>
+          <ProfessionalBaseLocation />
         </Card>
 
         <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>

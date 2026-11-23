@@ -24,7 +24,7 @@ const INITIAL_STATE = {
   urgencyLabel: "",
   location: "Valledupar, Cesar",
   city: "Valledupar",
-  barrio: "Centro",
+  barrio: "",
   address: "",
   reference: "",
   latitud: null,

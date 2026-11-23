@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { colors, layout, radius, spacing } from "../../../theme/index";
@@ -16,6 +16,10 @@ import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/i
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 import { getApiErrorMessage } from "../../../core/errors/error-message";
 import { queryKeys } from "../../../core/query/query-keys";
+import { useProfessionalAvailability } from "../../professional/hooks/useProfessionalAvailability";
+import { resolveCategoryIcon } from "../../catalog/utils/category-presentation";
+import { publicationDistance } from "../../location/location";
+import { fetchPublicationById } from "../../requests/api/requests.api";
 
 import { categories } from "../../requests/data/categories";
 
@@ -33,9 +37,15 @@ const URGENCY_LABELS = {
 };
 
 export default function CreateOfferScreen({ navigation, route }) {
-  const request = route?.params?.request;
+  const initialRequest = route?.params?.request;
+  const { data: request = initialRequest } = useQuery({
+    queryKey: queryKeys.publicationDetail(initialRequest?.id),
+    queryFn: () => fetchPublicationById(initialRequest.id),
+    enabled: Boolean(initialRequest?.id),
+  });
 
   const { isDesktop } = useResponsive();
+  const { isAvailable } = useProfessionalAvailability();
   const queryClient = useQueryClient();
   const [error, setError] = useState("");
   const {
@@ -80,12 +90,19 @@ export default function CreateOfferScreen({ navigation, route }) {
     },
     onError: (err) => {
       console.error("Error enviando oferta:", err);
-      setError(getApiErrorMessage(err, "No pudimos enviar la oferta. Intenta nuevamente."));
+      const backendDetail = err?.response?.data?.detail;
+      setError(
+        err?.response?.status === 409
+          ? typeof backendDetail === "string"
+            ? backendDetail
+            : "No puedes enviar esta oferta porque ya existe una postulación activa o tienes un servicio en curso."
+          : getApiErrorMessage(err, "No pudimos enviar la oferta. Intenta nuevamente."),
+      );
     },
   });
 
   const submitOffer = ({ price, availability, message: offerMessage }) => {
-    if (!request?.id || createOfferMutation.isPending) return;
+    if (!request?.id || createOfferMutation.isPending || !isAvailable) return;
     setError("");
     createOfferMutation.mutate({
       publicationId: request.id,
@@ -130,7 +147,7 @@ export default function CreateOfferScreen({ navigation, route }) {
               <View style={styles.summaryHeader}>
                 <View style={styles.summaryIcon}>
                   <Ionicons
-                    name={category?.icon || "construct-outline"}
+                    name={request.categoryIcon || resolveCategoryIcon(categoryId, categoryName)}
                     size={23}
                     color={colors.primary}
                   />
@@ -156,6 +173,22 @@ export default function CreateOfferScreen({ navigation, route }) {
               />
 
               <View style={styles.summaryGap} />
+              <SummaryRow
+                icon="navigate-outline"
+                label="Distancia"
+                value={publicationDistance(request)}
+              />
+              {request.providerHasPoint === false ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={() =>
+                    navigation.navigate("ProfessionalTabs", { screen: "ProfessionalProfile" })
+                  }>
+                  Configurar mi ubicación base
+                </Button>
+              ) : null}
+              <View style={styles.summaryGap} />
 
               <SummaryRow icon="time-outline" label="Urgencia" value={urgency} />
             </Card>
@@ -178,13 +211,36 @@ export default function CreateOfferScreen({ navigation, route }) {
               cliente.
             </Text>
 
+            {!isAvailable ? (
+              <View style={styles.availabilityNotice}>
+                <Ionicons name="briefcase-outline" size={20} color="#9A3412" />
+                <Text style={styles.availabilityNoticeText}>
+                  Tienes un servicio activo. Cuando se complete o se cancele podrás enviar otra
+                  oferta.
+                </Text>
+              </View>
+            ) : null}
+
             {error ? (
               <View style={styles.errorBox}>
                 <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
-
-                <Text style={styles.errorText}>
-                  {Array.isArray(error) ? error[0]?.msg : error?.msg || error}
-                </Text>
+                <View style={styles.errorContent}>
+                  <Text style={styles.errorText}>
+                    {Array.isArray(error) ? error[0]?.msg : error?.msg || error}
+                  </Text>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    fullWidth={false}
+                    onPress={() =>
+                      navigation.navigate("ProfessionalTabs", {
+                        screen: "ProfessionalOffers",
+                      })
+                    }
+                    style={styles.manageOffersButton}>
+                    Administrar mis ofertas
+                  </Button>
+                </View>
               </View>
             ) : null}
 
@@ -264,7 +320,7 @@ export default function CreateOfferScreen({ navigation, route }) {
                 <View style={[styles.actionButton, isDesktop && styles.actionButtonDesktop]}>
                   <Button
                     onPress={handleSubmit(submitOffer)}
-                    disabled={loading}
+                    disabled={loading || !isAvailable}
                     loading={loading}
                     loadingLabel="Enviando oferta...">
                     Enviar oferta
@@ -521,15 +577,38 @@ const styles = StyleSheet.create({
     borderColor: "#FECACA",
   },
 
-  errorText: {
+  availabilityNotice: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: spacing.xl,
+    padding: spacing.md,
+    backgroundColor: "#FFF7ED",
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    borderRadius: radius.md,
+  },
+
+  availabilityNoticeText: {
     flex: 1,
-
     marginLeft: spacing.sm,
+    color: "#9A3412",
+    fontSize: 13,
+    lineHeight: 19,
+  },
 
+  errorText: {
     color: "#B91C1C",
 
     fontSize: 14,
     lineHeight: 20,
+  },
+  errorContent: {
+    flex: 1,
+    marginLeft: spacing.sm,
+  },
+  manageOffersButton: {
+    alignSelf: "flex-start",
+    marginTop: spacing.sm,
   },
 
   missingText: {

@@ -21,7 +21,11 @@ import RequestCard from "../../components/RequestCard";
 const STATUS_FILTERS = [
   { id: "todos", label: "Todas", statuses: null },
   { id: "abiertas", label: "Abiertas", statuses: ["activo", "publicada", "con_ofertas"] },
-  { id: "curso", label: "En curso", statuses: ["acuerdo", "en_progreso"] },
+  {
+    id: "curso",
+    label: "En curso",
+    statuses: ["acuerdo", "en_progreso", "pendiente_confirmacion"],
+  },
   {
     id: "completadas",
     label: "Completadas",

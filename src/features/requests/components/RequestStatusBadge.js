@@ -31,6 +31,30 @@ const STATUS_CONFIG = {
     color: "#B45309",
   },
 
+  acuerdo: {
+    label: "Acuerdo alcanzado",
+    background: "#FEF3C7",
+    color: "#B45309",
+  },
+
+  en_progreso: {
+    label: "En progreso",
+    background: "#E0F2FE",
+    color: "#0369A1",
+  },
+
+  pendiente_confirmacion: {
+    label: "Pendiente de confirmación",
+    background: "#FEF3C7",
+    color: "#B45309",
+  },
+
+  terminado: {
+    label: "Completada",
+    background: "#DCFCE7",
+    color: "#15803D",
+  },
+
   cancelado: {
     label: "Cancelada",
     background: "#FEE2E2",
@@ -53,6 +77,18 @@ const STATUS_CONFIG = {
     label: "Completada",
     background: "#DCFCE7",
     color: "#15803D",
+  },
+
+  expirado: {
+    label: "Expirada",
+    background: "#F1F5F9",
+    color: "#475569",
+  },
+
+  en_disputa: {
+    label: "En disputa",
+    background: "#FCE7F3",
+    color: "#BE185D",
   },
 };
 

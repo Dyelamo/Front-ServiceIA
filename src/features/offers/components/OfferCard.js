@@ -6,8 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors, radius, spacing } from "../../../theme/index";
 import { Button } from "../../../shared/ui/index";
+import { canWithdrawOffer } from "../../../core/domain/statuses";
 
-export default function OfferCard({ offer, onMessage }) {
+export default function OfferCard({ offer, onMessage, onWithdraw, withdrawing = false }) {
   const publication = offer.publication;
 
   return (
@@ -105,6 +106,19 @@ export default function OfferCard({ offer, onMessage }) {
         </Button>
       ) : null}
 
+      {canWithdrawOffer(offer.status) ? (
+        <Button
+          variant="outline"
+          disabled={withdrawing}
+          loading={withdrawing}
+          loadingLabel="Retirando..."
+          onPress={onWithdraw}
+          style={styles.withdrawButton}
+          leftIcon={<Ionicons name="close-circle-outline" size={18} color={colors.error} />}>
+          Retirar oferta
+        </Button>
+      ) : null}
+
       <View style={styles.footer}>
         <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
 
@@ -142,6 +156,7 @@ function getStatusStyle(status) {
     case "rechazado":
     case "cancelada":
     case "cancelado":
+    case "retirada":
       return {
         backgroundColor: "#FEE2E2",
       };
@@ -165,6 +180,7 @@ function getStatusTextStyle(status) {
     case "rechazado":
     case "cancelada":
     case "cancelado":
+    case "retirada":
       return {
         color: "#B91C1C",
       };
@@ -219,6 +235,11 @@ const styles = StyleSheet.create({
 
   messageButton: {
     marginTop: spacing.md,
+  },
+
+  withdrawButton: {
+    marginTop: spacing.md,
+    borderColor: colors.error,
   },
 
   publicationSection: {

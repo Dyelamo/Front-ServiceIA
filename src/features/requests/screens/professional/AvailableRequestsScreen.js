@@ -17,9 +17,11 @@ import { fetchProfessionalPublications } from "../../api/requests.api";
 import { queryKeys } from "../../../../core/query/query-keys";
 
 import ProfessionalRequestCard from "../../components/ProfessionalRequestCard";
+import { useProfessionalAvailability } from "../../../professional/hooks/useProfessionalAvailability";
 
 export default function AvailableRequestsScreen({ navigation }) {
   const { isDesktop } = useResponsive();
+  const { isAvailable } = useProfessionalAvailability();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todas");
 
@@ -110,6 +112,15 @@ export default function AvailableRequestsScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}
         contentContainerStyle={styles.scrollContent}>
         <ResponsiveContainer maxWidth={layout.content.wide}>
+          {!isAvailable ? (
+            <View style={styles.busyNotice}>
+              <Text style={styles.busyNoticeTitle}>Tienes un servicio activo</Text>
+              <Text style={styles.busyNoticeText}>
+                Puedes consultar las solicitudes, pero no enviar nuevas ofertas hasta completar o
+                cancelar el servicio actual.
+              </Text>
+            </View>
+          ) : null}
           <View style={styles.heading}>
             <Text style={styles.title}>Solicitudes disponibles</Text>
 
@@ -204,6 +215,26 @@ const styles = StyleSheet.create({
 
   heading: {
     marginBottom: spacing.xl,
+  },
+
+  busyNotice: {
+    marginBottom: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: "#FFF7ED",
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    borderRadius: 12,
+  },
+  busyNoticeTitle: {
+    color: "#9A3412",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  busyNoticeText: {
+    color: "#9A3412",
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: spacing.xs,
   },
 
   title: {

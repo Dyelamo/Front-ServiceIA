@@ -1,13 +1,4 @@
-const STATUS_LABELS = {
-  pendiente: "Pendiente",
-  aceptada: "Aceptada",
-  aceptado: "Aceptada",
-  en_espera: "En espera",
-  rechazada: "Rechazada",
-  rechazado: "Rechazada",
-  cancelada: "Cancelada",
-  cancelado: "Cancelada",
-};
+import { OFFER_STATUS_LABELS } from "../../../core/domain/statuses";
 
 export const mapOfferFromApi = (offer) => {
   if (!offer) {
@@ -27,6 +18,7 @@ export const mapOfferFromApi = (offer) => {
     id: offer.id,
 
     publicationId: offer.publicacion_id,
+    distanceKm: offer.distancia_km ?? null,
 
     providerId: offer.prestador_id,
 
@@ -46,6 +38,8 @@ export const mapOfferFromApi = (offer) => {
         }
       : null,
 
+    providerBusy: Boolean(rawProvider?.ocupado || rawProvider?.disponible === false),
+
     price: Number(offer.precio_ofertado || 0),
 
     availability: offer.disponibilidad || "No especificada",
@@ -54,7 +48,10 @@ export const mapOfferFromApi = (offer) => {
 
     status: offer.estado || "pendiente",
 
-    statusLabel: STATUS_LABELS[offer.estado] || offer.estado || "Pendiente",
+    statusLabel:
+      offer.estado === "en_espera" || rawProvider?.ocupado || rawProvider?.disponible === false
+        ? "Profesional ocupado"
+        : OFFER_STATUS_LABELS[offer.estado] || offer.estado || "Pendiente",
 
     createdAt: offer.created_at,
 

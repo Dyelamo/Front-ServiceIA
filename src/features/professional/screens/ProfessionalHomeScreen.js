@@ -34,7 +34,7 @@ export default function ProfessionalHomeScreen({ navigation }) {
         fetchProfessionalPublications().catch(() => []),
         fetchProfessionalOffersWithPublications().catch(() => []),
         fetchProviderJobs("activos").catch(() => []),
-        fetchProviderJobs("completados").catch(() => []),
+        fetchProviderJobs("historial").catch(() => []),
       ]);
 
       setStats({

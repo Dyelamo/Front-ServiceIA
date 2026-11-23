@@ -9,6 +9,7 @@ import { useResponsive } from "../../../shared/hooks/useResponsive";
 import { getProfessionalByIdApi } from "../api/professional.api";
 import { fetchProviderReviews } from "../../reviews/api/reviews.api";
 import { categories as serviceCategories } from "../../requests/data/categories";
+import { formatDistance } from "../../location/location";
 
 export default function WorkerProfileScreen({ navigation, route }) {
   const { isDesktop, isMobile } = useResponsive();
@@ -140,6 +141,11 @@ export default function WorkerProfileScreen({ navigation, route }) {
               </View>
 
               <Text style={styles.role}>Profesional de servicios verificado</Text>
+              {route?.params?.distanceKm !== undefined ? (
+                <Text style={styles.role}>
+                  Distancia a tu solicitud · {formatDistance(route.params.distanceKm)}
+                </Text>
+              ) : null}
 
               <View style={styles.metaRow}>
                 <View

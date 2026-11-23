@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Platform, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { colors, layout, radius, spacing } from "../../../../theme/index";
 import { Button, Card, Divider, EmptyState } from "../../../../shared/ui/index";
@@ -9,18 +10,31 @@ import { AppHeader, ResponsiveContainer, Screen } from "../../../../shared/layou
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
 import RequestStatusBadge from "../../components/RequestStatusBadge";
+import EditRequestLocation from "../../components/EditRequestLocation";
 import ReceivedOfferCard from "../../../offers/components/ReceivedOfferCard";
 import { acceptOffer, fetchOffersForPublication } from "../../../offers/api/offers.api";
-import { completeServiceRequest } from "../../api/requests.api";
+import {
+  cancelServiceRequest,
+  completeServiceRequest,
+  fetchPublicationById,
+} from "../../api/requests.api";
 import { fetchPublicationReview } from "../../../reviews/api/reviews.api";
 import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
 import { useRequestDraft } from "../../context/RequestDraftContext";
+import CancellationModal from "../../../jobs/components/CancellationModal";
+import { canCancelPublication } from "../../../../core/domain/statuses";
+import { queryKeys } from "../../../../core/query/query-keys";
+import { getApiErrorMessage } from "../../../../core/errors/error-message";
 
 export default function RequestDetailScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
+  const queryClient = useQueryClient();
   const { updateDraft } = useRequestDraft();
 
-  const request = route?.params?.request;
+  const initialRequest = route?.params?.request;
+  const [updatedRequest, setUpdatedRequest] = useState(null);
+  const request =
+    updatedRequest?.id === initialRequest?.id && updatedRequest ? updatedRequest : initialRequest;
   const publicationId = request?.id || request?.publicacion_id;
   const [currentStatus, setCurrentStatus] = useState(
     request?.status || request?.estado || "publicada",
@@ -30,6 +44,8 @@ export default function RequestDetailScreen({ navigation, route }) {
   const [offersError, setOffersError] = useState(false);
   const [acceptingOfferId, setAcceptingOfferId] = useState(null);
   const [offersRetryCount, setOffersRetryCount] = useState(0);
+  const [showCancellation, setShowCancellation] = useState(false);
+  const [cancellingService, setCancellingService] = useState(false);
 
   // Estados del módulo de Reseñas Obligatorias
   const [review, setReview] = useState(null);
@@ -53,9 +69,14 @@ export default function RequestDetailScreen({ navigation, route }) {
 
         setOffersLoading(true);
         try {
-          const receivedOffers = await fetchOffersForPublication(publicationId);
+          const [receivedOffers, updatedPublication] = await Promise.all([
+            fetchOffersForPublication(publicationId),
+            fetchPublicationById(publicationId),
+          ]);
           if (active) {
             setOffers(receivedOffers);
+            setUpdatedRequest(updatedPublication);
+            setCurrentStatus(updatedPublication?.status || updatedPublication?.estado || "activo");
             setOffersError(false);
           }
         } catch (error) {
@@ -126,8 +147,23 @@ export default function RequestDetailScreen({ navigation, route }) {
   const acceptedOffer = offers.find((o) => o.status === "aceptada" || o.status === "aceptado");
 
   const isCompleted = currentStatus === "terminado" || currentStatus === "completada";
-  const canCompleteService =
-    (currentStatus === "acuerdo" || currentStatus === "en_progreso") && Boolean(acceptedOffer);
+  const hasActiveAgreement =
+    ["acuerdo", "en_progreso", "pendiente_confirmacion"].includes(currentStatus) &&
+    Boolean(acceptedOffer);
+  const canCompleteService = currentStatus === "pendiente_confirmacion" && Boolean(acceptedOffer);
+  const canCancelService = canCancelPublication(currentStatus);
+  const isOpenRequest = currentStatus === "activo";
+  const cancelLabel = isOpenRequest ? "Cancelar solicitud" : "Cancelar servicio";
+
+  const refreshRelatedData = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.clientRequests }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.publicationOffers(publicationId) }),
+      queryClient.invalidateQueries({ queryKey: ["jobs", "provider"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.professionalProfile }),
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+    ]);
+  };
 
   const handleAcceptOffer = async (offer) => {
     setAcceptingOfferId(offer.id);
@@ -149,9 +185,12 @@ export default function RequestDetailScreen({ navigation, route }) {
                 statusLabel: "Aceptada",
                 conversationId: conversationId || item.conversationId,
               }
-            : item,
+            : item.status === "pendiente" || item.status === "en_espera"
+              ? { ...item, status: "rechazada", statusLabel: "No seleccionada" }
+              : item,
         ),
       );
+      await refreshRelatedData();
 
       if (!conversationId) {
         Alert.alert(
@@ -174,7 +213,9 @@ export default function RequestDetailScreen({ navigation, route }) {
       console.error("Error aceptando oferta:", error);
       Alert.alert(
         "No se pudo aceptar la oferta",
-        error?.response?.data?.detail || "Intenta nuevamente.",
+        error?.response?.status === 409
+          ? "La oferta, la solicitud o la disponibilidad del profesional cambió. Actualiza las ofertas e intenta de nuevo."
+          : getApiErrorMessage(error, "Intenta nuevamente."),
       );
     } finally {
       setAcceptingOfferId(null);
@@ -186,13 +227,40 @@ export default function RequestDetailScreen({ navigation, route }) {
     try {
       await completeServiceRequest(publicationId);
       setCurrentStatus("terminado");
+      await refreshRelatedData();
       // Despliega inmediatamente la calificación obligatoria
       setShowReviewModal(true);
     } catch (error) {
       console.error("Error al finalizar servicio:", error);
-      Alert.alert("Error", "No se pudo finalizar el servicio.");
+      Alert.alert(
+        "No pudimos finalizar el servicio",
+        getApiErrorMessage(error, "Intenta nuevamente."),
+      );
     } finally {
       setCompletingService(false);
+    }
+  };
+
+  const handleCancelService = async (reason) => {
+    setCancellingService(true);
+    try {
+      await cancelServiceRequest({ publicationId, reason });
+      setCurrentStatus("cancelado");
+      setShowCancellation(false);
+      await refreshRelatedData();
+      Alert.alert(
+        isOpenRequest ? "Solicitud cancelada" : "Servicio cancelado",
+        isOpenRequest
+          ? "La publicación ya no recibirá ofertas."
+          : "El profesional fue notificado y el chat se cerró.",
+      );
+    } catch (error) {
+      Alert.alert(
+        "No pudimos cancelar el servicio",
+        getApiErrorMessage(error, "Intenta nuevamente."),
+      );
+    } finally {
+      setCancellingService(false);
     }
   };
 
@@ -219,6 +287,13 @@ export default function RequestDetailScreen({ navigation, route }) {
       photos: [],
     });
     navigation.navigate("CreateRequestDescription");
+  };
+
+  const openCancellationModal = () => {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      document.activeElement?.blur?.();
+    }
+    setShowCancellation(true);
   };
 
   return (
@@ -308,18 +383,41 @@ export default function RequestDetailScreen({ navigation, route }) {
               <Text style={styles.description}>{description}</Text>
             </Card>
 
-            {/* BOTÓN PARA FINALIZAR TRABAJO POR EL CLIENTE */}
-            {canCompleteService ? (
+            {hasActiveAgreement ? (
               <View style={styles.completeActionBox}>
-                <Text style={styles.completeActionPrompt}>
-                  ¿El profesional {providerName} ya realizó el trabajo?
-                </Text>
-                <Button
-                  onPress={handleCompleteService}
-                  loading={completingService}
-                  leftIcon={<Ionicons name="checkmark-done-circle" size={18} color="#FFFFFF" />}>
-                  Marcar trabajo como completado y calificar
-                </Button>
+                <View style={styles.serviceProgressHeader}>
+                  <View style={styles.serviceProgressIcon}>
+                    <Ionicons
+                      name={canCompleteService ? "checkmark-done-outline" : "time-outline"}
+                      size={21}
+                      color={colors.primary}
+                    />
+                  </View>
+                  <View style={styles.serviceProgressCopy}>
+                    <Text style={styles.serviceProgressTitle}>
+                      {canCompleteService
+                        ? "El profesional terminó el trabajo"
+                        : currentStatus === "en_progreso"
+                          ? "Servicio en progreso"
+                          : "Oferta aceptada"}
+                    </Text>
+                    <Text style={styles.serviceProgressText}>
+                      {canCompleteService
+                        ? `Confirma únicamente si ${providerName} realmente terminó el servicio de forma satisfactoria.`
+                        : currentStatus === "en_progreso"
+                          ? `${providerName} está realizando el trabajo. Podrás confirmarlo cuando lo marque como realizado.`
+                          : `Esperando que ${providerName} marque el inicio del trabajo.`}
+                    </Text>
+                  </View>
+                </View>
+                {canCompleteService ? (
+                  <Button
+                    onPress={() => confirmClientCompletion(handleCompleteService)}
+                    loading={completingService}
+                    leftIcon={<Ionicons name="checkmark-done-circle" size={18} color="#FFFFFF" />}>
+                    Confirmar servicio terminado y calificar
+                  </Button>
+                ) : null}
               </View>
             ) : null}
           </View>
@@ -337,7 +435,25 @@ export default function RequestDetailScreen({ navigation, route }) {
               <Divider />
               <InfoRow icon="time-outline" label="Urgencia" value={urgency} />
               <Divider />
-              <InfoRow icon="location-outline" label="Ubicación en Valledupar" value={location} />
+              <InfoRow icon="location-outline" label="Dirección del servicio" value={location} />
+              {request.referencia ? (
+                <InfoRow icon="flag-outline" label="Referencia" value={request.referencia} />
+              ) : null}
+              {currentStatus === "activo" ? (
+                <EditRequestLocation
+                  key={publicationId}
+                  request={request}
+                  onSaved={(updated) => {
+                    setUpdatedRequest(updated);
+                    queryClient.invalidateQueries({ queryKey: queryKeys.clientRequests });
+                    queryClient.invalidateQueries({ queryKey: queryKeys.professionalRequests });
+                    queryClient.invalidateQueries({
+                      queryKey: queryKeys.publicationDetail(publicationId),
+                    });
+                    setOffersRetryCount((value) => value + 1);
+                  }}
+                />
+              ) : null}
 
               {createdAt ? (
                 <>
@@ -399,6 +515,7 @@ export default function RequestDetailScreen({ navigation, route }) {
                         offer.provider?.usuario?.nombre_completo ||
                         "Profesional",
                       provider: offer.provider,
+                      distanceKm: offer.distanceKm,
                     })
                   }
                   onMessage={() =>
@@ -417,6 +534,19 @@ export default function RequestDetailScreen({ navigation, route }) {
             </View>
           )}
         </View>
+        {canCancelService ? (
+          <View style={styles.cancelAction}>
+            <Button
+              variant="outline"
+              size="sm"
+              fullWidth={false}
+              onPress={openCancellationModal}
+              leftIcon={<Ionicons name="close-circle-outline" size={17} color={colors.error} />}
+              style={styles.cancelButton}>
+              {cancelLabel}
+            </Button>
+          </View>
+        ) : null}
       </ResponsiveContainer>
 
       {/* MODAL BLOQUEANTE DE RESEÑA OBLIGATORIA (No se puede omitir) */}
@@ -431,6 +561,13 @@ export default function RequestDetailScreen({ navigation, route }) {
           setHasReviewed(true);
           setShowReviewModal(false);
         }}
+      />
+      <CancellationModal
+        visible={showCancellation}
+        isOpenRequest={isOpenRequest}
+        loading={cancellingService}
+        onClose={() => !cancellingService && setShowCancellation(false)}
+        onConfirm={handleCancelService}
       />
     </Screen>
   );
@@ -468,6 +605,22 @@ function formatDate(value) {
     month: "long",
     year: "numeric",
   });
+}
+
+function confirmClientCompletion(onConfirm) {
+  const title = "Confirmar servicio terminado";
+  const message =
+    "Confirma solamente si el profesional terminó realmente el trabajo. Después podrás calificarlo.";
+
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
+    return;
+  }
+
+  Alert.alert(title, message, [
+    { text: "Volver", style: "cancel" },
+    { text: "Confirmar", onPress: onConfirm },
+  ]);
 }
 
 const styles = StyleSheet.create({
@@ -513,6 +666,16 @@ const styles = StyleSheet.create({
   statusMobile: {
     marginLeft: 0,
     marginTop: spacing.md,
+  },
+  cancelAction: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: "flex-start",
+    paddingTop: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  cancelButton: {
+    borderColor: colors.error,
   },
   mandatoryAlert: {
     flexDirection: "row",
@@ -627,6 +790,34 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.text,
     marginBottom: spacing.md,
+  },
+  serviceProgressHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: spacing.md,
+  },
+  serviceProgressIcon: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryLight,
+    borderRadius: 12,
+  },
+  serviceProgressCopy: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  serviceProgressTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  serviceProgressText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 3,
   },
   sectionHeader: {
     flexDirection: "row",

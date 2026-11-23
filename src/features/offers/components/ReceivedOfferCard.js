@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "../../../theme";
 import { Button, Card } from "../../../shared/ui";
 import { fetchProviderReviews } from "../../reviews/api/reviews.api";
+import { formatDistance } from "../../location/location";
 
 export default function ReceivedOfferCard({
   offer,
@@ -38,7 +39,8 @@ export default function ReceivedOfferCard({
     offer.provider?.nombre ||
     "Profesional";
   const isAccepted = offer.status === "aceptada" || offer.status === "aceptado";
-  const isPending = offer.status === "pendiente";
+  const isProviderBusy = offer.status === "en_espera" || offer.providerBusy;
+  const isPending = offer.status === "pendiente" && !isProviderBusy;
 
   const ratingAvg = reviewsSummary?.promedio ?? 0;
   const totalReviews = reviewsSummary?.total_resenas ?? 0;
@@ -75,8 +77,22 @@ export default function ReceivedOfferCard({
       </Pressable>
 
       <InfoRow icon="time-outline" label="Disponibilidad" value={offer.availability} />
+      <InfoRow
+        icon="navigate-outline"
+        label="Distancia a la solicitud"
+        value={formatDistance(offer.distanceKm)}
+      />
       {offer.message ? (
         <InfoRow icon="chatbubble-outline" label="Propuesta" value={offer.message} />
+      ) : null}
+
+      {isProviderBusy ? (
+        <View style={styles.busyNotice}>
+          <Ionicons name="briefcase-outline" size={17} color="#9A3412" />
+          <Text style={styles.busyNoticeText}>
+            Este profesional tiene otro servicio activo. La oferta no puede aceptarse por ahora.
+          </Text>
+        </View>
       ) : null}
 
       {/* BOTÓN VER PERFIL DEL TRABAJADOR */}
@@ -236,5 +252,22 @@ const styles = StyleSheet.create({
   },
   viewProfileBtn: {
     marginBottom: spacing.sm,
+  },
+  busyNotice: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    backgroundColor: "#FFF7ED",
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    borderRadius: radius.md,
+  },
+  busyNoticeText: {
+    flex: 1,
+    color: "#9A3412",
+    fontSize: 12,
+    lineHeight: 18,
+    marginLeft: spacing.sm,
   },
 });

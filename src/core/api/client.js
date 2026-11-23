@@ -1,8 +1,15 @@
 import { create } from "axios";
+import { Platform } from "react-native";
 
 import { getAccessToken, getRefreshToken, saveAuthData } from "../storage/auth.storage";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "/api";
+const CONFIGURED_API_URL = process.env.EXPO_PUBLIC_API_URL || "/api";
+const API_URL =
+  Platform.OS === "web" &&
+  __DEV__ &&
+  /^https?:\/\/(localhost|127\.0\.0\.1)(?=[:/]|$)/i.test(CONFIGURED_API_URL)
+    ? "/api"
+    : CONFIGURED_API_URL;
 
 export const api = create({
   baseURL: API_URL,

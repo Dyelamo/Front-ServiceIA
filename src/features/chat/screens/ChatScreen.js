@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,68 +10,84 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "../../../core/query/query-keys";
+import { getApiErrorMessage } from "../../../core/errors/error-message";
 import { getAccessToken, getUserId } from "../../../core/storage/auth.storage";
 import { Button, Input } from "../../../shared/ui";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout";
 import { colors, layout, radius, spacing } from "../../../theme";
-import { createChatWebSocketUrl, fetchConversationMessages } from "../api/chat.api";
+import {
+  createChatWebSocketUrl,
+  fetchConversation,
+  fetchConversationMessages,
+} from "../api/chat.api";
+import { mapChatMessageFromApi } from "../mappers/conversation.mapper";
+import { AppModeContext } from "../../app-mode/context/AppModeContext";
+
+const EMPTY_MESSAGES = [];
 
 export default function ChatScreen({ navigation, route }) {
   const {
     conversationId,
-    partnerId,
-    partnerName = "Conversación",
-    publicationTitle,
+    partnerId: routePartnerId,
+    partnerName: routePartnerName = "Conversación",
+    publicationTitle: routePublicationTitle,
   } = route?.params || {};
-  const [messages, setMessages] = useState([]);
+  const { mode } = useContext(AppModeContext);
+  const queryClient = useQueryClient();
   const [draft, setDraft] = useState("");
   const [userId, setUserId] = useState(null);
   const [socketStatus, setSocketStatus] = useState("connecting");
-  const [historyError, setHistoryError] = useState(false);
   const [socketError, setSocketError] = useState("");
   const [sending, setSending] = useState(false);
   const [connectionAttempt, setConnectionAttempt] = useState(0);
   const socketRef = useRef(null);
   const scrollRef = useRef(null);
 
+  const conversationQuery = useQuery({
+    queryKey: queryKeys.conversation(conversationId, mode),
+    queryFn: () => fetchConversation(conversationId, mode),
+    enabled: Boolean(conversationId),
+  });
+  const messagesQuery = useQuery({
+    queryKey: queryKeys.conversationMessages(conversationId, mode),
+    queryFn: () => fetchConversationMessages(conversationId, mode),
+    enabled: Boolean(conversationId),
+  });
+
+  const conversation = conversationQuery.data;
+  const messages = messagesQuery.data || EMPTY_MESSAGES;
+  const partnerId = conversation?.partner?.id || routePartnerId;
+  const partnerName = conversation?.partner?.nombre_completo || routePartnerName;
+  const publicationTitle = conversation?.publication?.descripcion || routePublicationTitle;
+  const isClosed = conversation?.status === "cerrada";
+
+  useEffect(() => {
+    getUserId()
+      .then(setUserId)
+      .catch(() => setUserId(null));
+  }, []);
+
   useEffect(() => {
     let active = true;
     let socket;
 
     const connect = async () => {
-      if (!conversationId || !partnerId) {
-        setSocketStatus("unavailable");
+      if (!conversationId || !partnerId || conversationQuery.isLoading) return;
+      if (isClosed) {
+        setSocketStatus("closed");
         return;
       }
 
+      setSocketStatus("connecting");
       try {
-        const [token, currentUserId] = await Promise.all([getAccessToken(), getUserId()]);
-        if (!active) {
-          return;
-        }
+        const token = await getAccessToken();
+        if (!active) return;
+        if (!token) throw new Error("No hay una sesión activa para conectar el chat.");
 
-        setUserId(currentUserId);
-
-        if (!token) {
-          throw new Error("No hay una sesión activa para conectar el chat.");
-        }
-
-        try {
-          const loadedMessages = await fetchConversationMessages(conversationId);
-          if (active) {
-            setMessages(
-              loadedMessages.map((message, index) => normalizeMessage(message, index, partnerId)),
-            );
-          }
-        } catch (historyErrorValue) {
-          console.error("Error cargando historial del chat:", historyErrorValue);
-          if (active) {
-            setHistoryError(true);
-          }
-        }
-
-        socket = new WebSocket(createChatWebSocketUrl(token));
+        socket = new WebSocket(createChatWebSocketUrl(token, mode));
         socketRef.current = socket;
         socket.onopen = () => {
           if (active) {
@@ -79,18 +96,24 @@ export default function ChatScreen({ navigation, route }) {
           }
         };
         socket.onmessage = (event) => {
-          if (!active) {
+          if (!active) return;
+          const result = parseSocketEvent(event.data);
+          if (result.error) {
+            setSocketError(result.error);
             return;
           }
-
-          const incomingMessage = normalizeIncomingMessage(event.data, partnerId);
+          if (!result.message) return;
           if (
-            incomingMessage.conversationId &&
-            String(incomingMessage.conversationId) !== String(conversationId)
+            result.message.conversationId &&
+            String(result.message.conversationId) !== String(conversationId)
           ) {
             return;
           }
-          setMessages((currentMessages) => appendUniqueMessage(currentMessages, incomingMessage));
+          queryClient.setQueryData(
+            queryKeys.conversationMessages(conversationId, mode),
+            (current = []) => appendUniqueMessage(current, result.message),
+          );
+          queryClient.invalidateQueries({ queryKey: queryKeys.conversations(mode, "all") });
         };
         socket.onerror = () => {
           if (active) {
@@ -99,34 +122,31 @@ export default function ChatScreen({ navigation, route }) {
           }
         };
         socket.onclose = () => {
-          if (active) {
-            setSocketStatus("disconnected");
-          }
+          if (active) setSocketStatus("disconnected");
         };
       } catch (error) {
-        console.error("Error iniciando conversación:", error);
         if (active) {
           setSocketStatus("error");
-          setSocketError(
-            error?.response?.data?.detail || error?.message || "No pudimos cargar la conversación.",
-          );
-          if (error?.response) {
-            setHistoryError(true);
-          }
+          setSocketError(error?.message || "No pudimos conectar con el chat.");
         }
       }
     };
 
     connect();
-
     return () => {
       active = false;
-      if (socket) {
-        socket.close();
-      }
+      socket?.close();
       socketRef.current = null;
     };
-  }, [connectionAttempt, conversationId, partnerId]);
+  }, [
+    connectionAttempt,
+    conversationId,
+    conversationQuery.isLoading,
+    isClosed,
+    mode,
+    partnerId,
+    queryClient,
+  ]);
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
@@ -135,9 +155,7 @@ export default function ChatScreen({ navigation, route }) {
   const sendMessage = () => {
     const content = draft.trim();
     const socket = socketRef.current;
-    if (!content || !socket || socket.readyState !== WebSocket.OPEN) {
-      return;
-    }
+    if (!content || isClosed || !socket || socket.readyState !== WebSocket.OPEN) return;
 
     setSending(true);
     try {
@@ -146,38 +164,32 @@ export default function ChatScreen({ navigation, route }) {
           destino: partnerId,
           mensaje: content,
           id_conversacion: conversationId,
-        }),
-      );
-      setMessages((currentMessages) =>
-        appendUniqueMessage(currentMessages, {
-          id: `local-${Date.now()}`,
-          senderId: userId,
-          content,
-          createdAt: new Date().toISOString(),
-          conversationId,
+          rol: mode,
         }),
       );
       setDraft("");
-    } catch (error) {
-      console.error("Error enviando mensaje:", error);
+    } catch {
       setSocketError("No pudimos enviar el mensaje. Intenta nuevamente.");
     } finally {
       setSending(false);
     }
   };
 
-  if (!conversationId || !partnerId) {
+  if (!conversationId) {
+    return <InvalidConversation navigation={navigation} />;
+  }
+
+  if (conversationQuery.isError) {
     return (
       <Screen>
-        <AppHeader
-          title="Mensajes"
-          onBack={() => navigation.goBack()}
-          maxWidth={layout.content.wide}
-        />
+        <AppHeader title="Mensajes" onBack={() => navigation.goBack()} />
         <ResponsiveContainer maxWidth={layout.content.medium} style={styles.invalid}>
           <Text style={styles.errorText}>
-            Esta conversación no tiene los datos necesarios para abrirse.
+            {getApiErrorMessage(conversationQuery.error, "No pudimos cargar esta conversación.")}
           </Text>
+          <Button variant="outline" onPress={conversationQuery.refetch} style={styles.retryButton}>
+            Reintentar
+          </Button>
         </ResponsiveContainer>
       </Screen>
     );
@@ -192,30 +204,44 @@ export default function ChatScreen({ navigation, route }) {
       />
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         {publicationTitle ? <Text style={styles.publicationTitle}>{publicationTitle}</Text> : null}
-        <View style={styles.connection}>
-          <View
-            style={[styles.connectionDot, socketStatus === "connected" && styles.connectedDot]}
-          />
-          <Text style={styles.connectionText}>
-            {socketStatus === "connected"
-              ? "Conectado"
-              : socketStatus === "connecting"
-                ? "Conectando..."
-                : "Desconectado"}
-          </Text>
-        </View>
-        {historyError || socketError ? (
+
+        {isClosed ? (
+          <View style={styles.closedNotice}>
+            <Ionicons name="lock-closed-outline" size={18} color="#9A3412" />
+            <Text style={styles.closedNoticeText}>
+              Esta conversación finalizó y ahora es de solo lectura.
+              {conversation?.deleteAfter
+                ? ` Se conservará hasta el ${formatFullDate(conversation.deleteAfter)}.`
+                : ""}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.connection}>
+            <View
+              style={[styles.connectionDot, socketStatus === "connected" && styles.connectedDot]}
+            />
+            <Text style={styles.connectionText}>
+              {socketStatus === "connected"
+                ? "Conectado"
+                : socketStatus === "connecting"
+                  ? "Conectando..."
+                  : "Desconectado"}
+            </Text>
+          </View>
+        )}
+
+        {messagesQuery.isError || socketError ? (
           <View style={styles.errorRow}>
             <Text style={styles.errorText}>
-              {socketError || "No pudimos cargar el historial del chat."}
+              {socketError ||
+                getApiErrorMessage(messagesQuery.error, "No pudimos cargar el historial.")}
             </Text>
-            {socketStatus !== "connected" ? (
+            {!isClosed && socketStatus !== "connected" ? (
               <Button
-                size="small"
+                size="sm"
                 variant="outline"
                 fullWidth={false}
                 onPress={() => {
-                  setSocketStatus("connecting");
                   setSocketError("");
                   setConnectionAttempt((current) => current + 1);
                 }}>
@@ -233,10 +259,12 @@ export default function ChatScreen({ navigation, route }) {
             ref={scrollRef}
             contentContainerStyle={styles.messageList}
             keyboardShouldPersistTaps="handled">
-            {messages.length === 0 && socketStatus === "connecting" ? (
+            {messagesQuery.isLoading ? (
               <ActivityIndicator color={colors.primary} />
             ) : messages.length === 0 ? (
-              <Text style={styles.emptyText}>Aún no hay mensajes. Inicia la conversación.</Text>
+              <Text style={styles.emptyText}>
+                {isClosed ? "Esta conversación no tiene mensajes." : "Aún no hay mensajes."}
+              </Text>
             ) : (
               messages.map((message) => {
                 const ownMessage = String(message.senderId) === String(userId);
@@ -259,112 +287,85 @@ export default function ChatScreen({ navigation, route }) {
             )}
           </ScrollView>
 
-          <View style={styles.composer}>
-            <Input
-              value={draft}
-              onChangeText={setDraft}
-              placeholder="Escribe un mensaje..."
-              accessibilityLabel="Escribe un mensaje"
-              containerStyle={styles.input}
-              returnKeyType="send"
-              onSubmitEditing={sendMessage}
-              maxLength={1000}
-            />
-            <Button
-              onPress={sendMessage}
-              disabled={socketStatus !== "connected" || !draft.trim() || sending}
-              fullWidth={false}
-              accessibilityLabel="Enviar mensaje"
-              style={styles.sendButton}
-              leftIcon={<Ionicons name="send" size={18} color="#FFFFFF" />}>
-              Enviar
-            </Button>
-          </View>
+          {!isClosed ? (
+            <View style={styles.composer}>
+              <Input
+                value={draft}
+                onChangeText={setDraft}
+                placeholder="Escribe un mensaje..."
+                accessibilityLabel="Escribe un mensaje"
+                containerStyle={styles.input}
+                returnKeyType="send"
+                onSubmitEditing={sendMessage}
+                maxLength={1000}
+              />
+              <Button
+                onPress={sendMessage}
+                disabled={socketStatus !== "connected" || !draft.trim() || sending}
+                fullWidth={false}
+                accessibilityLabel="Enviar mensaje"
+                style={styles.sendButton}
+                leftIcon={<Ionicons name="send" size={18} color="#FFFFFF" />}>
+                Enviar
+              </Button>
+            </View>
+          ) : null}
         </KeyboardAvoidingView>
       </ResponsiveContainer>
     </Screen>
   );
 }
 
-function normalizeMessage(message, index, fallbackSenderId) {
-  return {
-    id: message?.id || message?._id || `history-${index}`,
-    senderId:
-      message?.id_remitente || message?.remitente_id || message?.senderId || fallbackSenderId,
-    content: message?.contenido || message?.mensaje || message?.message || "",
-    createdAt: message?.created_at || message?.fecha_creacion || message?.createdAt || null,
-    conversationId:
-      message?.id_conversacion || message?.conversacion_id || message?.conversationId || null,
-  };
+function InvalidConversation({ navigation }) {
+  return (
+    <Screen>
+      <AppHeader title="Mensajes" onBack={() => navigation.goBack()} />
+      <ResponsiveContainer maxWidth={layout.content.medium} style={styles.invalid}>
+        <Text style={styles.errorText}>No encontramos los datos de esta conversación.</Text>
+      </ResponsiveContainer>
+    </Screen>
+  );
+}
+
+function parseSocketEvent(rawEvent) {
+  try {
+    const event = JSON.parse(rawEvent);
+    if (event?.type === "error")
+      return { error: event.detail || "No pudimos procesar el mensaje." };
+    const rawMessage = event?.message || event;
+    return { message: mapChatMessageFromApi(rawMessage, `incoming-${Date.now()}`) };
+  } catch {
+    return { error: "El servidor envió una respuesta de chat no válida." };
+  }
 }
 
 function appendUniqueMessage(messages, nextMessage) {
   if (!nextMessage?.content) return messages;
-  const isDuplicate = messages.some((message) => {
-    if (nextMessage.id && message.id === nextMessage.id) return true;
-    if (
-      String(message.senderId) !== String(nextMessage.senderId) ||
-      message.content !== nextMessage.content
-    ) {
-      return false;
-    }
-    const currentTime = new Date(message.createdAt).getTime();
-    const nextTime = new Date(nextMessage.createdAt).getTime();
-    return Number.isFinite(currentTime) && Number.isFinite(nextTime)
-      ? Math.abs(currentTime - nextTime) < 10000
-      : false;
-  });
-  return isDuplicate ? messages : [...messages, nextMessage];
-}
-
-function normalizeIncomingMessage(rawMessage, fallbackSenderId) {
-  try {
-    const parsedMessage = JSON.parse(rawMessage);
-    return normalizeMessage(
-      parsedMessage,
-      Date.now(),
-      parsedMessage?.id_remitente || fallbackSenderId,
-    );
-  } catch {
-    return {
-      id: `incoming-${Date.now()}`,
-      senderId: fallbackSenderId,
-      content: String(rawMessage).replace(/^Message text was:\s*/, ""),
-      createdAt: new Date().toISOString(),
-    };
-  }
+  return messages.some((message) => String(message.id) === String(nextMessage.id))
+    ? messages
+    : [...messages, nextMessage];
 }
 
 function formatTime(value) {
-  if (!value) {
-    return "";
-  }
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? ""
     : date.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatFullDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "la fecha indicada"
+    : date.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+}
+
 const styles = StyleSheet.create({
-  invalid: {
-    paddingVertical: spacing.xxl,
-  },
-  container: {
-    flex: 1,
-    minHeight: 0,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-  },
-  publicationTitle: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    marginBottom: spacing.sm,
-  },
-  connection: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.md,
-  },
+  invalid: { paddingVertical: spacing.xxl },
+  retryButton: { marginTop: spacing.lg },
+  container: { flex: 1, minHeight: 0, paddingTop: spacing.md, paddingBottom: spacing.md },
+  publicationTitle: { color: colors.textSecondary, fontSize: 13, marginBottom: spacing.sm },
+  connection: { flexDirection: "row", alignItems: "center", marginBottom: spacing.md },
   connectionDot: {
     width: 8,
     height: 8,
@@ -372,12 +373,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textMuted,
     marginRight: spacing.xs,
   },
-  connectedDot: {
-    backgroundColor: "#16A34A",
+  connectedDot: { backgroundColor: "#16A34A" },
+  connectionText: { color: colors.textSecondary, fontSize: 12 },
+  closedNotice: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: "#FFF7ED",
   },
-  connectionText: {
-    color: colors.textSecondary,
-    fontSize: 12,
+  closedNoticeText: {
+    flex: 1,
+    color: "#9A3412",
+    fontSize: 13,
+    lineHeight: 19,
+    marginLeft: spacing.sm,
   },
   chat: {
     flex: 1,
@@ -388,11 +399,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     overflow: "hidden",
   },
-  messageList: {
-    flexGrow: 1,
-    justifyContent: "flex-end",
-    padding: spacing.lg,
-  },
+  messageList: { flexGrow: 1, justifyContent: "flex-end", padding: spacing.lg },
   emptyText: {
     color: colors.textMuted,
     fontSize: 14,
@@ -406,31 +413,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
   },
-  ownMessage: {
-    alignSelf: "flex-end",
-    backgroundColor: colors.primary,
-  },
-  partnerMessage: {
-    alignSelf: "flex-start",
-    backgroundColor: colors.surfaceSecondary,
-  },
-  messageText: {
-    color: colors.text,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  ownMessageText: {
-    color: "#FFFFFF",
-  },
-  messageTime: {
-    color: colors.textMuted,
-    fontSize: 10,
-    textAlign: "right",
-    marginTop: 4,
-  },
-  ownMessageTime: {
-    color: "#DBEAFE",
-  },
+  ownMessage: { alignSelf: "flex-end", backgroundColor: colors.primary },
+  partnerMessage: { alignSelf: "flex-start", backgroundColor: colors.surfaceSecondary },
+  messageText: { color: colors.text, fontSize: 14, lineHeight: 20 },
+  ownMessageText: { color: "#FFFFFF" },
+  messageTime: { color: colors.textMuted, fontSize: 10, textAlign: "right", marginTop: 4 },
+  ownMessageTime: { color: "#DBEAFE" },
   composer: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -439,18 +427,9 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     gap: spacing.sm,
   },
-  input: {
-    flex: 1,
-  },
-  sendButton: {
-    marginBottom: 0,
-  },
-  errorText: {
-    flex: 1,
-    color: colors.error,
-    fontSize: 13,
-    lineHeight: 19,
-  },
+  input: { flex: 1 },
+  sendButton: { marginBottom: 0 },
+  errorText: { flex: 1, color: colors.error, fontSize: 13, lineHeight: 19 },
   errorRow: {
     flexDirection: "row",
     alignItems: "center",

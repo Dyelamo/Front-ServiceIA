@@ -2,10 +2,10 @@ import React, { useCallback, useState, useEffect } from "react";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useFocusEffect } from "@react-navigation/native";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { colors, layout, spacing } from "../../../theme/index";
 
@@ -15,13 +15,18 @@ import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/i
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
-import { fetchProfessionalOffersWithPublications } from "../api/offers.api";
+import {
+  fetchProfessionalOffersWithPublications,
+  withdrawProfessionalOffer,
+} from "../api/offers.api";
 import { queryKeys } from "../../../core/query/query-keys";
+import { getApiErrorMessage } from "../../../core/errors/error-message";
 
 import OfferCard from "../components/OfferCard";
 
 export default function ProfessionalOffersScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
+  const queryClient = useQueryClient();
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -66,6 +71,46 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
   );
 
   const refreshing = isFetching && !isLoading;
+
+  const withdrawMutation = useMutation({
+    mutationFn: withdrawProfessionalOffer,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalOffers }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalRequests }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.professionalProfile }),
+      ]);
+    },
+    onError: (error) => {
+      Alert.alert("No pudimos retirar la oferta", getApiErrorMessage(error, "Intenta nuevamente."));
+    },
+  });
+
+  const confirmWithdraw = (offer) => {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      const confirmed = window.confirm(
+        "Retirar oferta\n\nLa propuesta dejará de estar disponible para el cliente. Esta acción no se puede deshacer.",
+      );
+
+      if (confirmed) {
+        withdrawMutation.mutate(offer.id);
+      }
+      return;
+    }
+
+    Alert.alert(
+      "Retirar oferta",
+      "La propuesta dejará de estar disponible para el cliente. Esta acción no se puede deshacer.",
+      [
+        { text: "Conservar", style: "cancel" },
+        {
+          text: "Retirar",
+          style: "destructive",
+          onPress: () => withdrawMutation.mutate(offer.id),
+        },
+      ],
+    );
+  };
 
   if (isLoading) {
     return (
@@ -142,6 +187,10 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
                   <View key={offer.id} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
                     <OfferCard
                       offer={offer}
+                      withdrawing={
+                        withdrawMutation.isPending && withdrawMutation.variables === offer.id
+                      }
+                      onWithdraw={() => confirmWithdraw(offer)}
                       onMessage={() =>
                         navigation.navigate("Chat", {
                           conversationId: offer.conversationId,

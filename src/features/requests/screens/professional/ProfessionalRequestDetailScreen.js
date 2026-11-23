@@ -3,6 +3,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 
 import { colors, layout, spacing } from "../../../../theme/index";
 
@@ -11,8 +12,13 @@ import { Button, Card, Divider } from "../../../../shared/ui/index";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../../shared/layout/index";
 
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
+import { useProfessionalAvailability } from "../../../professional/hooks/useProfessionalAvailability";
+import { resolveCategoryIcon } from "../../../catalog/utils/category-presentation";
 
 import { categories } from "../../data/categories";
+import { publicationDistance } from "../../../location/location";
+import { queryKeys } from "../../../../core/query/query-keys";
+import { fetchPublicationById } from "../../api/requests.api";
 
 function getCategory(categoryId) {
   return categories.find((item) => item.id === categoryId);
@@ -30,8 +36,14 @@ const urgencyLabels = {
 
 export default function ProfessionalRequestDetailScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
+  const { isAvailable } = useProfessionalAvailability();
 
-  const request = route?.params?.request;
+  const initialRequest = route?.params?.request;
+  const { data: request = initialRequest } = useQuery({
+    queryKey: queryKeys.publicationDetail(initialRequest?.id),
+    queryFn: () => fetchPublicationById(initialRequest.id),
+    enabled: Boolean(initialRequest?.id),
+  });
 
   if (!request) {
     return (
@@ -59,8 +71,7 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
     request.categoria?.nombre ||
     "Servicio";
 
-  const categoryIcon =
-    request.categoryIcon || category?.icon || request.categoria?.icono || "construct-outline";
+  const categoryIcon = request.categoryIcon || resolveCategoryIcon(categoryId, categoryName);
 
   const description = request.description || request.descripcion || "Sin descripción";
 
@@ -131,6 +142,14 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
               <Divider />
 
               <InfoRow icon="location-outline" label="Ubicación" value={locationText} />
+              {request.referencia ? (
+                <InfoRow icon="flag-outline" label="Referencia" value={request.referencia} />
+              ) : null}
+              <InfoRow
+                icon="navigate-outline"
+                label="Distancia"
+                value={publicationDistance(request)}
+              />
 
               <Divider />
 
@@ -154,8 +173,19 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
               </Text>
             </View>
 
+            {!isAvailable ? (
+              <View style={styles.busyNotice}>
+                <Ionicons name="briefcase-outline" size={20} color="#9A3412" />
+                <Text style={styles.busyNoticeText}>
+                  Ya tienes un servicio activo. Podrás enviar otra oferta cuando finalice o se
+                  cancele.
+                </Text>
+              </View>
+            ) : null}
+
             <View style={styles.action}>
               <Button
+                disabled={!isAvailable}
                 onPress={() =>
                   navigation.navigate("CreateOffer", {
                     request,
@@ -404,6 +434,25 @@ const styles = StyleSheet.create({
 
     color: colors.textSecondary,
 
+    fontSize: 13,
+    lineHeight: 20,
+  },
+
+  busyNotice: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: "#FFF7ED",
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    borderRadius: 12,
+  },
+
+  busyNoticeText: {
+    flex: 1,
+    marginLeft: spacing.sm,
+    color: "#9A3412",
     fontSize: 13,
     lineHeight: 20,
   },

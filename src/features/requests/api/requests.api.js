@@ -19,6 +19,11 @@ export const fetchPublicationById = async (publicationId) => {
   return mapRequestFromApi(data);
 };
 
+export const updatePublicationLocation = async (id, location) => {
+  const { data } = await api.put(`/publicaciones/${id}`, location);
+  return mapRequestFromApi(data);
+};
+
 export const createServiceRequest = async ({
   description,
   categoryId,
@@ -51,6 +56,13 @@ export const startServiceRequest = async (publicationId) => {
 };
 
 export const completeServiceRequest = async (publicationId) => {
-  const { data } = await api.patch(`/publicaciones/${publicationId}/completar`);
+  const { data } = await api.patch(`/publicaciones/${publicationId}/confirmar-finalizacion`);
+  return mapRequestFromApi(data);
+};
+
+export const cancelServiceRequest = async ({ publicationId, reason }) => {
+  const { data } = await api.patch(`/publicaciones/${publicationId}/cancelar`, {
+    motivo: reason,
+  });
   return mapRequestFromApi(data);
 };

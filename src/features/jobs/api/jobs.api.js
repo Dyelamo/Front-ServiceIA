@@ -25,3 +25,10 @@ export const completeJob = async (publicationId) => {
   const { data } = await api.patch(`/publicaciones/${publicationId}/completar`);
   return data;
 };
+
+export const cancelJob = async ({ publicationId, reason }) => {
+  const { data } = await api.patch(`/publicaciones/${publicationId}/cancelar`, {
+    motivo: reason,
+  });
+  return data;
+};

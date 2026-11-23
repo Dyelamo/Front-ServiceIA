@@ -3,10 +3,12 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { publicationDistance } from "../../location/location";
 
 import { colors, radius, spacing } from "../../../theme/index";
 
 import { categories } from "../data/categories";
+import { resolveCategoryIcon } from "../../catalog/utils/category-presentation";
 
 function getCategory(categoryId) {
   return categories.find((category) => category.id === categoryId);
@@ -36,7 +38,7 @@ export default function ProfessionalRequestCard({ request, onPress }) {
     request.categoria?.nombre ||
     "Servicio";
   const iconName =
-    request.categoryIcon || category?.icon || request.categoria?.icono || "construct-outline";
+    request.categoryIcon || resolveCategoryIcon(categoryId, categoryTitle) || category?.icon;
   const urgencyText = request.urgencyLabel || getUrgencyLabel(request.urgencia || request.urgency);
   const descriptionText = request.description || request.descripcion || "Sin descripción";
   const locationText =
@@ -64,6 +66,7 @@ export default function ProfessionalRequestCard({ request, onPress }) {
                 {locationText}
               </Text>
             </View>
+            <Text style={styles.location}>{publicationDistance(request)}</Text>
           </View>
         </View>
 

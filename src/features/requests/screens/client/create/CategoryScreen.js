@@ -2,8 +2,6 @@ import React from "react";
 
 import { StyleSheet, View } from "react-native";
 
-import { categories } from "../../../data/categories";
-
 import { useRequestDraft } from "../../../context/RequestDraftContext";
 
 import CategoryCard from "../../../components/CategoryCard";
@@ -11,9 +9,11 @@ import CategoryCard from "../../../components/CategoryCard";
 import RequestWizardLayout from "../../../components/RequestWizardLayout";
 
 import { useResponsive } from "../../../../../shared/hooks/useResponsive";
+import { useCategories } from "../../../../catalog/hooks/useCategories";
 
 export default function CategoryScreen({ navigation }) {
   const { draft, updateDraft } = useRequestDraft();
+  const { categories } = useCategories();
 
   const { isMobile } = useResponsive();
 

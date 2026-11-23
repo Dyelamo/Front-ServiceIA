@@ -2,8 +2,6 @@ import { api } from "../../../core/api/client";
 
 import { extractList } from "../../../core/api/response";
 
-import { getUserId } from "../../../core/storage/auth.storage";
-
 import { mapOffersFromApi } from "../mappers/offer.mapper";
 
 import { mapRequestFromApi } from "../../requests/mappers/request.mapper";
@@ -11,23 +9,20 @@ import { mapRequestFromApi } from "../../requests/mappers/request.mapper";
 import { fetchPublicationById } from "../../requests/api/requests.api";
 
 export const createProfessionalOffer = async ({ publicationId, price, availability, message }) => {
-  const prestadorId = await getUserId();
-
-  if (!prestadorId) {
-    throw new Error("No hay un profesional autenticado");
-  }
-
   const { data } = await api.post("/postulaciones", {
     publicacion_id: publicationId,
-
-    prestador_id: prestadorId,
-
     precio_ofertado: Number(price),
 
     disponibilidad: availability,
 
     mensaje: message,
   });
+
+  return data;
+};
+
+export const withdrawProfessionalOffer = async (offerId) => {
+  const { data } = await api.patch(`/postulaciones/${offerId}/retirar`);
 
   return data;
 };

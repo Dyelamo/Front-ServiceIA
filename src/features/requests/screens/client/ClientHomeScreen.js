@@ -13,16 +13,16 @@ import { ResponsiveContainer, Screen } from "../../../../shared/layout/index";
 
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
-import { categories } from "../../data/categories";
-
 import { useRequestDraft } from "../../context/RequestDraftContext";
 
 import CategoryCard from "../../components/CategoryCard";
 import { fetchPendingReview } from "../../../reviews/api/reviews.api";
 import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
+import { useCategories } from "../../../catalog/hooks/useCategories";
 
 export default function ClientHomeScreen({ navigation }) {
   const { draft, hasDraft, resetDraft, updateDraft } = useRequestDraft();
+  const { categories } = useCategories();
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 

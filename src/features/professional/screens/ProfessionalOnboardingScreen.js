@@ -22,7 +22,7 @@ import { ResponsiveContainer } from "../../../shared/layout/index";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
-import { categories } from "../../requests/data/categories";
+import { useCategories } from "../../catalog/hooks/useCategories";
 
 import { getMyProfileApi } from "../../profile/api/user.api";
 
@@ -41,6 +41,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
   const { isDesktop } = useResponsive();
 
   const { setMode, setProfessionalProfile } = useAppMode();
+  const { categories } = useCategories();
 
   const [step, setStep] = useState(STEPS.INTRO);
 
@@ -247,6 +248,7 @@ export default function ProfessionalOnboardingScreen({ navigation }) {
   if (step === STEPS.CATEGORIES) {
     return (
       <CategoriesStep
+        categories={categories}
         selectedCategories={selectedCategories}
         toggleCategory={toggleCategory}
         error={error}
@@ -424,6 +426,7 @@ function ProfileStep({ userProfile, about, setAbout, error, onBack, onContinue, 
 }
 
 function CategoriesStep({
+  categories,
   selectedCategories,
   toggleCategory,
   error,

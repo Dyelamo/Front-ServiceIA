@@ -10,13 +10,12 @@ import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/i
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 import { queryKeys } from "../../../core/query/query-keys";
 import { AppModeContext } from "../../app-mode/context/AppModeContext";
-import { fetchPublicationById } from "../../requests/api/requests.api";
-import { mapRequestFromApi } from "../../requests/mappers/request.mapper";
 import {
   fetchNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from "../api/notifications.api";
+import { openNotificationDestination } from "../navigation/notification-router";
 
 export default function NotificationsScreen({ navigation }) {
   const { isDesktop } = useResponsive();
@@ -24,8 +23,8 @@ export default function NotificationsScreen({ navigation }) {
   const [openingId, setOpeningId] = useState(null);
   const queryClient = useQueryClient();
   const { data, isError, isFetching, isLoading, refetch } = useQuery({
-    queryKey: queryKeys.notifications,
-    queryFn: fetchNotifications,
+    queryKey: queryKeys.notifications(mode),
+    queryFn: () => fetchNotifications(mode),
   });
 
   const notifications = data?.notificaciones || [];
@@ -39,21 +38,21 @@ export default function NotificationsScreen({ navigation }) {
 
   const updateNotifications = useCallback(
     (updater) => {
-      queryClient.setQueryData(queryKeys.notifications, (current) => {
+      queryClient.setQueryData(queryKeys.notifications(mode), (current) => {
         const safeCurrent = current || { notificaciones: [], no_leidas: 0 };
         return updater(safeCurrent);
       });
     },
-    [queryClient],
+    [mode, queryClient],
   );
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
-    onSuccess: (_result, notificationId) => {
+    onSuccess: (_result, variables) => {
       updateNotifications((current) => ({
         ...current,
         notificaciones: current.notificaciones.map((item) =>
-          item.id === notificationId ? { ...item, leida: true } : item,
+          item.id === variables.notificationId ? { ...item, leida: true } : item,
         ),
         no_leidas: Math.max(0, (current.no_leidas || 0) - 1),
       }));
@@ -74,39 +73,32 @@ export default function NotificationsScreen({ navigation }) {
   const handleMarkAsRead = async (item) => {
     if (!item.leida) {
       try {
-        await markAsReadMutation.mutateAsync(item.id);
+        await markAsReadMutation.mutateAsync({ notificationId: item.id, role: mode });
       } catch (err) {
         console.error("Error marcando notificación como leída:", err);
         return;
       }
     }
 
-    // Navegación contextual si tiene referencia a una solicitud/publicación
-    if (item.referencia_id) {
-      try {
-        setOpeningId(item.id);
-        const publication = await fetchPublicationById(item.referencia_id);
-        const request = mapRequestFromApi(publication);
-        if (mode === "profesional") {
-          navigation.navigate("ProfessionalRequestDetail", { request });
-        } else {
-          navigation.getParent()?.navigate("RequestDetail", { request });
-        }
-      } catch (err) {
-        console.error("Error abriendo la notificación:", err);
-        Alert.alert(
-          "No pudimos abrir el detalle",
-          "La publicación puede haber cambiado o ya no estar disponible.",
-        );
-      } finally {
-        setOpeningId(null);
-      }
+    try {
+      setOpeningId(item.id);
+      await openNotificationDestination({ notification: item, mode, navigation });
+    } catch (err) {
+      console.error("Error abriendo la notificación:", err);
+      Alert.alert(
+        "No pudimos abrir el destino",
+        err?.response?.data?.detail ||
+          err?.message ||
+          "El contenido puede haber cambiado o ya no estar disponible.",
+      );
+    } finally {
+      setOpeningId(null);
     }
   };
 
   const handleMarkAllAsRead = () => {
     if (!markAllMutation.isPending && unreadCount > 0) {
-      markAllMutation.mutate();
+      markAllMutation.mutate(mode);
     }
   };
 
@@ -115,7 +107,7 @@ export default function NotificationsScreen({ navigation }) {
   return (
     <Screen backgroundColor={colors.background}>
       <AppHeader
-        title="Notificaciones"
+        title={mode === "profesional" ? "Notificaciones profesionales" : "Notificaciones"}
         maxWidth={layout.content.medium}
         action={
           unreadCount > 0 ? (
@@ -205,8 +197,8 @@ export default function NotificationsScreen({ navigation }) {
                         <View style={styles.cardFooter}>
                           <Ionicons name="time-outline" size={12} color={colors.textMuted} />
                           <Text style={styles.cardTime}>{formatTimeAgo(item.created_at)}</Text>
-                          {item.referencia_id ? (
-                            <Text style={styles.cardActionHint}>• Ver detalle</Text>
+                          {item.data?.destination || item.referencia_id ? (
+                            <Text style={styles.cardActionHint}>• Abrir</Text>
                           ) : null}
                         </View>
                       </View>
@@ -236,17 +228,41 @@ function getNotificationMeta(tipo) {
         color: "#16A34A",
         bgColor: "#DCFCE7",
       };
+    case "postulacion_retirada":
+      return {
+        icon: "arrow-undo-outline",
+        color: "#B45309",
+        bgColor: "#FEF3C7",
+      };
+    case "servicio_iniciado":
+      return {
+        icon: "play-circle",
+        color: "#0284C7",
+        bgColor: "#E0F2FE",
+      };
     case "servicio_completado":
       return {
         icon: "checkbox",
         color: "#7C3AED",
         bgColor: "#EDE9FE",
       };
+    case "finalizacion_pendiente":
+      return {
+        icon: "hourglass",
+        color: "#B45309",
+        bgColor: "#FEF3C7",
+      };
     case "calificacion_recibida":
       return {
         icon: "star",
         color: "#D97706",
         bgColor: "#FEF3C7",
+      };
+    case "servicio_cancelado":
+      return {
+        icon: "close-circle",
+        color: "#B91C1C",
+        bgColor: "#FEE2E2",
       };
     default:
       return {
