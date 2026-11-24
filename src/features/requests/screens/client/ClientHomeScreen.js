@@ -84,10 +84,6 @@ export default function ClientHomeScreen({ navigation }) {
               <Text style={styles.location}>Valledupar</Text>
             </View>
           </View>
-
-          <View style={styles.avatar}>
-            <Ionicons name="person-outline" size={22} color={colors.text} />
-          </View>
         </View>
 
         {hasDraft ? (
