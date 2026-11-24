@@ -7,7 +7,13 @@ import { colors, spacing } from "../../theme";
 import LocationMap from "./LocationMap";
 import { currentPoint, hasPoint, lookupAddress } from "./location";
 
-export default function LocationPicker({ point, address, onSelect, onAddress }) {
+export default function LocationPicker({
+  point,
+  address,
+  onSelect,
+  onAddress,
+  autoLocate = false,
+}) {
   const revision = useRef(0);
   const addressRef = useRef(address);
   const [pending, setPending] = useState("");
@@ -60,6 +66,12 @@ export default function LocationPicker({ point, address, onSelect, onAddress }) 
       if (request === revision.current) setPending("");
     }
   }
+
+  useEffect(() => {
+    if (autoLocate && !hasPoint(point)) locate();
+    // Solo al abrir el paso: una selección manual posterior nunca se reemplaza.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <View style={styles.container}>

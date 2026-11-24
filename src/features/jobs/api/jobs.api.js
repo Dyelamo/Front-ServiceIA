@@ -1,9 +1,11 @@
 import { api } from "../../../core/api/client";
+import { syncProviderCurrentLocation } from "../../location/provider-location";
 
 /**
  * Obtiene los trabajos asignados al prestador autenticado ('activos' o 'completados')
  */
 export const fetchProviderJobs = async (tipo = "activos") => {
+  await syncProviderCurrentLocation().catch(() => null);
   const { data } = await api.get("/publicaciones/trabajos", {
     params: { tipo },
   });

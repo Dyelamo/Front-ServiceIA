@@ -18,6 +18,7 @@ import { queryKeys } from "../../../../core/query/query-keys";
 
 import ProfessionalRequestCard from "../../components/ProfessionalRequestCard";
 import { useProfessionalAvailability } from "../../../professional/hooks/useProfessionalAvailability";
+import ProfessionalNotificationButton from "../../../notifications/components/ProfessionalNotificationButton";
 
 export default function AvailableRequestsScreen({ navigation }) {
   const { isDesktop } = useResponsive();
@@ -72,7 +73,11 @@ export default function AvailableRequestsScreen({ navigation }) {
   if (isLoading) {
     return (
       <Screen>
-        <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Solicitudes"
+          maxWidth={layout.content.wide}
+          action={<ProfessionalNotificationButton navigation={navigation} />}
+        />
 
         <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <View style={styles.grid}>
@@ -90,7 +95,11 @@ export default function AvailableRequestsScreen({ navigation }) {
   if (isError && requests.length === 0) {
     return (
       <Screen>
-        <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Solicitudes"
+          maxWidth={layout.content.wide}
+          action={<ProfessionalNotificationButton navigation={navigation} />}
+        />
 
         <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           <ErrorState
@@ -106,7 +115,11 @@ export default function AvailableRequestsScreen({ navigation }) {
 
   return (
     <Screen backgroundColor={colors.background}>
-      <AppHeader title="Solicitudes" maxWidth={layout.content.wide} />
+      <AppHeader
+        title="Solicitudes"
+        maxWidth={layout.content.wide}
+        action={<ProfessionalNotificationButton navigation={navigation} />}
+      />
 
       <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}

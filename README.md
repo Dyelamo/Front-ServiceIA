@@ -67,13 +67,13 @@ Las rutas exactas y los formatos de respuesta deben coincidir con el backend des
 La aplicación es una base funcional/prototipo con integraciones parciales. Antes de considerar completo el flujo de contratación, hay que tener en cuenta lo siguiente:
 
 - El análisis presentado como asistente/IA se construye en la interfaz con categorías y preguntas de ejemplo; no se observa una llamada a un modelo de IA.
-- La ubicación inicia en Valledupar y el mapa es un marcador visual; no se seleccionan coordenadas ni una dirección precisa. La pantalla profesional también indica que la ubicación no está especificada en las publicaciones actuales.
+- El cliente selecciona coordenadas y dirección al publicar. El profesional sincroniza su ubicación actual para calcular distancias; después de aceptar su oferta puede ver su posición y la del cliente como puntos identificados, sin trazar una ruta.
 - Agregar fotos solo crea elementos visuales de muestra; no abre cámara o galería ni carga archivos.
 - La billetera usa datos simulados y la acción de retiro no está conectada. Su integración funcional está fuera del alcance actual del frontend.
 - El chat usa la API disponible, pero todavía no dispone de transporte en tiempo real.
 - El refresh token existe en la capa API, pero la renovación automática de sesión aún está pendiente.
 
-Por lo tanto, el flujo principal ya permite publicar, ofertar, aceptar, ejecutar y reseñar servicios. La app todavía no cubre pagos, geolocalización precisa, carga real de imágenes ni análisis automatizado.
+Por lo tanto, el flujo principal ya permite publicar, ofertar, aceptar, consultar las posiciones del servicio, ejecutar y reseñar servicios. La app todavía no cubre pagos ni análisis automatizado.
 
 ## Tecnologías
 

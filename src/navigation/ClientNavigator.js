@@ -30,6 +30,7 @@ import { StyleSheet } from "react-native";
 import { useResponsive } from "../shared/hooks/useResponsive";
 
 import { RequestDraftProvider } from "../features/requests/context/RequestDraftContext";
+import { unreadBadge, useUnreadCounts } from "../features/notifications/hooks/useUnreadCounts";
 
 const Tab = createBottomTabNavigator();
 
@@ -37,6 +38,7 @@ const Stack = createNativeStackNavigator();
 
 function ClientTabs() {
   const { isDesktop } = useResponsive();
+  const unread = useUnreadCounts("cliente");
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -107,6 +109,8 @@ function ClientTabs() {
         component={NotificationsScreen}
         options={{
           title: "Notificaciones",
+          tabBarBadge: unreadBadge(unread.notifications),
+          tabBarBadgeStyle: styles.tabBadge,
         }}
       />
 
@@ -115,6 +119,8 @@ function ClientTabs() {
         component={MessagesScreen}
         options={{
           title: "Mensajes",
+          tabBarBadge: unreadBadge(unread.messages),
+          tabBarBadgeStyle: styles.tabBadge,
         }}
       />
 
@@ -207,5 +213,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
 
     fontWeight: "700",
+  },
+  tabBadge: {
+    backgroundColor: colors.error,
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: "800",
   },
 });

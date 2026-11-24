@@ -52,6 +52,7 @@ export const mapRequestFromApi = (request) => {
     ha_sido_calificada: Boolean(request.ha_sido_calificada),
     createdAt: request.created_at,
     updatedAt: request.updated_at,
+    images: Array.isArray(request.imagenes) ? request.imagenes : [],
     // Compatibilidad tanto con camelCase como snake_case
     categoria_id: request.categoria_id,
     categoria: request.categoria,

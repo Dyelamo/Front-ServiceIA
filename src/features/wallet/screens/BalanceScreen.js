@@ -17,6 +17,7 @@ import { formatCOP } from "../../../utils";
 import { MOCK_BALANCE_SUMMARY, MOCK_TRANSACTIONS } from "../data/wallet.mock";
 
 import TransactionItem from "../components/TransactionItem";
+import ProfessionalNotificationButton from "../../notifications/components/ProfessionalNotificationButton";
 
 export default function BalanceScreen({ navigation }) {
   const { isDesktop } = useResponsive();
@@ -27,6 +28,7 @@ export default function BalanceScreen({ navigation }) {
         title="Saldo y ganancias"
         onBack={() => navigation.goBack()}
         maxWidth={layout.content.wide}
+        action={<ProfessionalNotificationButton navigation={navigation} />}
       />
 
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>

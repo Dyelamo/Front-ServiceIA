@@ -25,6 +25,7 @@ import { categories } from "../../requests/data/categories";
 
 import { createProfessionalOffer } from "../api/offers.api";
 import { offerSchema } from "../schema/offer.schema";
+import ProfessionalNotificationButton from "../../notifications/components/ProfessionalNotificationButton";
 
 const URGENCY_LABELS = {
   ahora: "Lo antes posible",
@@ -121,6 +122,7 @@ export default function CreateOfferScreen({ navigation, route }) {
           title="Enviar oferta"
           onBack={loading ? undefined : () => navigation.goBack()}
           maxWidth={layout.content.wide}
+          action={<ProfessionalNotificationButton navigation={navigation} />}
         />
 
         <ResponsiveContainer maxWidth={layout.content.medium} style={styles.container}>
@@ -136,6 +138,7 @@ export default function CreateOfferScreen({ navigation, route }) {
         title="Enviar oferta"
         onBack={() => navigation.goBack()}
         maxWidth={layout.content.wide}
+        action={<ProfessionalNotificationButton navigation={navigation} />}
       />
 
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
@@ -178,16 +181,6 @@ export default function CreateOfferScreen({ navigation, route }) {
                 label="Distancia"
                 value={publicationDistance(request)}
               />
-              {request.providerHasPoint === false ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onPress={() =>
-                    navigation.navigate("ProfessionalTabs", { screen: "ProfessionalProfile" })
-                  }>
-                  Configurar mi ubicación base
-                </Button>
-              ) : null}
               <View style={styles.summaryGap} />
 
               <SummaryRow icon="time-outline" label="Urgencia" value={urgency} />

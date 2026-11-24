@@ -7,6 +7,7 @@ import { mapOffersFromApi } from "../mappers/offer.mapper";
 import { mapRequestFromApi } from "../../requests/mappers/request.mapper";
 
 import { fetchPublicationById } from "../../requests/api/requests.api";
+import { syncProviderCurrentLocation } from "../../location/provider-location";
 
 export const createProfessionalOffer = async ({ publicationId, price, availability, message }) => {
   const { data } = await api.post("/postulaciones", {
@@ -28,6 +29,7 @@ export const withdrawProfessionalOffer = async (offerId) => {
 };
 
 export const fetchProfessionalOffersWithPublications = async () => {
+  await syncProviderCurrentLocation().catch(() => null);
   const { data } = await api.get("/postulaciones", {
     params: {
       limit: 20,

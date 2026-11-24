@@ -64,7 +64,7 @@ export function formatDistance(km) {
 
 export function publicationDistance(request) {
   if (Number.isFinite(request.distanceKm)) return formatDistance(request.distanceKm);
-  if (request.providerHasPoint === false) return "Guarda tu ubicación base para calcularla";
+  if (request.providerHasPoint === false) return "Activa tu ubicación para calcularla";
   if (request.requestHasPoint === false) return "La solicitud aún no tiene un punto en el mapa";
   return formatDistance(null);
 }

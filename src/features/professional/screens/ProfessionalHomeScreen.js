@@ -17,6 +17,7 @@ import { useResponsive } from "../../../shared/hooks/useResponsive";
 import { fetchProfessionalPublications } from "../../requests/api/requests.api";
 import { fetchProfessionalOffersWithPublications } from "../../offers/api/offers.api";
 import { fetchProviderJobs } from "../../jobs/api/jobs.api";
+import ProfessionalNotificationButton from "../../notifications/components/ProfessionalNotificationButton";
 
 export default function ProfessionalHomeScreen({ navigation }) {
   const { isMobile, isDesktop } = useResponsive();
@@ -66,13 +67,7 @@ export default function ProfessionalHomeScreen({ navigation }) {
       <AppHeader
         title="Inicio profesional"
         maxWidth={layout.content.wide}
-        action={
-          <Pressable
-            onPress={() => navigation.navigate("Notifications")}
-            style={styles.notificationIconButton}>
-            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
-          </Pressable>
-        }
+        action={<ProfessionalNotificationButton navigation={navigation} />}
       />
 
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
@@ -235,10 +230,6 @@ function QuickAction({ icon, title, description, onPress, isDesktop }) {
 }
 
 const styles = StyleSheet.create({
-  notificationIconButton: {
-    padding: spacing.xs,
-    borderRadius: radius.pill,
-  },
   container: {
     paddingVertical: spacing.xl,
   },

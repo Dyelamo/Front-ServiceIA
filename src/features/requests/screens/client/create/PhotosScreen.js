@@ -204,8 +204,7 @@ export default function PhotosScreen({ navigation }) {
           <Ionicons name="information-circle-outline" size={20} color={colors.textSecondary} />
 
           <Text style={styles.infoText}>
-            Las imágenes se comprimen y quedan preparadas en el borrador. El envío al servidor se
-            activará cuando el backend exponga almacenamiento de archivos.
+            Las imágenes se comprimen antes de publicarse y se almacenan de forma privada.
           </Text>
         </View>
       )}
