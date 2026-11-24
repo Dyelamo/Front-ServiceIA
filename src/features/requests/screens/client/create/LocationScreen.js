@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import LocationPicker from "../../../../location/LocationPicker";
+import { hasPoint } from "../../../../location/location";
 
 import { Input, Card } from "../../../../../shared/ui/index";
 import { colors, radius, spacing } from "../../../../../theme/index";
@@ -33,7 +34,7 @@ export default function LocationScreen({ navigation }) {
       currentStep={3}
       title="¿Dónde necesitas el servicio?"
       description="Usa tu ubicación actual o escribe la dirección donde debe realizarse el trabajo."
-      continueDisabled={!draft.address?.trim()}
+      continueDisabled={!draft.address?.trim() || !hasPoint(draft)}
       onContinue={() => navigation.navigate("CreateRequestUrgency")}>
       <Card variant="outlined" style={styles.locationCard}>
         <View style={styles.locationIcon}>
@@ -50,6 +51,7 @@ export default function LocationScreen({ navigation }) {
       </Card>
 
       <LocationPicker
+        autoLocate
         point={draft}
         address={draft.address}
         onSelect={updateDraft}

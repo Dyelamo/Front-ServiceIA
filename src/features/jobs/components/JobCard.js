@@ -13,6 +13,7 @@ export default function JobCard({
   onStart,
   onComplete,
   onCancel,
+  onRoute,
   starting = false,
   completing = false,
   cancelling = false,
@@ -176,6 +177,16 @@ export default function JobCard({
       </View>
 
       <View style={styles.actions}>
+        {!isCompleted && !isCancelled && onRoute ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => onRoute(job)}
+            leftIcon={<Ionicons name="map-outline" size={16} color={colors.primary} />}>
+            Ver ubicaciones
+          </Button>
+        ) : null}
+
         {canStart && onStart ? (
           <Button
             size="sm"

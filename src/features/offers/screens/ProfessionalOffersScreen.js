@@ -23,6 +23,7 @@ import { queryKeys } from "../../../core/query/query-keys";
 import { getApiErrorMessage } from "../../../core/errors/error-message";
 
 import OfferCard from "../components/OfferCard";
+import ProfessionalNotificationButton from "../../notifications/components/ProfessionalNotificationButton";
 
 export default function ProfessionalOffersScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
@@ -115,7 +116,11 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
   if (isLoading) {
     return (
       <Screen>
-        <AppHeader title="Ofertas enviadas" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Ofertas enviadas"
+          maxWidth={layout.content.wide}
+          action={<ProfessionalNotificationButton navigation={navigation} />}
+        />
         <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           {showSuccess ? <OfferSentBanner /> : null}
           <View style={styles.grid}>
@@ -133,7 +138,11 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
   if (isError && offers.length === 0) {
     return (
       <Screen>
-        <AppHeader title="Ofertas enviadas" maxWidth={layout.content.wide} />
+        <AppHeader
+          title="Ofertas enviadas"
+          maxWidth={layout.content.wide}
+          action={<ProfessionalNotificationButton navigation={navigation} />}
+        />
 
         <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
           {showSuccess ? <OfferSentBanner /> : null}
@@ -150,7 +159,11 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
 
   return (
     <Screen backgroundColor={colors.background}>
-      <AppHeader title="Ofertas enviadas" maxWidth={layout.content.wide} />
+      <AppHeader
+        title="Ofertas enviadas"
+        maxWidth={layout.content.wide}
+        action={<ProfessionalNotificationButton navigation={navigation} />}
+      />
 
       <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}

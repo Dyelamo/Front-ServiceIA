@@ -19,6 +19,7 @@ import { categories } from "../../data/categories";
 import { publicationDistance } from "../../../location/location";
 import { queryKeys } from "../../../../core/query/query-keys";
 import { fetchPublicationById } from "../../api/requests.api";
+import ProfessionalNotificationButton from "../../../notifications/components/ProfessionalNotificationButton";
 
 function getCategory(categoryId) {
   return categories.find((item) => item.id === categoryId);
@@ -52,6 +53,7 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
           title="Solicitud"
           onBack={() => navigation.goBack()}
           maxWidth={layout.content.wide}
+          action={<ProfessionalNotificationButton navigation={navigation} />}
         />
 
         <ResponsiveContainer maxWidth={layout.content.medium} style={styles.container}>
@@ -94,6 +96,7 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
         title="Detalle de solicitud"
         onBack={() => navigation.goBack()}
         maxWidth={layout.content.wide}
+        action={<ProfessionalNotificationButton navigation={navigation} />}
       />
 
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>

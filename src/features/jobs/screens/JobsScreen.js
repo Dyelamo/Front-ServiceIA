@@ -12,13 +12,14 @@ import { getApiErrorMessage } from "../../../core/errors/error-message";
 import { cancelJob, completeJob, fetchProviderJobs, startJob } from "../api/jobs.api";
 import JobCard from "../components/JobCard";
 import CancellationModal from "../components/CancellationModal";
+import ProfessionalNotificationButton from "../../notifications/components/ProfessionalNotificationButton";
 
 const TABS = [
   { id: "activos", label: "Activos" },
   { id: "historial", label: "Historial" },
 ];
 
-export default function JobsScreen() {
+export default function JobsScreen({ navigation }) {
   const [tab, setTab] = useState("activos");
   const [jobToCancel, setJobToCancel] = useState(null);
   const queryClient = useQueryClient();
@@ -140,7 +141,11 @@ export default function JobsScreen() {
       scroll
       backgroundColor={colors.background}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} />}>
-      <AppHeader title="Mis trabajos" maxWidth={layout.content.wide} />
+      <AppHeader
+        title="Mis trabajos"
+        maxWidth={layout.content.wide}
+        action={<ProfessionalNotificationButton navigation={navigation} />}
+      />
 
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         <View style={styles.heading}>
@@ -202,6 +207,11 @@ export default function JobsScreen() {
               <View key={job.id} style={[styles.wrapper, isDesktop && styles.wrapperDesktop]}>
                 <JobCard
                   job={job}
+                  onRoute={(selectedJob) =>
+                    navigation.getParent()?.navigate("ServiceRoute", {
+                      publicationId: selectedJob.publicacion_id || selectedJob.id,
+                    })
+                  }
                   onStart={handleStartJob}
                   onComplete={handleCompleteJob}
                   onCancel={handleOpenCancellation}

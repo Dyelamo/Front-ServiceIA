@@ -24,10 +24,12 @@ import BalanceScreen from "../features/wallet/screens/BalanceScreen";
 import JobsScreen from "../features/jobs/screens/JobsScreen";
 import MessagesScreen from "../features/chat/screens/MessagesScreen";
 import ChatScreen from "../features/chat/screens/ChatScreen";
+import ServiceRouteScreen from "../features/jobs/screens/ServiceRouteScreen";
 
 import { StyleSheet } from "react-native";
 
 import { useResponsive } from "../shared/hooks/useResponsive";
+import { unreadBadge, useUnreadCounts } from "../features/notifications/hooks/useUnreadCounts";
 
 const Tab = createBottomTabNavigator();
 
@@ -35,6 +37,7 @@ const Stack = createNativeStackNavigator();
 
 function ProfessionalTabs() {
   const { isDesktop } = useResponsive();
+  const unread = useUnreadCounts("profesional");
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -130,6 +133,8 @@ function ProfessionalTabs() {
         component={MessagesScreen}
         options={{
           title: "Mensajes",
+          tabBarBadge: unreadBadge(unread.messages),
+          tabBarBadgeStyle: styles.tabBadge,
         }}
       />
 
@@ -163,6 +168,8 @@ export default function ProfessionalNavigator() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
 
       <Stack.Screen name="Chat" component={ChatScreen} />
+
+      <Stack.Screen name="ServiceRoute" component={ServiceRouteScreen} />
     </Stack.Navigator>
   );
 }
@@ -214,5 +221,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
 
     fontWeight: "700",
+  },
+  tabBadge: {
+    backgroundColor: colors.error,
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: "800",
   },
 });

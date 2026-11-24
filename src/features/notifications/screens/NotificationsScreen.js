@@ -108,6 +108,7 @@ export default function NotificationsScreen({ navigation }) {
     <Screen backgroundColor={colors.background}>
       <AppHeader
         title={mode === "profesional" ? "Notificaciones profesionales" : "Notificaciones"}
+        onBack={mode === "profesional" ? () => navigation.goBack() : undefined}
         maxWidth={layout.content.medium}
         action={
           unreadCount > 0 ? (

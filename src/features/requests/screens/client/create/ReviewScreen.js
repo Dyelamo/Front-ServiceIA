@@ -68,6 +68,7 @@ export default function ReviewScreen({ navigation }) {
         city: validatedDraft.city,
         latitud: validatedDraft.latitud,
         longitud: validatedDraft.longitud,
+        photos: draft.photos,
       });
 
       queryClient.invalidateQueries({ queryKey: queryKeys.clientRequests });

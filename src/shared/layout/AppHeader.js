@@ -15,6 +15,7 @@ export default function AppHeader({
   subtitle,
   onBack,
   right,
+  action,
   maxWidth = 1200,
   showBorder = true,
 }) {
@@ -54,7 +55,7 @@ export default function AppHeader({
             </View>
           </View>
 
-          {right ? <View style={styles.rightSection}>{right}</View> : null}
+          {right || action ? <View style={styles.rightSection}>{right || action}</View> : null}
         </View>
       </ResponsiveContainer>
     </View>

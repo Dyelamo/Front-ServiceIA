@@ -1,6 +1,7 @@
 import { api } from "../../../core/api/client";
 import { extractList } from "../../../core/api/response";
 import { mapRequestFromApi, mapRequestsFromApi } from "../mappers/request.mapper";
+import { syncProviderCurrentLocation } from "../../location/provider-location";
 
 export const fetchClientPublications = async () => {
   const { data } = await api.get("/publicaciones/mis-publicaciones");
@@ -8,6 +9,7 @@ export const fetchClientPublications = async () => {
 };
 
 export const fetchProfessionalPublications = async (barrio = null) => {
+  await syncProviderCurrentLocation().catch(() => null);
   const params = {};
   if (barrio) params.barrio = barrio;
   const { data } = await api.get("/publicaciones/categorias-prestador", { params });
@@ -34,6 +36,7 @@ export const createServiceRequest = async ({
   city = "Valledupar",
   latitud = null,
   longitud = null,
+  photos = [],
 }) => {
   const { data } = await api.post("/publicaciones", {
     descripcion: description,
@@ -46,6 +49,33 @@ export const createServiceRequest = async ({
     latitud,
     longitud,
   });
+
+  if (photos.length > 0) {
+    const form = new FormData();
+
+    for (const photo of photos) {
+      if (typeof window !== "undefined") {
+        const blob = await fetch(photo.uri).then((response) => response.blob());
+        form.append("files", blob, photo.name || "foto.jpg");
+      } else {
+        form.append("files", {
+          uri: photo.uri,
+          name: photo.name || "foto.jpg",
+          type: photo.mimeType || "image/jpeg",
+        });
+      }
+    }
+
+    try {
+      const uploadResponse = await api.post(`/publicaciones/${data.id}/imagenes`, form, {
+        timeout: 60000,
+      });
+      return mapRequestFromApi(uploadResponse.data);
+    } catch (error) {
+      await api.delete(`/publicaciones/${data.id}`).catch(() => null);
+      throw error;
+    }
+  }
 
   return mapRequestFromApi(data);
 };

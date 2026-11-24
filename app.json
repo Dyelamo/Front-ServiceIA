@@ -35,7 +35,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Serv-IA usa tu ubicación para marcar dónde se realizará un servicio o para guardar tu base como profesional."
+          "locationWhenInUsePermission": "Serv-IA usa tu ubicación para marcar dónde se realizará un servicio, calcular distancias y mostrar tu posición junto a la del cliente."
         }
       ]
     ]
