@@ -57,9 +57,9 @@ export async function lookupAddress(point) {
 
 export function formatDistance(km) {
   if (!Number.isFinite(km)) return "Distancia no disponible";
-  if (km < 0.1) return "A menos de 100 m · en línea recta";
+  if (km < 0.1) return "A menos de 100 m";
   const distance = km < 1 ? `${Math.round(km * 1000)} m` : `${String(km).replace(".", ",")} km`;
-  return `Aprox. ${distance} · en línea recta`;
+  return `Aprox. ${distance}`;
 }
 
 export function publicationDistance(request) {

@@ -319,8 +319,8 @@ function IntroStep({ onStart, onClose, isDesktop }) {
 
             <BenefitItem
               icon="wallet-outline"
-              title="Recibe pagos"
-              description="Cobra directamente desde la app"
+              title="Modelo de cobro"
+              description="Sin suscripciones ni costos fijos. Solo pagas cuando concretas un acuerdo."
             />
           </View>
 
