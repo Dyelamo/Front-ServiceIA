@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../../theme";
@@ -15,7 +15,13 @@ function getInitials(name = "") {
 }
 
 export default function Avatar({ source, name = "", size = 48 }) {
-  if (source) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [source]);
+
+  if (source && !imageFailed) {
     return (
       <Image
         source={typeof source === "string" ? { uri: source } : source}
@@ -24,6 +30,7 @@ export default function Avatar({ source, name = "", size = 48 }) {
           height: size,
           borderRadius: size / 2,
         }}
+        onError={() => setImageFailed(true)}
       />
     );
   }

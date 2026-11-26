@@ -27,7 +27,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Serv-IA necesita acceso a tus fotos para adjuntarlas a una solicitud.",
+          "photosPermission": "Serv-IA necesita acceso a tus fotos para adjuntarlas a una solicitud o elegir tu foto de perfil.",
           "cameraPermission": "Serv-IA necesita acceso a la cámara para fotografiar el problema.",
           "microphonePermission": false
         }

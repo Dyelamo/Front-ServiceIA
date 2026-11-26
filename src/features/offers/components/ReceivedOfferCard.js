@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, radius, spacing } from "../../../theme";
-import { Button, Card } from "../../../shared/ui";
+import { Avatar, Button, Card } from "../../../shared/ui";
 import { fetchProviderReviews } from "../../reviews/api/reviews.api";
 import { formatDistance } from "../../location/location";
 
@@ -50,9 +50,11 @@ export default function ReceivedOfferCard({
       <Pressable
         onPress={onViewProfile}
         style={({ pressed }) => [styles.header, pressed && onViewProfile && styles.headerPressed]}>
-        <View style={styles.providerIcon}>
-          <Ionicons name="person-outline" size={20} color={colors.primary} />
-        </View>
+        <Avatar
+          source={offer.provider?.foto_perfil || offer.provider?.usuario?.foto_perfil}
+          name={providerName}
+          size={42}
+        />
 
         <View style={styles.providerDetails}>
           <View style={styles.nameAndBadgeRow}>
@@ -164,14 +166,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: spacing.lg,
-  },
-  providerIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primaryLight,
   },
   providerDetails: {
     flex: 1,

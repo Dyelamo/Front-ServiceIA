@@ -24,6 +24,7 @@ import { useAppMode } from "../../app-mode/hooks/useAppMode";
 import { categories as serviceCategories } from "../../requests/data/categories";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
+import ProfilePhoto from "../../profile/components/ProfilePhoto";
 
 export default function ProfessionalProfileScreen() {
   const { logout } = useAuth();
@@ -165,7 +166,12 @@ export default function ProfessionalProfileScreen() {
         ) : null}
         <Card variant="outlined" style={styles.heroCard}>
           <View style={[styles.hero, isMobile && styles.heroMobile]}>
-            <Avatar name={fullName} size={76} />
+            <ProfilePhoto
+              name={fullName}
+              source={user?.foto_perfil || professional?.foto_perfil}
+              size={76}
+              onUploaded={(updatedProfile) => setUser((current) => ({ ...current, ...updatedProfile }))}
+            />
 
             <View style={[styles.heroCopy, isMobile && styles.heroCopyMobile]}>
               <View style={styles.nameRow}>
@@ -274,10 +280,21 @@ export default function ProfessionalProfileScreen() {
                       <View key={r.id} style={styles.reviewItem}>
                         <View style={styles.reviewItemHeader}>
                           <View>
-                            <Text style={styles.reviewClientName}>
-                              {r.cliente_nombre || "Cliente"}
-                            </Text>
-                            <Text style={styles.reviewItemDate}>{formatDate(r.created_at)}</Text>
+                            <View style={styles.reviewClientIdentity}>
+                              <Avatar
+                                source={r.cliente_foto}
+                                name={r.cliente_nombre || "Cliente"}
+                                size={34}
+                              />
+                              <View>
+                                <Text style={styles.reviewClientName}>
+                                  {r.cliente_nombre || "Cliente"}
+                                </Text>
+                                <Text style={styles.reviewItemDate}>
+                                  {formatDate(r.created_at)}
+                                </Text>
+                              </View>
+                            </View>
                           </View>
                           <View style={styles.starsInline}>
                             {[1, 2, 3, 4, 5].map((s) => (
@@ -744,6 +761,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 4,
+  },
+  reviewClientIdentity: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   reviewClientName: {
     fontSize: 13,

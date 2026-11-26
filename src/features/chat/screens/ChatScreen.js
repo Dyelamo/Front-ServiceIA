@@ -15,7 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../../core/query/query-keys";
 import { getApiErrorMessage } from "../../../core/errors/error-message";
 import { getAccessToken, getUserId } from "../../../core/storage/auth.storage";
-import { Button, Input } from "../../../shared/ui";
+import { Avatar, Button, Input } from "../../../shared/ui";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout";
 import { colors, layout, radius, spacing } from "../../../theme";
 import {
@@ -201,6 +201,13 @@ export default function ChatScreen({ navigation, route }) {
         title={partnerName}
         onBack={() => navigation.goBack()}
         maxWidth={layout.content.wide}
+        right={
+          <Avatar
+            source={conversation?.partner?.foto_perfil}
+            name={partnerName}
+            size={38}
+          />
+        }
       />
       <ResponsiveContainer maxWidth={layout.content.wide} style={styles.container}>
         {publicationTitle ? <Text style={styles.publicationTitle}>{publicationTitle}</Text> : null}

@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "../../../core/query/query-keys";
 import { AppModeContext } from "../../app-mode/context/AppModeContext";
-import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui";
+import { Avatar, EmptyState, ErrorState, Skeleton } from "../../../shared/ui";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout";
 import { colors, layout, radius, spacing } from "../../../theme";
 import { fetchConversations } from "../api/chat.api";
@@ -109,9 +109,11 @@ export default function MessagesScreen({ navigation }) {
                     isClosed && styles.closedCard,
                     pressed && styles.pressed,
                   ]}>
-                  <View style={styles.avatar}>
-                    <Ionicons name="person-outline" size={20} color={colors.primary} />
-                  </View>
+                  <Avatar
+                    source={conversation.partner?.foto_perfil}
+                    name={conversation.partner?.nombre_completo || "Conversación"}
+                    size={44}
+                  />
                   <View style={styles.conversationContent}>
                     <View style={styles.titleRow}>
                       <Text numberOfLines={1} style={styles.partnerName}>
@@ -181,14 +183,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   closedCard: { opacity: 0.8, backgroundColor: colors.surfaceSecondary },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primaryLight,
-  },
   conversationContent: { flex: 1, marginHorizontal: spacing.md },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   partnerName: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "700" },

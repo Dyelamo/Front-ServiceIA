@@ -8,13 +8,14 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import { colors, layout, spacing } from "../../../theme/index";
 
-import { Avatar, Button, Card, ErrorState, Skeleton, Divider } from "../../../shared/ui/index";
+import { Button, Card, ErrorState, Skeleton, Divider } from "../../../shared/ui/index";
 
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 
 import { useResponsive } from "../../../shared/hooks/useResponsive";
 
 import { getMyProfileApi } from "../api/user.api";
+import ProfilePhoto from "../components/ProfilePhoto";
 
 import { useAuth } from "../../../hook/useAuth";
 
@@ -149,7 +150,12 @@ export default function ClientProfileScreen({ navigation }) {
         ) : null}
         <Card variant="outlined" style={styles.heroCard}>
           <View style={[styles.hero, isMobile && styles.heroMobile]}>
-            <Avatar name={fullName} size={76} />
+            <ProfilePhoto
+              name={fullName}
+              source={profile?.foto_perfil}
+              size={76}
+              onUploaded={setProfile}
+            />
 
             <View style={[styles.heroCopy, isMobile && styles.heroCopyMobile]}>
               <Text style={styles.name}>{fullName}</Text>

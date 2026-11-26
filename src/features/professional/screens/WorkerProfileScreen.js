@@ -130,7 +130,11 @@ export default function WorkerProfileScreen({ navigation, route }) {
         {/* HERO CARD */}
         <Card variant="outlined" style={styles.heroCard}>
           <View style={[styles.hero, isMobile && styles.heroMobile]}>
-            <Avatar name={fullName} size={80} />
+            <Avatar
+              source={profile?.foto_perfil || profile?.usuario?.foto_perfil}
+              name={fullName}
+              size={80}
+            />
 
             <View style={[styles.heroCopy, isMobile && styles.heroCopyMobile]}>
               <View style={styles.nameRow}>
