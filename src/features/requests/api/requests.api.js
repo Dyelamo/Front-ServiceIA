@@ -1,11 +1,58 @@
 import { api } from "../../../core/api/client";
 import { extractList } from "../../../core/api/response";
 import { mapRequestFromApi, mapRequestsFromApi } from "../mappers/request.mapper";
+import { getReferenceImage } from "../utils/requestImages";
 import { syncProviderCurrentLocation } from "../../location/provider-location";
+
+function needsImageHydration(rawItem) {
+  if (!rawItem?.id) {
+    return false;
+  }
+
+  if (getReferenceImage(rawItem)) {
+    return false;
+  }
+
+  if (!Array.isArray(rawItem.imagenes)) {
+    return true;
+  }
+
+  return rawItem.imagenes.length > 0;
+}
+
+async function hydratePublicationsImages(rawItems) {
+  if (!Array.isArray(rawItems) || rawItems.length === 0) {
+    return [];
+  }
+
+  return Promise.all(
+    rawItems.map(async (item) => {
+      if (!needsImageHydration(item)) {
+        return item;
+      }
+
+      try {
+        const { data } = await api.get(`/publicaciones/${item.id}`);
+        if (data && Array.isArray(data.imagenes)) {
+          return {
+            ...item,
+            imagenes: data.imagenes,
+          };
+        }
+      } catch {
+        // Si falla la hidratación de una card puntual, mantenemos los datos base
+      }
+
+      return item;
+    }),
+  );
+}
 
 export const fetchClientPublications = async () => {
   const { data } = await api.get("/publicaciones/mis-publicaciones");
-  return mapRequestsFromApi(extractList(data));
+  const rawList = extractList(data);
+  const hydratedList = await hydratePublicationsImages(rawList);
+  return mapRequestsFromApi(hydratedList);
 };
 
 export const fetchProfessionalPublications = async (barrio = null) => {
@@ -13,7 +60,9 @@ export const fetchProfessionalPublications = async (barrio = null) => {
   const params = {};
   if (barrio) params.barrio = barrio;
   const { data } = await api.get("/publicaciones/categorias-prestador", { params });
-  return mapRequestsFromApi(extractList(data));
+  const rawList = extractList(data);
+  const hydratedList = await hydratePublicationsImages(rawList);
+  return mapRequestsFromApi(hydratedList);
 };
 
 export const fetchPublicationById = async (publicationId) => {

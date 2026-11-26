@@ -1,18 +1,53 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, radius, spacing } from "../../../theme/index";
 import { Button } from "../../../shared/ui/index";
 import { canWithdrawOffer } from "../../../core/domain/statuses";
+import { getReferenceImage, getRequestImages } from "../../requests/utils/requestImages";
 
 export default function OfferCard({ offer, onMessage, onWithdraw, withdrawing = false }) {
   const publication = offer.publication;
+  const images = getRequestImages(publication);
+  const referenceImage = getReferenceImage(publication);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [referenceImage]);
+
+  const hasValidImage = Boolean(referenceImage && !imageFailed);
 
   return (
     <View style={styles.card}>
+      {hasValidImage ? (
+        <View style={styles.referenceMedia}>
+          <Image
+            source={{ uri: referenceImage }}
+            style={styles.referenceImage}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+
+          <View style={styles.referenceTag}>
+            <Ionicons name="image-outline" size={12} color={colors.white} />
+            <Text style={styles.referenceTagText}>Referencia</Text>
+          </View>
+
+          {images.length > 1 ? (
+            <View style={styles.referenceCount}>
+              <Ionicons name="images-outline" size={12} color={colors.white} />
+              <Text style={styles.referenceTagText}>
+                +{images.length - 1} foto{images.length - 1 === 1 ? "" : "s"}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
       {publication ? (
         <View style={styles.publicationSection}>
           <View style={styles.publicationHeader}>
@@ -231,6 +266,55 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
 
     padding: spacing.lg,
+  },
+
+  referenceMedia: {
+    width: "100%",
+    height: 156,
+    borderRadius: radius.md,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.lg,
+    position: "relative",
+  },
+
+  referenceImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  referenceTag: {
+    position: "absolute",
+    top: spacing.sm,
+    left: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(15, 23, 42, 0.72)",
+  },
+
+  referenceCount: {
+    position: "absolute",
+    right: spacing.sm,
+    bottom: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(15, 23, 42, 0.76)",
+  },
+
+  referenceTagText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: "700",
   },
 
   messageButton: {

@@ -19,6 +19,8 @@ import { categories } from "../../data/categories";
 import { publicationDistance } from "../../../location/location";
 import { queryKeys } from "../../../../core/query/query-keys";
 import { fetchPublicationById } from "../../api/requests.api";
+import { getRequestImages } from "../../utils/requestImages";
+import RequestImageGallery from "../../components/RequestImageGallery";
 import ProfessionalNotificationButton from "../../../notifications/components/ProfessionalNotificationButton";
 
 function getCategory(categoryId) {
@@ -90,6 +92,8 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
       ? `${request.barrio} - ${request.direccion || "Valledupar"}${request.referencia ? ` (${request.referencia})` : ""}`
       : request.direccion || "Valledupar, Cesar");
 
+  const images = getRequestImages(request);
+
   return (
     <Screen scroll backgroundColor={colors.background}>
       <AppHeader
@@ -117,14 +121,39 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
         {/* COLUMNAS */}
 
         <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>
-          {/* DESCRIPCIÓN */}
+          {/* FOTOS Y DESCRIPCIÓN */}
 
           <View style={[styles.mainColumn, !isDesktop && styles.fullColumn]}>
+            {images.length > 0 ? (
+              <Card variant="outlined" style={[styles.card, styles.cardSpacing]}>
+                <SectionHeader
+                  icon="images-outline"
+                  title={`Fotos de la necesidad (${images.length})`}
+                />
+
+                <RequestImageGallery
+                  images={images}
+                  emptyMessage="El cliente no adjuntó imágenes en esta solicitud."
+                />
+              </Card>
+            ) : null}
+
             <Card variant="outlined" style={styles.card}>
               <SectionHeader icon="document-text-outline" title="Descripción" />
 
               <Text style={styles.description}>{description}</Text>
             </Card>
+
+            {images.length === 0 ? (
+              <Card variant="outlined" style={[styles.card, styles.cardTopSpacing]}>
+                <SectionHeader icon="images-outline" title="Fotos de la necesidad" />
+
+                <RequestImageGallery
+                  images={images}
+                  emptyMessage="El cliente no adjuntó imágenes en esta solicitud."
+                />
+              </Card>
+            ) : null}
           </View>
 
           {/* SIDEBAR */}
@@ -157,6 +186,18 @@ export default function ProfessionalRequestDetailScreen({ navigation, route }) {
               <Divider />
 
               <InfoRow icon="time-outline" label="Urgencia" value={urgency} />
+
+              <Divider />
+
+              <InfoRow
+                icon="images-outline"
+                label="Fotos adjuntas"
+                value={
+                  images.length > 0
+                    ? `${images.length} foto${images.length === 1 ? "" : "s"}`
+                    : "Sin fotos"
+                }
+              />
 
               <Divider />
 
@@ -351,6 +392,14 @@ const styles = StyleSheet.create({
     width: "100%",
 
     padding: spacing.xl,
+  },
+
+  cardSpacing: {
+    marginBottom: spacing.lg,
+  },
+
+  cardTopSpacing: {
+    marginTop: spacing.lg,
   },
 
   sectionHeader: {

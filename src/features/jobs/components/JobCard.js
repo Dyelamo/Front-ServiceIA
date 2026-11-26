@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, radius, spacing } from "../../../theme/index";
@@ -7,6 +7,7 @@ import { Avatar, Badge, Button, Card } from "../../../shared/ui/index";
 import { formatCOP } from "../../../utils";
 import { resolveCategoryIcon } from "../../catalog/utils/category-presentation";
 import { formatDistance } from "../../location/location";
+import { getReferenceImage, getRequestImages } from "../../requests/utils/requestImages";
 
 export default function JobCard({
   job,
@@ -28,8 +29,52 @@ export default function JobCard({
   const canComplete = job.can_complete ?? isInProgress;
   const canCancel = job.can_cancel ?? (isAgreed || isInProgress || isAwaitingConfirmation);
 
+  const images = getRequestImages(job);
+  const referenceImage = getReferenceImage(job);
+  const [imageFailed, setImageFailed] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    setImageFailed(false);
+    setActiveIndex(0);
+  }, [referenceImage]);
+
+  const hasValidImage = Boolean(referenceImage && !imageFailed);
+  const safeIndex = Math.min(activeIndex, Math.max(0, images.length - 1));
+
   return (
     <Card variant="outlined" style={styles.card}>
+      {hasValidImage ? (
+        <Pressable
+          onPress={() => {
+            setActiveIndex(0);
+            setGalleryOpen(true);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Ver fotos de la necesidad del cliente"
+          style={({ pressed }) => [styles.mediaContainer, pressed && styles.pressed]}>
+          <Image
+            source={{ uri: referenceImage }}
+            style={styles.coverImage}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+
+          <View style={styles.referenceTag}>
+            <Ionicons name="image-outline" size={12} color={colors.white} />
+            <Text style={styles.mediaBadgeText}>Referencia</Text>
+          </View>
+
+          <View style={styles.mediaCountPill}>
+            <Ionicons name="expand-outline" size={12} color={colors.white} />
+            <Text style={styles.mediaBadgeText}>
+              {images.length > 1 ? `1/${images.length} fotos` : "Ver foto"}
+            </Text>
+          </View>
+        </Pressable>
+      ) : null}
+
       <View style={styles.categoryRow}>
         <View style={styles.categoryIcon}>
           <Ionicons
@@ -220,6 +265,56 @@ export default function JobCard({
           Cancelar servicio
         </Button>
       ) : null}
+
+      {hasValidImage ? (
+        <Modal
+          visible={galleryOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setGalleryOpen(false)}>
+          <View style={styles.lightboxBackdrop}>
+            <View style={styles.lightboxHeader}>
+              <Text style={styles.lightboxCounter}>
+                Foto {safeIndex + 1} de {images.length}
+              </Text>
+              <Pressable
+                onPress={() => setGalleryOpen(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar visor de fotos"
+                style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}>
+                <Ionicons name="close" size={22} color={colors.white} />
+              </Pressable>
+            </View>
+
+            <View style={styles.lightboxStage}>
+              <Image
+                source={{ uri: images[safeIndex] }}
+                style={styles.lightboxImage}
+                resizeMode="contain"
+              />
+            </View>
+
+            {images.length > 1 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.lightboxThumbs}>
+                {images.map((uri, idx) => (
+                  <Pressable
+                    key={`${uri}-${idx}`}
+                    onPress={() => setActiveIndex(idx)}
+                    style={[
+                      styles.lightboxThumb,
+                      idx === safeIndex && styles.lightboxThumbActive,
+                    ]}>
+                    <Image source={{ uri }} style={styles.coverImage} resizeMode="cover" />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : null}
+          </View>
+        </Modal>
+      ) : null}
     </Card>
   );
 }
@@ -239,6 +334,106 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     padding: spacing.lg,
+  },
+  pressed: {
+    opacity: 0.82,
+  },
+  mediaContainer: {
+    width: "100%",
+    height: 164,
+    borderRadius: radius.md,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.md,
+    position: "relative",
+  },
+  coverImage: {
+    width: "100%",
+    height: "100%",
+  },
+  referenceTag: {
+    position: "absolute",
+    top: spacing.sm,
+    left: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(15, 23, 42, 0.72)",
+  },
+  mediaCountPill: {
+    position: "absolute",
+    right: spacing.sm,
+    bottom: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(15, 23, 42, 0.76)",
+  },
+  mediaBadgeText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  lightboxBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.95)",
+    justifyContent: "space-between",
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+  },
+  lightboxHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  lightboxCounter: {
+    color: colors.white,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  closeButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255, 255, 255, 0.14)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  lightboxStage: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: spacing.lg,
+  },
+  lightboxImage: {
+    width: "100%",
+    height: "100%",
+  },
+  lightboxThumbs: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  lightboxThumb: {
+    width: 68,
+    height: 52,
+    borderRadius: radius.sm,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "transparent",
+    opacity: 0.6,
+  },
+  lightboxThumbActive: {
+    borderColor: colors.primary,
+    opacity: 1,
   },
   header: {
     flexDirection: "row",

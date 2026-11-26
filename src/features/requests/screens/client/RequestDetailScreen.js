@@ -10,7 +10,9 @@ import { AppHeader, ResponsiveContainer, Screen } from "../../../../shared/layou
 import { useResponsive } from "../../../../shared/hooks/useResponsive";
 
 import RequestStatusBadge from "../../components/RequestStatusBadge";
+import RequestImageGallery from "../../components/RequestImageGallery";
 import EditRequestLocation from "../../components/EditRequestLocation";
+import { getRequestImages } from "../../utils/requestImages";
 import ReceivedOfferCard from "../../../offers/components/ReceivedOfferCard";
 import { acceptOffer, fetchOffersForPublication } from "../../../offers/api/offers.api";
 import {
@@ -143,6 +145,7 @@ export default function RequestDetailScreen({ navigation, route }) {
     "Valledupar, Cesar";
 
   const createdAt = request.createdAt || request.created_at;
+  const images = getRequestImages(request);
 
   const acceptedOffer = offers.find((o) => o.status === "aceptada" || o.status === "aceptado");
 
@@ -378,10 +381,33 @@ export default function RequestDetailScreen({ navigation, route }) {
         {/* INFORMACIÓN PRINCIPAL */}
         <View style={[styles.columns, !isDesktop && styles.columnsMobile]}>
           <View style={[styles.mainColumn, !isDesktop && styles.fullColumn]}>
+            {images.length > 0 ? (
+              <Card variant="outlined" style={[styles.card, styles.cardSpacing]}>
+                <SectionHeader
+                  icon="images-outline"
+                  title={`Fotos de referencia (${images.length})`}
+                />
+                <RequestImageGallery
+                  images={images}
+                  emptyMessage="No adjuntaste imágenes en esta publicación."
+                />
+              </Card>
+            ) : null}
+
             <Card variant="outlined" style={styles.card}>
               <SectionHeader icon="document-text-outline" title="Descripción" />
               <Text style={styles.description}>{description}</Text>
             </Card>
+
+            {images.length === 0 ? (
+              <Card variant="outlined" style={[styles.card, styles.cardTopSpacing]}>
+                <SectionHeader icon="images-outline" title="Fotos adjuntas" />
+                <RequestImageGallery
+                  images={images}
+                  emptyMessage="No adjuntaste imágenes en esta publicación."
+                />
+              </Card>
+            ) : null}
 
             {hasActiveAgreement ? (
               <View style={styles.completeActionBox}>
@@ -465,6 +491,17 @@ export default function RequestDetailScreen({ navigation, route }) {
                   />
                 </>
               ) : null}
+
+              <Divider />
+              <InfoRow
+                icon="images-outline"
+                label="Fotos"
+                value={
+                  images.length > 0
+                    ? `${images.length} foto${images.length === 1 ? "" : "s"}`
+                    : "Sin fotos"
+                }
+              />
             </Card>
           </View>
         </View>
@@ -776,6 +813,12 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     padding: spacing.xl,
+  },
+  cardSpacing: {
+    marginBottom: spacing.lg,
+  },
+  cardTopSpacing: {
+    marginTop: spacing.lg,
   },
   completeActionBox: {
     marginTop: spacing.lg,

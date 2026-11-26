@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +22,7 @@ import { publicationDistance } from "../../location/location";
 import { fetchPublicationById } from "../../requests/api/requests.api";
 
 import { categories } from "../../requests/data/categories";
+import { getReferenceImage, getRequestImages } from "../../requests/utils/requestImages";
 
 import { createProfessionalOffer } from "../api/offers.api";
 import { offerSchema } from "../schema/offer.schema";
@@ -49,6 +50,7 @@ export default function CreateOfferScreen({ navigation, route }) {
   const { isAvailable } = useProfessionalAvailability();
   const queryClient = useQueryClient();
   const [error, setError] = useState("");
+  const [imageFailed, setImageFailed] = useState(false);
   const {
     control,
     handleSubmit,
@@ -76,6 +78,13 @@ export default function CreateOfferScreen({ navigation, route }) {
     request?.urgencia ||
     request?.urgency ||
     "No especificada";
+
+  const images = getRequestImages(request);
+  const referenceImage = getReferenceImage(request);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [referenceImage]);
 
   const createOfferMutation = useMutation({
     mutationFn: createProfessionalOffer,
@@ -147,6 +156,23 @@ export default function CreateOfferScreen({ navigation, route }) {
 
           <View style={[styles.summaryColumn, !isDesktop && styles.fullColumn]}>
             <Card variant="outlined" style={styles.summaryCard}>
+              {referenceImage && !imageFailed ? (
+                <View style={styles.summaryMedia}>
+                  <Image
+                    source={{ uri: referenceImage }}
+                    style={styles.summaryImage}
+                    resizeMode="cover"
+                    onError={() => setImageFailed(true)}
+                  />
+                  {images.length > 1 ? (
+                    <View style={styles.summaryImageCount}>
+                      <Ionicons name="images-outline" size={12} color={colors.white} />
+                      <Text style={styles.summaryImageCountText}>{images.length} fotos</Text>
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
+
               <View style={styles.summaryHeader}>
                 <View style={styles.summaryIcon}>
                   <Ionicons
@@ -386,6 +412,42 @@ const styles = StyleSheet.create({
 
   summaryCard: {
     padding: spacing.xl,
+  },
+
+  summaryMedia: {
+    width: "100%",
+    height: 150,
+    borderRadius: radius.md,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.lg,
+    position: "relative",
+  },
+
+  summaryImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  summaryImageCount: {
+    position: "absolute",
+    right: spacing.sm,
+    bottom: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(15, 23, 42, 0.72)",
+  },
+
+  summaryImageCountText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: "700",
   },
 
   summaryHeader: {

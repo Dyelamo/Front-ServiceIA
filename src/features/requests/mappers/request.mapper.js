@@ -1,6 +1,7 @@
 import { categories } from "../data/categories";
 import { PUBLICATION_STATUS_LABELS } from "../../../core/domain/statuses";
 import { resolveCategoryIcon } from "../../catalog/utils/category-presentation";
+import { getReferenceImage } from "../utils/requestImages";
 
 const URGENCY_LABELS = {
   ahora: "Lo antes posible",
@@ -53,6 +54,8 @@ export const mapRequestFromApi = (request) => {
     createdAt: request.created_at,
     updatedAt: request.updated_at,
     images: Array.isArray(request.imagenes) ? request.imagenes : [],
+    imagenes: Array.isArray(request.imagenes) ? request.imagenes : [],
+    referenceImage: getReferenceImage(request),
     // Compatibilidad tanto con camelCase como snake_case
     categoria_id: request.categoria_id,
     categoria: request.categoria,

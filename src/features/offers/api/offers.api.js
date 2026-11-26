@@ -4,8 +4,6 @@ import { extractList } from "../../../core/api/response";
 
 import { mapOffersFromApi } from "../mappers/offer.mapper";
 
-import { mapRequestFromApi } from "../../requests/mappers/request.mapper";
-
 import { fetchPublicationById } from "../../requests/api/requests.api";
 import { syncProviderCurrentLocation } from "../../location/provider-location";
 
@@ -47,9 +45,7 @@ export const fetchProfessionalOffersWithPublications = async () => {
         let publication = publicationCache.get(offer.publicationId);
 
         if (!publication) {
-          const rawPublication = await fetchPublicationById(offer.publicationId);
-
-          publication = mapRequestFromApi(rawPublication);
+          publication = await fetchPublicationById(offer.publicationId);
 
           publicationCache.set(offer.publicationId, publication);
         }
