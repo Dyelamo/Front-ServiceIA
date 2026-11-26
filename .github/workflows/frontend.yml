@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: frontend-${{ github.ref }}
@@ -17,13 +16,12 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'pull_request' && 'development' || 'production' }}
     env:
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
@@ -32,21 +30,13 @@ jobs:
       - run: npm run typecheck
       - run: npm run build:web
 
-      - name: Azure login with OIDC
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Upload Expo web to Azure Storage
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
         run: >-
           az storage blob upload-batch
-          --account-name "${{ vars.AZURE_STORAGE_ACCOUNT }}"
-          --auth-mode login
+          --connection-string "$AZURE_STORAGE_CONNECTION_STRING"
           --destination "\$web"
           --source dist
           --overwrite
-
