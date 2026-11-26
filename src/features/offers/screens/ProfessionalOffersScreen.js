@@ -2,7 +2,7 @@ import React, { useCallback, useState, useEffect } from "react";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { Alert, Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useFocusEffect } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import {
   fetchProfessionalOffersWithPublications,
   withdrawProfessionalOffer,
 } from "../api/offers.api";
+import { useAlertModal } from "../../../core/alerts/AlertModalContext";
 import { queryKeys } from "../../../core/query/query-keys";
 import { getApiErrorMessage } from "../../../core/errors/error-message";
 
@@ -27,6 +28,7 @@ import ProfessionalNotificationButton from "../../notifications/components/Profe
 
 export default function ProfessionalOffersScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
+  const { showAlert, showConfirm } = useAlertModal();
   const queryClient = useQueryClient();
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -83,34 +85,25 @@ export default function ProfessionalOffersScreen({ navigation, route }) {
       ]);
     },
     onError: (error) => {
-      Alert.alert("No pudimos retirar la oferta", getApiErrorMessage(error, "Intenta nuevamente."));
+      showAlert({
+        title: "No pudimos retirar la oferta",
+        message: getApiErrorMessage(error, "Intenta nuevamente."),
+        variant: "error",
+      });
     },
   });
 
   const confirmWithdraw = (offer) => {
-    if (Platform.OS === "web" && typeof window !== "undefined") {
-      const confirmed = window.confirm(
-        "Retirar oferta\n\nLa propuesta dejará de estar disponible para el cliente. Esta acción no se puede deshacer.",
-      );
-
-      if (confirmed) {
-        withdrawMutation.mutate(offer.id);
-      }
-      return;
-    }
-
-    Alert.alert(
-      "Retirar oferta",
-      "La propuesta dejará de estar disponible para el cliente. Esta acción no se puede deshacer.",
-      [
-        { text: "Conservar", style: "cancel" },
-        {
-          text: "Retirar",
-          style: "destructive",
-          onPress: () => withdrawMutation.mutate(offer.id),
-        },
-      ],
-    );
+    showConfirm({
+      title: "Retirar oferta",
+      message:
+        "La propuesta dejará de estar disponible para el cliente. Esta acción no se puede deshacer.",
+      cancelLabel: "Conservar",
+      confirmLabel: "Retirar",
+      confirmVariant: "danger",
+      variant: "warning",
+      onConfirm: () => withdrawMutation.mutate(offer.id),
+    });
   };
 
   if (isLoading) {

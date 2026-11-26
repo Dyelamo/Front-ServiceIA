@@ -3,6 +3,7 @@ import "react-native-gesture-handler";
 import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AlertModalProvider } from "./src/core/alerts/AlertModalContext";
 import { GlobalErrorProvider } from "./src/core/errors/GlobalErrorContext";
 import { AppQueryProvider } from "./src/core/query/AppQueryProvider";
 import { AppModeProvider } from "./src/features/app-mode/context/AppModeContext";
@@ -13,13 +14,15 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <GlobalErrorProvider>
-        <AppQueryProvider>
-          <AuthProvider>
-            <AppModeProvider>
-              <RootNavigator />
-            </AppModeProvider>
-          </AuthProvider>
-        </AppQueryProvider>
+        <AlertModalProvider>
+          <AppQueryProvider>
+            <AuthProvider>
+              <AppModeProvider>
+                <RootNavigator />
+              </AppModeProvider>
+            </AuthProvider>
+          </AppQueryProvider>
+        </AlertModalProvider>
       </GlobalErrorProvider>
     </SafeAreaProvider>
   );

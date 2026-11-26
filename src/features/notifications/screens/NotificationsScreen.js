@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from "react";
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { colors, layout, radius, spacing } from "../../../theme/index";
 import { ErrorState, Skeleton } from "../../../shared/ui/index";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 import { useResponsive } from "../../../shared/hooks/useResponsive";
+import { useAlertModal } from "../../../core/alerts/AlertModalContext";
 import { queryKeys } from "../../../core/query/query-keys";
 import { AppModeContext } from "../../app-mode/context/AppModeContext";
 import {
@@ -19,6 +20,7 @@ import { openNotificationDestination } from "../navigation/notification-router";
 
 export default function NotificationsScreen({ navigation }) {
   const { isDesktop } = useResponsive();
+  const { showAlert } = useAlertModal();
   const { mode } = useContext(AppModeContext);
   const [openingId, setOpeningId] = useState(null);
   const queryClient = useQueryClient();
@@ -85,12 +87,14 @@ export default function NotificationsScreen({ navigation }) {
       await openNotificationDestination({ notification: item, mode, navigation });
     } catch (err) {
       console.error("Error abriendo la notificación:", err);
-      Alert.alert(
-        "No pudimos abrir el destino",
-        err?.response?.data?.detail ||
+      showAlert({
+        title: "No pudimos abrir el destino",
+        message:
+          err?.response?.data?.detail ||
           err?.message ||
           "El contenido puede haber cambiado o ya no estar disponible.",
-      );
+        variant: "error",
+      });
     } finally {
       setOpeningId(null);
     }

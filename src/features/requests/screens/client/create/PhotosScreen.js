@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -12,6 +12,7 @@ import { Card } from "../../../../../shared/ui/index";
 
 import { useResponsive } from "../../../../../shared/hooks/useResponsive";
 
+import { useAlertModal } from "../../../../../core/alerts/AlertModalContext";
 import { useRequestDraft } from "../../../context/RequestDraftContext";
 
 import RequestWizardLayout from "../../../components/RequestWizardLayout";
@@ -19,6 +20,7 @@ import RequestWizardLayout from "../../../components/RequestWizardLayout";
 export default function PhotosScreen({ navigation }) {
   const { draft, updateDraft } = useRequestDraft();
   const { isMobile } = useResponsive();
+  const { showAlert } = useAlertModal();
   const [processing, setProcessing] = useState(false);
   const remainingSlots = Math.max(0, 5 - draft.photos.length);
 
@@ -27,7 +29,11 @@ export default function PhotosScreen({ navigation }) {
     const oversizedAsset = availableAssets.find((asset) => asset.fileSize > 12 * 1024 * 1024);
 
     if (oversizedAsset) {
-      Alert.alert("Imagen demasiado grande", "Cada imagen debe pesar menos de 12 MB.");
+      showAlert({
+        title: "Imagen demasiado grande",
+        message: "Cada imagen debe pesar menos de 12 MB.",
+        variant: "warning",
+      });
       return;
     }
 
@@ -62,7 +68,11 @@ export default function PhotosScreen({ navigation }) {
       updateDraft({ photos: [...draft.photos, ...preparedPhotos] });
     } catch (error) {
       console.error("Error preparando las imágenes:", error);
-      Alert.alert("No pudimos agregar las fotos", "Intenta nuevamente con otra imagen.");
+      showAlert({
+        title: "No pudimos agregar las fotos",
+        message: "Intenta nuevamente con otra imagen.",
+        variant: "error",
+      });
     } finally {
       setProcessing(false);
     }
@@ -76,10 +86,11 @@ export default function PhotosScreen({ navigation }) {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permission.granted) {
-      Alert.alert(
-        "Permiso de cámara requerido",
-        "Habilita la cámara en la configuración del dispositivo para tomar una foto.",
-      );
+      showAlert({
+        title: "Permiso de cámara requerido",
+        message: "Habilita la cámara en la configuración del dispositivo para tomar una foto.",
+        variant: "warning",
+      });
       return;
     }
 
@@ -102,10 +113,11 @@ export default function PhotosScreen({ navigation }) {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
-      Alert.alert(
-        "Permiso de fotos requerido",
-        "Habilita el acceso a tus fotos para seleccionar imágenes del problema.",
-      );
+      showAlert({
+        title: "Permiso de fotos requerido",
+        message: "Habilita el acceso a tus fotos para seleccionar imágenes del problema.",
+        variant: "warning",
+      });
       return;
     }
 

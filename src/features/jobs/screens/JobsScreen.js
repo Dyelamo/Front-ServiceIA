@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Alert, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -7,6 +7,7 @@ import { colors, layout, radius, spacing } from "../../../theme/index";
 import { EmptyState, ErrorState, Skeleton } from "../../../shared/ui/index";
 import { AppHeader, ResponsiveContainer, Screen } from "../../../shared/layout/index";
 import { useResponsive } from "../../../shared/hooks/useResponsive";
+import { useAlertModal } from "../../../core/alerts/AlertModalContext";
 import { queryKeys } from "../../../core/query/query-keys";
 import { getApiErrorMessage } from "../../../core/errors/error-message";
 import { cancelJob, completeJob, fetchProviderJobs, startJob } from "../api/jobs.api";
@@ -24,6 +25,7 @@ export default function JobsScreen({ navigation }) {
   const [jobToCancel, setJobToCancel] = useState(null);
   const queryClient = useQueryClient();
   const { isDesktop } = useResponsive();
+  const { showAlert, showConfirm } = useAlertModal();
 
   const {
     data: jobs = [],
@@ -59,31 +61,39 @@ export default function JobsScreen({ navigation }) {
   const startMutation = useMutation({
     mutationFn: startJob,
     onSuccess: () => {
-      Alert.alert("Trabajo iniciado", "El estado del servicio cambió a 'En progreso'.");
+      showAlert({
+        title: "Trabajo iniciado",
+        message: "El estado del servicio cambió a 'En progreso'.",
+        variant: "success",
+      });
       refreshJobs();
     },
     onError: (error) => {
-      Alert.alert(
-        "No pudimos iniciar el trabajo",
-        getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
-      );
+      showAlert({
+        title: "No pudimos iniciar el trabajo",
+        message: getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
+        variant: "error",
+      });
     },
   });
 
   const completeMutation = useMutation({
     mutationFn: completeJob,
     onSuccess: () => {
-      Alert.alert(
-        "Trabajo marcado como realizado",
-        "El cliente debe confirmar que el servicio terminó. Hasta entonces seguirá apareciendo como trabajo activo.",
-      );
+      showAlert({
+        title: "Trabajo marcado como realizado",
+        message:
+          "El cliente debe confirmar que el servicio terminó. Hasta entonces seguirá apareciendo como trabajo activo.",
+        variant: "success",
+      });
       refreshJobs();
     },
     onError: (error) => {
-      Alert.alert(
-        "No pudimos finalizar el trabajo",
-        getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
-      );
+      showAlert({
+        title: "No pudimos finalizar el trabajo",
+        message: getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
+        variant: "error",
+      });
     },
   });
 
@@ -91,37 +101,47 @@ export default function JobsScreen({ navigation }) {
     mutationFn: cancelJob,
     onSuccess: () => {
       setJobToCancel(null);
-      Alert.alert("Servicio cancelado", "La otra persona fue notificada y el chat se cerró.");
+      showAlert({
+        title: "Servicio cancelado",
+        message: "La otra persona fue notificada y el chat se cerró.",
+        variant: "info",
+      });
       refreshJobs();
     },
     onError: (error) => {
-      Alert.alert(
-        "No pudimos cancelar el servicio",
-        getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
-      );
+      showAlert({
+        title: "No pudimos cancelar el servicio",
+        message: getApiErrorMessage(error, "Intenta nuevamente en unos minutos."),
+        variant: "error",
+      });
     },
   });
 
   const handleStartJob = (job) => {
     if (startMutation.isPending || completeMutation.isPending || cancelMutation.isPending) return;
     const jobId = job.publicacion_id || job.id;
-    confirmAction(
-      "Iniciar trabajo",
-      "¿Confirmas que ya vas a iniciar este servicio?",
-      () => startMutation.mutate(jobId),
-      "Iniciar",
-    );
+    showConfirm({
+      title: "Iniciar trabajo",
+      message: "¿Confirmas que ya vas a iniciar este servicio?",
+      confirmLabel: "Iniciar",
+      cancelLabel: "Volver",
+      variant: "info",
+      onConfirm: () => startMutation.mutate(jobId),
+    });
   };
 
   const handleCompleteJob = (job) => {
     if (startMutation.isPending || completeMutation.isPending || cancelMutation.isPending) return;
     const jobId = job.publicacion_id || job.id;
-    confirmAction(
-      "Marcar trabajo como realizado",
-      "El cliente será notificado y deberá confirmar que el servicio terminó. Seguirás ocupado hasta su confirmación.",
-      () => completeMutation.mutate(jobId),
-      "Marcar realizado",
-    );
+    showConfirm({
+      title: "Marcar trabajo como realizado",
+      message:
+        "El cliente será notificado y deberá confirmar que el servicio terminó. Seguirás ocupado hasta su confirmación.",
+      confirmLabel: "Marcar realizado",
+      cancelLabel: "Volver",
+      variant: "info",
+      onConfirm: () => completeMutation.mutate(jobId),
+    });
   };
 
   const handleOpenCancellation = (job) => {
@@ -244,20 +264,6 @@ export default function JobsScreen({ navigation }) {
       />
     </Screen>
   );
-}
-
-function confirmAction(title, message, onConfirm, confirmLabel) {
-  if (Platform.OS === "web" && typeof window !== "undefined") {
-    if (window.confirm(`${title}\n\n${message}`)) {
-      onConfirm();
-    }
-    return;
-  }
-
-  Alert.alert(title, message, [
-    { text: "Volver", style: "cancel" },
-    { text: confirmLabel, onPress: onConfirm },
-  ]);
 }
 
 const styles = StyleSheet.create({

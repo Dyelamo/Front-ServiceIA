@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -21,11 +20,13 @@ import { Button, Input } from "../../../shared/ui";
 import AuthLayout from "../components/AuthLayout";
 import AuthHeader from "../components/AuthHeader";
 
+import { useAlertModal } from "../../../core/alerts/AlertModalContext";
 import { useAuth } from "../../../hook/useAuth";
 import { loginSchema } from "../schema/auth.schema";
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
+  const { showAlert } = useAlertModal();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const {
@@ -145,10 +146,12 @@ export default function LoginScreen({ navigation }) {
             <Pressable
               disabled={isSubmitting}
               onPress={() => {
-                Alert.alert(
-                  "Recuperación de contraseña",
-                  "Esta opción estará disponible cuando el backend habilite el envío de enlaces de recuperación.",
-                );
+                showAlert({
+                  title: "Recuperación de contraseña",
+                  message:
+                    "Esta opción estará disponible cuando el backend habilite el envío de enlaces de recuperación.",
+                  variant: "info",
+                });
               }}>
               <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
             </Pressable>
