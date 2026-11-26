@@ -189,7 +189,7 @@ export default function ClientHomeScreen({ navigation }) {
           </View>
 
           <View style={styles.categoryGrid}>
-            {categories.slice(0, 6).map((category) => (
+            {categories.map((category) => (
               <View
                 key={category.id}
                 style={[
