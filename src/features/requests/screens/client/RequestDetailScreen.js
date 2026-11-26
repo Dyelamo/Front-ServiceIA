@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Alert, Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,6 +22,7 @@ import { fetchPublicationReview } from "../../../reviews/api/reviews.api";
 import MandatoryReviewModal from "../../../reviews/components/MandatoryReviewModal";
 import { useRequestDraft } from "../../context/RequestDraftContext";
 import CancellationModal from "../../../jobs/components/CancellationModal";
+import { useAlertModal } from "../../../../core/alerts/AlertModalContext";
 import { canCancelPublication } from "../../../../core/domain/statuses";
 import { queryKeys } from "../../../../core/query/query-keys";
 import { getApiErrorMessage } from "../../../../core/errors/error-message";
@@ -30,6 +31,7 @@ export default function RequestDetailScreen({ navigation, route }) {
   const { isDesktop } = useResponsive();
   const queryClient = useQueryClient();
   const { updateDraft } = useRequestDraft();
+  const { showAlert, showConfirm } = useAlertModal();
 
   const initialRequest = route?.params?.request;
   const [updatedRequest, setUpdatedRequest] = useState(null);
@@ -193,10 +195,11 @@ export default function RequestDetailScreen({ navigation, route }) {
       await refreshRelatedData();
 
       if (!conversationId) {
-        Alert.alert(
-          "Oferta aceptada",
-          "La postulación fue aceptada y el servicio pasó a 'Acuerdo'.",
-        );
+        showAlert({
+          title: "Oferta aceptada",
+          message: "La postulación fue aceptada y el servicio pasó a 'Acuerdo'.",
+          variant: "success",
+        });
         return;
       }
 
@@ -211,12 +214,14 @@ export default function RequestDetailScreen({ navigation, route }) {
       });
     } catch (error) {
       console.error("Error aceptando oferta:", error);
-      Alert.alert(
-        "No se pudo aceptar la oferta",
-        error?.response?.status === 409
-          ? "La oferta, la solicitud o la disponibilidad del profesional cambió. Actualiza las ofertas e intenta de nuevo."
-          : getApiErrorMessage(error, "Intenta nuevamente."),
-      );
+      showAlert({
+        title: "No se pudo aceptar la oferta",
+        message:
+          error?.response?.status === 409
+            ? "La oferta, la solicitud o la disponibilidad del profesional cambió. Actualiza las ofertas e intenta de nuevo."
+            : getApiErrorMessage(error, "Intenta nuevamente."),
+        variant: "error",
+      });
     } finally {
       setAcceptingOfferId(null);
     }
@@ -232,10 +237,11 @@ export default function RequestDetailScreen({ navigation, route }) {
       setShowReviewModal(true);
     } catch (error) {
       console.error("Error al finalizar servicio:", error);
-      Alert.alert(
-        "No pudimos finalizar el servicio",
-        getApiErrorMessage(error, "Intenta nuevamente."),
-      );
+      showAlert({
+        title: "No pudimos finalizar el servicio",
+        message: getApiErrorMessage(error, "Intenta nuevamente."),
+        variant: "error",
+      });
     } finally {
       setCompletingService(false);
     }
@@ -248,17 +254,19 @@ export default function RequestDetailScreen({ navigation, route }) {
       setCurrentStatus("cancelado");
       setShowCancellation(false);
       await refreshRelatedData();
-      Alert.alert(
-        isOpenRequest ? "Solicitud cancelada" : "Servicio cancelado",
-        isOpenRequest
+      showAlert({
+        title: isOpenRequest ? "Solicitud cancelada" : "Servicio cancelado",
+        message: isOpenRequest
           ? "La publicación ya no recibirá ofertas."
           : "El profesional fue notificado y el chat se cerró.",
-      );
+        variant: "info",
+      });
     } catch (error) {
-      Alert.alert(
-        "No pudimos cancelar el servicio",
-        getApiErrorMessage(error, "Intenta nuevamente."),
-      );
+      showAlert({
+        title: "No pudimos cancelar el servicio",
+        message: getApiErrorMessage(error, "Intenta nuevamente."),
+        variant: "error",
+      });
     } finally {
       setCancellingService(false);
     }
@@ -412,7 +420,17 @@ export default function RequestDetailScreen({ navigation, route }) {
                 </View>
                 {canCompleteService ? (
                   <Button
-                    onPress={() => confirmClientCompletion(handleCompleteService)}
+                    onPress={() =>
+                      showConfirm({
+                        title: "Confirmar servicio terminado",
+                        message:
+                          "Confirma solamente si el profesional terminó realmente el trabajo. Después podrás calificarlo.",
+                        cancelLabel: "Volver",
+                        confirmLabel: "Confirmar",
+                        variant: "info",
+                        onConfirm: handleCompleteService,
+                      })
+                    }
                     loading={completingService}
                     leftIcon={<Ionicons name="checkmark-done-circle" size={18} color="#FFFFFF" />}>
                     Confirmar servicio terminado y calificar
@@ -605,22 +623,6 @@ function formatDate(value) {
     month: "long",
     year: "numeric",
   });
-}
-
-function confirmClientCompletion(onConfirm) {
-  const title = "Confirmar servicio terminado";
-  const message =
-    "Confirma solamente si el profesional terminó realmente el trabajo. Después podrás calificarlo.";
-
-  if (Platform.OS === "web" && typeof window !== "undefined") {
-    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
-    return;
-  }
-
-  Alert.alert(title, message, [
-    { text: "Volver", style: "cancel" },
-    { text: "Confirmar", onPress: onConfirm },
-  ]);
 }
 
 const styles = StyleSheet.create({

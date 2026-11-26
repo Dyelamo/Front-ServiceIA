@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, radius, spacing } from "../../../theme/index";
-import { Button } from "../../../shared/ui/index";
+import { AlertModal, Button } from "../../../shared/ui/index";
+import { useAlertModal } from "../../../core/alerts/AlertModalContext";
 import { createReview } from "../api/reviews.api";
 
 const STAR_LABELS = {
@@ -22,18 +23,28 @@ export default function MandatoryReviewModal({
   publicationTitle = "Servicio contratado",
   onSuccess,
 }) {
+  const { showAlert } = useAlertModal();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [localAlert, setLocalAlert] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "warning",
+  });
 
   const isFormValid = rating >= 1 && rating <= 5 && comment.trim().length >= 3;
 
   const handleSubmit = async () => {
     if (!isFormValid) {
-      Alert.alert(
-        "Calificación requerida",
-        "Debes seleccionar entre 1 y 5 estrellas y escribir una opinión de al menos 3 caracteres.",
-      );
+      setLocalAlert({
+        visible: true,
+        title: "Calificación requerida",
+        message:
+          "Debes seleccionar entre 1 y 5 estrellas y escribir una opinión de al menos 3 caracteres.",
+        variant: "warning",
+      });
       return;
     }
 
@@ -46,20 +57,27 @@ export default function MandatoryReviewModal({
         comentario: comment.trim(),
       });
 
-      Alert.alert(
-        "¡Gracias por tu reseña!",
-        "Tu opinión ha sido registrada y ayuda a toda la comunidad de Valledupar a elegir los mejores prestadores.",
-      );
-
       if (onSuccess) {
         onSuccess(result);
       }
+
+      showAlert({
+        title: "¡Gracias por tu reseña!",
+        message:
+          "Tu opinión ha sido registrada y ayuda a toda la comunidad de Valledupar a elegir los mejores prestadores.",
+        variant: "success",
+      });
     } catch (error) {
       console.error("Error al registrar reseña obligatoria:", error);
       const detail =
         error?.response?.data?.detail ||
         "No se pudo guardar la calificación. Por favor verifica los datos e intenta nuevamente.";
-      Alert.alert("Error al calificar", detail);
+      setLocalAlert({
+        visible: true,
+        title: "Error al calificar",
+        message: detail,
+        variant: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -72,10 +90,13 @@ export default function MandatoryReviewModal({
       animationType="fade"
       // Bloqueo explícito: no se puede cerrar con el botón atrás de Android ni omitir
       onRequestClose={() => {
-        Alert.alert(
-          "Reseña Obligatoria",
-          "Para mantener la calidad y seguridad de la comunidad en Valledupar, no puedes omitir la calificación de este servicio finalizado.",
-        );
+        setLocalAlert({
+          visible: true,
+          title: "Reseña Obligatoria",
+          message:
+            "Para mantener la calidad y seguridad de la comunidad en Valledupar, no puedes omitir la calificación de este servicio finalizado.",
+          variant: "warning",
+        });
       }}>
       <View style={styles.overlay}>
         <View style={styles.container}>
@@ -154,6 +175,14 @@ export default function MandatoryReviewModal({
           </Text>
         </View>
       </View>
+
+      <AlertModal
+        visible={localAlert.visible}
+        title={localAlert.title}
+        message={localAlert.message}
+        variant={localAlert.variant}
+        onClose={() => setLocalAlert((current) => ({ ...current, visible: false }))}
+      />
     </Modal>
   );
 }
